@@ -1,0 +1,1 @@
+#include <misaki/render/component.h>
