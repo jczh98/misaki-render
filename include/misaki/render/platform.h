@@ -14,4 +14,10 @@ namespace misaki::render {
 #  define MSK_INLINE    __attribute__((always_inline)) inline
 #endif
 
+#if MSK_EXPORTS
+#  define MSK_PUBLIC MSK_EXPORT
+#else
+#  define MSK_PUBLIC MSK_IMPORT
+#endif
+
 }

@@ -1,10 +1,13 @@
 #pragma once
 
 #include "fwd.h"
-#include "platform.h"
 
 namespace misaki::render {
 
-class MSK_EXPORT Component {};
+class MSK_EXPORT Component {
+};
+
+extern MSK_EXPORT void librender_nop();
 
 }
+
