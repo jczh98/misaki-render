@@ -1,0 +1,1 @@
+add_plugin(perspective perspective.cpp)
