@@ -19,6 +19,10 @@ int main(int argc, char** argv) {
     Log(Info, e.what());
   }
   misaki::math::TVector<float, 3> v = {1, 2, 3};
+  misaki::math::Transform<float, 4> transform;
+  auto vec = transform.apply_normal(v);
+  auto rotation = misaki::math::Transform<float, 4>::scale({2, 2, 2});
+  Log(Info, rotation.to_string());
   Log(Info, v.to_string());
   return 0;
 }
