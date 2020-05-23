@@ -21,8 +21,10 @@ function(add_plugin)
     set_target_properties(${TARGET} PROPERTIES
             #LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/dist/plugins/"
             #ARCHIVE_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/dist/plugins/"
-            RUNTIME_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/dist/plugins")
+            RUNTIME_OUTPUT_DIRECTORY_DEBUG  "${CMAKE_BINARY_DIR}/dist/Debug/plugins"
+            RUNTIME_OUTPUT_DIRECTORY_RELEASE  "${CMAKE_BINARY_DIR}/dist/Release/plugins")
     target_link_libraries(${TARGET} misaki-render)
 endfunction()
+
 include_directories(include)
 add_subdirectory(src)

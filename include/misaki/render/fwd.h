@@ -6,7 +6,8 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
-#include <misaki/utils/math/vector.h>
+#include <misaki/utils/math.h>
+#include <misaki/utils/system.h>
 #include <fmt/format.h>
 #include <rttr/registration.h>
 #include "platform.h"

@@ -22,14 +22,9 @@ target_link_libraries(misaki-render PUBLIC
         rttr_core
         )
 
-if (CMAKE_BUILD_TYPE STREQUAL Debug)
-    add_custom_command(TARGET misaki-render POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_BINARY_DIR}/external/rttr/bin/rttr_core_d.dll"
-            "${CMAKE_BINARY_DIR}/dist/rttr_core_d.dll")
-else()
-    add_custom_command(TARGET misaki-render POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_BINARY_DIR}/external/rttr/bin/rttr_core.dll"
-            "${CMAKE_BINARY_DIR}/dist/rttr_core.dll")
-endif()
+# Copy rttr runtime to dist
+get_target_property(RTTR_RUNTIME_OUTPUT_DIRECTORY rttr_core RUNTIME_OUTPUT_DIRECTORY)
+add_custom_command(TARGET misaki-render POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${RTTR_RUNTIME_OUTPUT_DIRECTORY}"
+        "${CMAKE_BINARY_DIR}/dist/")

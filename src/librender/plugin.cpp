@@ -40,7 +40,9 @@ struct PluginManager::PluginManagerPrivate {
 #else
     filename.replace_extension(".so");
 #endif
-    if (fs::exists(filename)) {
+    auto resolver = get_file_resolver();
+    auto resolved = resolver->resolve(filename);
+    if (fs::exists(resolved)) {
       Log(Info, R"(Loading plugin "{}" ..)", filename.string());
       Plugin *plugin = new Plugin(filename);
       plugins[name] = plugin;
