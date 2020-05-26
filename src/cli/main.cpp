@@ -22,7 +22,9 @@ int main(int argc, char** argv) {
   misaki::math::Transform<float, 4> transform;
   auto vec = transform.apply_normal(v);
   auto rotation = misaki::math::Transform<float, 4>::scale({2, 2, 2});
+  auto frame = misaki::math::Frame(v);
   Log(Info, rotation.to_string());
   Log(Info, v.to_string());
+  Log(Info, frame.to_string());
   return 0;
 }
