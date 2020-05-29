@@ -18,13 +18,6 @@ target_compile_definitions(misaki-render PRIVATE -DMSK_EXPORTS)
 target_compile_definitions(misaki-render PUBLIC -D_CRT_SECURE_NO_WARNINGS)
 target_link_libraries(misaki-render PUBLIC
         misaki-utils
-        fmt
-        rttr_core
+        fmt::fmt
+        RTTR::Core
         )
-
-# Copy rttr runtime to dist
-get_target_property(RTTR_RUNTIME_OUTPUT_DIRECTORY rttr_core RUNTIME_OUTPUT_DIRECTORY)
-add_custom_command(TARGET misaki-render POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${RTTR_RUNTIME_OUTPUT_DIRECTORY}"
-        "${CMAKE_BINARY_DIR}/dist/")

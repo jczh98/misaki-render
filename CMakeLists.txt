@@ -3,13 +3,16 @@ project(misaki-render)
 
 set(CMAKE_CXX_STANDARD 17)
 
+find_package(fmt CONFIG REQUIRED)
+find_package(rttr CONFIG REQUIRED)
+
 add_subdirectory(external/misaki-utils)
-add_subdirectory(external/fmt)
-add_subdirectory(external/rttr)
+
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /std:c++17")
     add_compile_options("/wd4819") # Eigen half
+    add_compile_options("/wd4566") # fmt warning
 endif ()
 
 function(add_plugin)

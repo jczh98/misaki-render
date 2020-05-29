@@ -10,6 +10,7 @@
 #include <misaki/utils/system.h>
 #include <fmt/format.h>
 #include <rttr/registration.h>
+#include <rttr/rttr_enable.h>
 #include "platform.h"
 
 namespace misaki::render {
