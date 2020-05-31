@@ -9,6 +9,7 @@ add_library(misaki-render SHARED
         ${INC_DIR}/properties.h properties.cpp
         ${INC_DIR}/plugin.h plugin.cpp
         ${INC_DIR}/camera.h camera.cpp
+        ${INC_DIR}/xml.h xml.cpp
         )
 set_target_properties(misaki-render PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib"
@@ -20,4 +21,5 @@ target_link_libraries(misaki-render PUBLIC
         misaki-utils
         fmt::fmt
         RTTR::Core
+        pugixml
         )

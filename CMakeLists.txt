@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(fmt CONFIG REQUIRED)
 find_package(rttr CONFIG REQUIRED)
+find_package(pugixml CONFIG REQUIRED)
 
 add_subdirectory(external/misaki-utils)
 

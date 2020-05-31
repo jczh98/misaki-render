@@ -23,8 +23,14 @@ int main(int argc, char** argv) {
   auto vec = transform.apply_normal(v);
   auto rotation = misaki::math::Transform<float, 4>::scale({2, 2, 2});
   auto frame = misaki::math::Frame(v);
+  Color3 col = {1.5, 2., 3.};
+  Properties test_prop;
+  test_prop.set_vector3("vec3", v);
+  test_prop.set_color("col", col);
   Log(Info, rotation.to_string());
   Log(Info, v.to_string());
   Log(Info, frame.to_string());
+  Log(Info, col.to_string());
+  Log(Info, test_prop.to_string());
   return 0;
 }
