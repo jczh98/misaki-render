@@ -139,17 +139,91 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
                                                      pugi::xml_node &node, Tag parent_tag,
                                                      Properties &props, ParameterList &param,
                                                      size_t &arg_counter, int depth) {
+  static std::map<std::string, Tag> tags;
+  static std::once_flag flag;
+  std::call_once(flag, [&]() {
+    tags["boolean"] = Tag::Boolean;
+    tags["integer"] = Tag::Integer;
+    tags["integer"] = Tag::Integer;
+    tags["float"] = Tag::Float;
+    tags["string"] = Tag::String;
+    tags["vector"] = Tag::Vector;
+    tags["transform"] = Tag::Transform;
+    tags["translate"] = Tag::Translate;
+    tags["matrix"] = Tag::Matrix;
+    tags["rotate"] = Tag::Rotate;
+    tags["scale"] = Tag::Scale;
+    tags["lookat"] = Tag::LookAt;
+    tags["ref"] = Tag::NamedReference;
+    tags["rgb"] = Tag::RGB;
+    tags["include"] = Tag::Include;
+    tags["alias"] = Tag::Alias;
+    tags["default"] = Tag::Default;
+    tags["scene"] = Tag::Object;
+  });
   try {
     if (!param.empty()) {
       for (auto attr : node.attributes()) {
         std::string value = attr.value();
-
+        if (value.find('$') == std::string::npos)
+          continue;
+        for (const auto &kv : param)
+          string::replace_inplace(value, "$" + kv.first, kv.second);
+        attr.set_value(value.c_str());
       }
+    }
+    // Skip comments
+    if (node.type() == pugi::node_comment || node.type() == pugi::node_declaration)
+      return {"", ""};
+    if (node.type() != pugi::node_element)
+      src.throw_error(node, "unexpected content");
+    auto it = tags.find(node.name());
+    if (it == tags.end()) src.throw_error(node, R"(unexpected tag "{}")", node.name());
+    Tag tag = it->second;
+    bool has_parent = parent_tag != Tag::Invalid;
+    bool parent_is_object = has_parent && parent_tag == Tag::Object;
+    bool current_is_object = tag == Tag::Object;
+    bool parent_is_transform = parent_tag == Tag::Transform;
+    bool current_is_transform_op = tag == Tag::Translate || tag == Tag::Rotate ||
+                                   tag == Tag::Scale || tag == Tag::LookAt ||
+                                   tag == Tag::Matrix;
+    if (!has_parent && !current_is_object) src.throw_error(node, R"(root element "{}" must be an object)", node.name());
+    if (parent_is_transform != current_is_transform_op) {
+      if (parent_is_transform)
+        src.throw_error(node, "transform nodes can only contain transform operations");
+      else
+        src.throw_error(node, "transform operations can only occur in a transform node");
+    }
+    if (has_parent && !parent_is_object && !(parent_is_transform && current_is_transform_op))
+      src.throw_error(node, R"(node "{}" cannot occur as child of a property)", node.name());
+    if (std::string(node.name()) == "scene")
+      node.append_attribute("type") = "scene";
+    else if (tag == Tag::Transform)
+      ctx.transform = Transform4();
+    if (node.attribute("name")) {
+      auto name = node.attribute("name").value();
+      if (string::starts_with(name, "_"))
+        src.throw_error(
+            node, R"(invalid parameter name "{}" in element "{}": leading underscores are reserved for internal identifiers.)", name, node.name());
+    } else if (current_is_object || tag == Tag::NamedReference) {
+      node.append_attribute("name") = fmt::format("_arg_{}", arg_counter++).c_str();
+    }
+    if (node.attribute("id")) {
+      auto id = node.attribute("id").value();
+      if (string::starts_with(id, "_"))
+        src.throw_error(
+            node, R"(invalid id "{}" in element "{}": leading underscores are reserved for internal identifiers.)", id, node.name());
+    } else if (current_is_object) {
+      node.append_attribute("id") = fmt::format("_unnamed_{}", ctx.id_counter++).c_str();
+    }
+    switch (tag) {
+      case Tag::Object: {
+      } break;
     }
   } catch (const std::exception &e) {
     std::cerr << e.what() << '\n';
   }
-  return { "", "" };
+  return {"", ""};
 }
 
 static std::shared_ptr<Component> instantiate_node(XMLParseContext &ctx, const std::string &id) {
@@ -166,10 +240,9 @@ std::shared_ptr<Component> load_file(const fs::path &filename, ParameterList par
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_file(filename.native().c_str(), pugi::parse_default | pugi::parse_comments);
 
-  detail::XMLSource src {
-    filename.string(), doc,
-    [=](ptrdiff_t pos) { return detail::file_offset(filename, pos); }
-  };
+  detail::XMLSource src{
+      filename.string(), doc,
+      [=](ptrdiff_t pos) { return detail::file_offset(filename, pos); }};
 
   if (!result) {
     Throw(R"(Error while loading "{}" (at {}): {})", src.id, src.offset(result.offset), result.description());
@@ -179,7 +252,7 @@ std::shared_ptr<Component> load_file(const fs::path &filename, ParameterList par
 
   detail::XMLParseContext ctx;
   Properties props;
-  size_t arg_counter = 0; // Unused
+  size_t arg_counter = 0;  // Unused
   auto [name, id] = detail::parse_xml(src, ctx, root, Tag::Invalid, props, parameters, arg_counter, 0);
   return detail::instantiate_node(ctx, id);
 }
