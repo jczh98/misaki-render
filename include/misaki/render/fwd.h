@@ -1,17 +1,19 @@
 #pragma once
 
-#include <mutex>
-#include <vector>
-#include <string>
-#include <filesystem>
-#include <iostream>
-#include <variant>
-#include <map>
+#include <fmt/format.h>
 #include <misaki/utils/math.h>
 #include <misaki/utils/system.h>
-#include <fmt/format.h>
 #include <rttr/registration.h>
 #include <rttr/rttr_enable.h>
+
+#include <filesystem>
+#include <iostream>
+#include <map>
+#include <mutex>
+#include <string>
+#include <variant>
+#include <vector>
+
 #include "platform.h"
 
 namespace misaki::render {
@@ -53,4 +55,4 @@ using Transform4f = math::Transform<float, 4>;
 using Color3 = math::TColor<Float, 3>;
 using Color4 = math::TColor<Float, 4>;
 
-}
+}  // namespace misaki::render

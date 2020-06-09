@@ -108,16 +108,18 @@ struct XMLSource {
 };
 
 struct XMLObject {
-  Properties properties;
+  Properties props;
   std::string src_id;
   std::function<std::string(ptrdiff_t)> offset;
   std::shared_ptr<Component> comp;
+  std::string type;
+  size_t location = 0;
 };
 
 struct XMLParseContext {
   std::unordered_map<std::string, XMLObject> instances;
   Transform4 transform;
-  size_t id_counter;
+  size_t id_counter = 0;
 };
 
 // Helper function to check if attributes are fully specified
@@ -140,6 +142,7 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
                                                      Properties &props, ParameterList &param,
                                                      size_t &arg_counter, int depth) {
   static std::map<std::string, Tag> tags;
+  static std::map<std::string, std::string> tag_alias;
   static std::once_flag flag;
   std::call_once(flag, [&]() {
     tags["boolean"] = Tag::Boolean;
@@ -160,6 +163,7 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
     tags["alias"] = Tag::Alias;
     tags["default"] = Tag::Default;
     tags["scene"] = Tag::Object;
+    tag_alias["scene"] = "Scene";
   });
   try {
     if (!param.empty()) {
@@ -196,9 +200,9 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
     }
     if (has_parent && !parent_is_object && !(parent_is_transform && current_is_transform_op))
       src.throw_error(node, R"(node "{}" cannot occur as child of a property)", node.name());
-    if (std::string(node.name()) == "scene")
+    if (std::string(node.name()) == "scene") {
       node.append_attribute("type") = "scene";
-    else if (tag == Tag::Transform)
+    } else if (tag == Tag::Transform)
       ctx.transform = Transform4();
     if (node.attribute("name")) {
       auto name = node.attribute("name").value();
@@ -218,16 +222,85 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
     }
     switch (tag) {
       case Tag::Object: {
+        check_attributes(src, node, {"type", "id", "name"});
+        std::string id = node.attribute("id").value(),
+                    name = node.attribute("name").value(),
+                    type = node.attribute("type").value(),
+                    node_name = node.name();
+        Properties props_nested(type);
+        props_nested.set_id(id);
+        auto it_inst = ctx.instances.find(id);
+        if (it_inst != ctx.instances.end())
+          src.throw_error(node, "\"{}\" has duplicate id \"{}\" (previous was at {})",
+                          node_name, id, src.offset(it_inst->second.location));
+        auto it2 = tag_alias.find(node_name);
+        if (it2 == tag_alias.end())
+          src.throw_error(node,
+                          "could not retrieve class object for "
+                          "tag \"{}\"",
+                          node_name);
+        size_t arg_counter_nested = 0;
+        for (pugi::xml_node &ch : node.children()) {
+          auto [arg_name, nested_id] =
+              parse_xml(src, ctx, ch, tag, props_nested, param,
+                        arg_counter_nested, depth + 1);
+          if (!nested_id.empty())
+            props_nested.set_named_reference(arg_name, nested_id);
+        }
+        auto &inst = ctx.instances[id];
+        inst.props = props_nested;
+        inst.type = it2->second;
+        inst.offset = src.offset;
+        inst.src_id = src.id;
+        inst.location = node.offset_debug();
+        return {name, id};
       } break;
     }
+    for (pugi::xml_node &ch : node.children())
+      parse_xml(src, ctx, ch, tag, props, param, arg_counter, depth + 1);
+    if (tag == Tag::Transform)
+      props.set_transform(node.attribute("name").value(), ctx.transform);
   } catch (const std::exception &e) {
-    std::cerr << e.what() << '\n';
+    if (strstr(e.what(), "Error while loading") == nullptr)
+      src.throw_error(node, "{}", e.what());
+    else
+      throw;
   }
   return {"", ""};
 }
 
 static std::shared_ptr<Component> instantiate_node(XMLParseContext &ctx, const std::string &id) {
-  return {};
+  auto it = ctx.instances.find(id);
+  if (it == ctx.instances.end())
+    Throw("reference to unknown object \"{}\"!", id);
+  auto &inst = it->second;
+  if (inst.comp) {
+    return inst.comp;
+  }
+  Properties &props = inst.props;
+  const auto &named_references = props.named_references();
+  for (auto &kv : named_references) {
+    try {
+      auto obj = instantiate_node(ctx, kv.second);
+    } catch (const std::exception &e) {
+      if (strstr(e.what(), "Error while loading") == nullptr)
+        Throw("Error while loading \"{}\" (near {}): {}",
+              inst.src_id, inst.offset(inst.location), e.what());
+      else
+        throw;
+    }
+  }
+  try {
+    inst.comp = PluginManager::instance()->create_comp(props, refl::type::get_by_name(inst.type));
+  } catch (const std::exception &e) {
+    Throw(
+        "Error while loading \"{}\" (near {}): could not instantiate "
+        "{} plugin of type \"{}\": {}",
+        inst.src_id, inst.offset(inst.location),
+        string::to_lower(inst.type), props.plugin_name(),
+        e.what());
+  }
+  return inst.comp;
 }
 
 }  // namespace detail

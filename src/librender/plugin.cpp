@@ -1,9 +1,10 @@
-#include <misaki/render/plugin.h>
 #include <misaki/render/logger.h>
+#include <misaki/render/plugin.h>
 #include <misaki/render/properties.h>
 #include <misaki/utils/system/shared_library.h>
-#include <unordered_map>
+
 #include <mutex>
+#include <unordered_map>
 
 namespace misaki::render {
 
@@ -12,18 +13,18 @@ struct Plugin {
     library = std::make_unique<system::SharedLibrary>(path.string());
     using StringFunc = const char *(*)();
     try {
-      plugin_name = ((StringFunc) library->load_symbol("plugin_name"))();
+      plugin_name = ((StringFunc)library->load_symbol("plugin_name"))();
     } catch (std::exception &e) {
       library.release();
       throw std::runtime_error(fmt::format("Error loading plugin: {}", e.what()));
     }
   }
-  const char* plugin_name;
+  const char *plugin_name;
   std::unique_ptr<system::SharedLibrary> library;
 };
 
 struct PluginManager::PluginManagerPrivate {
-  std::unordered_map<std::string, Plugin*> plugins;
+  std::unordered_map<std::string, Plugin *> plugins;
   std::mutex mutex;
 
   Plugin *plugin(const std::string &name) {
@@ -52,7 +53,7 @@ struct PluginManager::PluginManagerPrivate {
   }
 };
 
-PluginManager::PluginManager() : d(new PluginManagerPrivate()){}
+PluginManager::PluginManager() : d(new PluginManagerPrivate()) {}
 
 PluginManager::~PluginManager() {
   std::lock_guard<std::mutex> guard(d->mutex);
@@ -69,6 +70,11 @@ std::shared_ptr<Component> PluginManager::create_comp(const Properties &props) {
 }
 
 std::shared_ptr<Component> PluginManager::create_comp(const Properties &props, const refl::type &type) {
+  if (type.get_name().to_string() == "Scene") {
+    auto instanced_type = type.create({props}).get_value<std::shared_ptr<void>>();
+    auto comp = std::reinterpret_pointer_cast<Component>(instanced_type);
+    return comp;
+  }
   const Plugin *plugin = d->plugin(props.plugin_name());
   auto plugin_type = refl::type::get_by_name(plugin->plugin_name);
   // Needs to check whether type exists
@@ -81,4 +87,4 @@ std::shared_ptr<Component> PluginManager::create_comp(const Properties &props, c
   auto comp = std::reinterpret_pointer_cast<Component>(instanced_type);
   return comp;
 }
-}
+}  // namespace misaki::render

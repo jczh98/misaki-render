@@ -8,6 +8,7 @@ add_library(misaki-render SHARED
         ${INC_DIR}/logger.h logger.cpp
         ${INC_DIR}/properties.h properties.cpp
         ${INC_DIR}/plugin.h plugin.cpp
+        ${INC_DIR}/scene.h scene.cpp
         ${INC_DIR}/camera.h camera.cpp
         ${INC_DIR}/xml.h xml.cpp
         )
