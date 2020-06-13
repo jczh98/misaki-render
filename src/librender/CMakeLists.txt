@@ -23,4 +23,5 @@ target_link_libraries(misaki-render PUBLIC
         fmt::fmt
         RTTR::Core
         pugixml
+        TBB::tbb
         )

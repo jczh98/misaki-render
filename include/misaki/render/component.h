@@ -15,19 +15,29 @@ class MSK_EXPORT Component {
 
 extern MSK_EXPORT system::FileResolver *get_file_resolver();
 
-#define MSK_REGISTER_CLASS(Name)                                  \
-  RTTR_REGISTRATION {                                             \
-    misaki::render::refl::registration::class_<Name>(#Name)       \
-        .constructor<const Properties &>();                       \
+#define MSK_REGISTER_CLASS(Name)                              \
+  namespace details_##Name {                                  \
+    RTTR_REGISTRATION {                                       \
+      misaki::render::refl::registration::class_<Name>(#Name) \
+          .constructor<const Properties &>();                 \
+    }                                                         \
   }
 
-#define MSK_EXPORT_PLUGIN(Name)                                          \
-  RTTR_PLUGIN_REGISTRATION {                                             \
-    misaki::render::refl::registration::class_<Name>(#Name)              \
-        .constructor<const Properties &>();                              \
-  }                                                                      \
-  extern "C" {                                                           \
-  MSK_EXPORT const char *plugin_name() { return #Name; }                 \
+#define MSK_REGISTER_CLASS_VOIDCTOR(Name)                     \
+  namespace details_##Name {                                  \
+    RTTR_REGISTRATION {                                       \
+      misaki::render::refl::registration::class_<Name>(#Name) \
+          .constructor<>();                                   \
+    }                                                         \
+  }
+
+#define MSK_EXPORT_PLUGIN(Name)                             \
+  RTTR_PLUGIN_REGISTRATION {                                \
+    misaki::render::refl::registration::class_<Name>(#Name) \
+        .constructor<const Properties &>();                 \
+  }                                                         \
+  extern "C" {                                              \
+  MSK_EXPORT const char *plugin_name() { return #Name; }    \
   }
 
 }  // namespace misaki::render

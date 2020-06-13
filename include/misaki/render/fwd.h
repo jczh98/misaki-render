@@ -27,6 +27,8 @@ class Camera;
 class Light;
 class Integrator;
 class SceneInteraction;
+class Film;
+class ReconstructionFilter;
 class Sampler;
 class BSDF;
 class Scene;
@@ -41,6 +43,14 @@ using Vector4f = math::TVector<float, 4>;
 using Vector2 = math::TVector<Float, 2>;
 using Vector3 = math::TVector<Float, 3>;
 using Vector4 = math::TVector<Float, 4>;
+
+using Vector2i = math::TVector<int, 2>;
+using Vector3i = math::TVector<int, 3>;
+using Vector4i = math::TVector<int, 4>;
+
+using Vector2u = math::TVector<uint64_t, 2>;
+using Vector3u = math::TVector<uint64_t, 3>;
+using Vector4u = math::TVector<uint64_t, 4>;
 
 using Matrix3 = math::TMatrix<Float, 3>;
 using Matrix4 = math::TMatrix<Float, 4>;
