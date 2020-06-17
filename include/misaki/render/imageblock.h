@@ -21,7 +21,7 @@ class MSK_EXPORT ImageBlock : public Component {
   const Vector2i &size() const { return m_size; }
   int border_size() const { return m_border_size; }
   math::Tensor<Color4, 2> &data() { return m_buffer; }
-  const math::Tensor<Color4, 2> &data() const { return m_data; }
+  const math::Tensor<Color4, 2> &data() const { return m_buffer; }
 
   MSK_DECL_COMP(Component)
  protected:
