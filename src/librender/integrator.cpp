@@ -1,0 +1,11 @@
+#include <misaki/render/imageblock.h>
+#include <misaki/render/integrator.h>
+#include <misaki/render/properties.h>
+
+namespace misaki::render {
+
+Integrator::Integrator(const Properties &props) {
+  m_block_size = props.get_int("block_size", MSK_BLOCK_SIZE);
+}
+
+}  // namespace misaki::render

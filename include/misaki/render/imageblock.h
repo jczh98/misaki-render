@@ -6,6 +6,8 @@
 #include "component.h"
 #include "rfilter.h"
 
+#define MSK_BLOCK_SIZE 32
+
 namespace misaki::render {
 
 class MSK_EXPORT ImageBlock : public Component {
@@ -16,6 +18,9 @@ class MSK_EXPORT ImageBlock : public Component {
   bool put(const Vector2 &pos, const Color4 &val);
   void clear();
   std::string to_string() const;
+
+  void set_offset(const Vector2i &offset) { m_offset = offset; }
+  void set_size(const Vector2i &size);
 
   const Vector2i &offset() const { return m_offset; }
   const Vector2i &size() const { return m_size; }

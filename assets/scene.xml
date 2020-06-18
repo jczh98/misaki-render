@@ -1,2 +1,13 @@
 <scene>
+	<integrator type='path'/>
+	<camera type='perspective'>
+		<film type="rgbfilm">
+			<integer name="width" value="1024"/>
+			<integer name="height" value="768"/>
+		</film>
+
+		<sampler type="independent">
+			<integer name="sample_count" value="4"/>
+		</sampler>
+	</camera>
 </scene>

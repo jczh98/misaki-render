@@ -1,0 +1,1 @@
+add_plugin(path path.cpp)

@@ -4,12 +4,14 @@
 
 namespace misaki::render {
 
-class Integrator : public Component {
+class MSK_EXPORT Integrator : public Component {
  public:
   Integrator(const Properties &props);
   virtual bool render(Scene *scene) = 0;
 
   MSK_DECL_COMP(Component)
+ protected:
+  uint32_t m_block_size;
 };
 
 }  // namespace misaki::render

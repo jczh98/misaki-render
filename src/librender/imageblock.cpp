@@ -6,7 +6,7 @@
 namespace misaki::render {
 
 ImageBlock::ImageBlock(const Vector2i &size, const ReconstructionFilter *filter)
-    : m_offset(0, 0), m_size(size), m_filter(filter) {
+    : m_offset(0, 0), m_filter(filter) {
   if (filter) {
     m_filter_radius = filter->radius();
     m_border_size = (int)std::ceil(m_filter_radius - 0.5f);
@@ -22,7 +22,7 @@ ImageBlock::ImageBlock(const Vector2i &size, const ReconstructionFilter *filter)
     memset(m_weight_x, 0, sizeof(Float) * weight_size);
     memset(m_weight_y, 0, sizeof(Float) * weight_size);
   }
-  m_buffer = math::Tensor<Color4, 2>(m_size + 2 * m_border_size);
+  set_size(size);
 }
 
 ImageBlock::~ImageBlock() {
@@ -52,6 +52,12 @@ bool ImageBlock::put(const Vector2 &pos_, const Color4 &val) {
   for (int y = lo.y(), yr = 0; y <= hi.y(); ++y, ++yr)
     for (int x = lo.x(), xr = 0; x <= hi.x(); ++x, ++xr)
       m_buffer.at({y, x}) += val * m_weight_x[xr] * m_weight_y[yr];
+}
+
+void ImageBlock::set_size(const Vector2i &size) {
+  if (m_size == size) return;
+  m_size = size;
+  m_buffer = math::Tensor<Color4, 2>(m_size + 2 * m_border_size);
 }
 
 void ImageBlock::clear() {

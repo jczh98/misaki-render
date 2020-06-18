@@ -4,9 +4,10 @@
 
 namespace misaki::render {
 
-class Sampler : public Component {
+class MSK_EXPORT Sampler : public Component {
  public:
-  virtual std::shared_ptr<Sampler> clone() = 0;
+  Sampler(const Properties &props);
+  virtual std::unique_ptr<Sampler> clone() = 0;
   virtual void seed(uint64_t seed_value);
   virtual Float next1d();
   virtual Vector2 next2d();
@@ -14,5 +15,6 @@ class Sampler : public Component {
   MSK_DECL_COMP(Component)
  protected:
   size_t m_sample_count;
+  uint64_t m_base_seed;
 };
 }  // namespace misaki::render
