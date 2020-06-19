@@ -163,7 +163,15 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
     tags["alias"] = Tag::Alias;
     tags["default"] = Tag::Default;
     tags["scene"] = Tag::Object;
+    tags["integrator"] = Tag::Object;
+    tags["camera"] = Tag::Object;
+    tags["film"] = Tag::Object;
+    tags["sampler"] = Tag::Object;
     tag_alias["scene"] = "Scene";
+    tag_alias["integrator"] = "Integrator";
+    tag_alias["camera"] = "Camera";
+    tag_alias["film"] = "Film";
+    tag_alias["sampler"] = "Sampler";
   });
   try {
     if (!param.empty()) {
@@ -282,6 +290,7 @@ static std::shared_ptr<Component> instantiate_node(XMLParseContext &ctx, const s
   for (auto &kv : named_references) {
     try {
       auto obj = instantiate_node(ctx, kv.second);
+      props.set_component(kv.first, obj, false);
     } catch (const std::exception &e) {
       if (strstr(e.what(), "Error while loading") == nullptr)
         Throw("Error while loading \"{}\" (near {}): {}",

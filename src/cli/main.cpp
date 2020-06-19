@@ -6,22 +6,27 @@
 #include <misaki/render/properties.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/xml.h>
+#include <tbb/task_scheduler_init.h>
 
 #include <iostream>
 
 using namespace misaki::render;
 
 int main(int argc, char** argv) {
+  //tbb::task_scheduler_init init(1);
   // Append executable directory to file resolver
   get_file_resolver()->append(fs::path(argv[0]).parent_path());
   try {
     auto comp = xml::load_file(get_file_resolver()->resolve("assets/scene.xml"));
+    Log(Info, "load success");
     auto scene = std::dynamic_pointer_cast<Scene>(comp);
+    auto film = scene->camera()->film();
     auto integrator = scene->integrator();
     integrator->render(scene);
-    Log(Info, "load success");
+    film->develop();
+    Log(Info, "Finish rendering");
   } catch (std::exception& e) {
-    Log(Info, e.what());
+    std::cerr << e.what();
   }
   return 0;
 }

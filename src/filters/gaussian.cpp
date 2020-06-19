@@ -16,8 +16,11 @@ class GaussianFilter final : public ReconstructionFilter {
     return std::max(0.f, std::exp(m_alpha * x * x) - m_bias);
   }
 
+  MSK_DECL_COMP(ReconstructionFilter)
  private:
   Float m_stddev, m_alpha, m_bias;
 };
+
+MSK_EXPORT_PLUGIN(GaussianFilter)
 
 }  // namespace misaki::render

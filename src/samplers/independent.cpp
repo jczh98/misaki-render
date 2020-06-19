@@ -42,6 +42,7 @@ class IndependentSampler final : public Sampler {
     return oss.str();
   }
 
+  MSK_DECL_COMP(Sampler)
  private:
   std::unique_ptr<math::PCG32> m_rng;
 };

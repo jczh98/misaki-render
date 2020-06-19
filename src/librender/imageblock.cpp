@@ -32,12 +32,27 @@ ImageBlock::~ImageBlock() {
 }
 
 void ImageBlock::put(const ImageBlock *b) {
-  auto offset = b->offset() - m_offset + (m_border_size - b->border_size());
+  Vector2i source_size = b->size() + 2 * b->border_size(),
+           target_size = m_size + 2 * border_size();
+
+  Vector2i source_offset = b->offset() - b->border_size(),
+           target_offset = m_offset - border_size();
+  target_offset = source_offset - target_offset;
+  source_offset = Vector2i(0);
   auto size = b->size() + 2 * b->border_size();
+  auto shift = math::cwise_max(math::cwise_max(-source_offset, -target_offset), 0);
+  source_offset += shift;
+  target_offset += shift;
+  size -= math::cwise_max(source_offset + size - source_size, 0);
+  size -= math::cwise_max(target_offset + size - target_size, 0);
+
   std::lock_guard<tbb::spin_mutex> lock(m_mutex);
-  for (int y = offset.y(), yr = 0; y < size.y(); ++y, ++yr)
-    for (int x = offset.x(), xr = 0; x < size.x(); ++x, ++xr)
-      m_buffer.at({y, x}) += b->data().at({yr, xr});
+  for (int y = 0; y < size.y(); ++y)
+    for (int x = 0; x < size.x(); ++x) {
+      auto dst_x = target_offset.x() + x, dst_y = target_offset.y() + y;
+      auto src_x = source_offset.x() + x, src_y = source_offset.y() + y;
+      m_buffer.at({dst_y, dst_x}) += b->data().at({src_y, src_x});
+    }
 }
 
 bool ImageBlock::put(const Vector2 &pos_, const Color4 &val) {
@@ -51,15 +66,17 @@ bool ImageBlock::put(const Vector2 &pos_, const Color4 &val) {
   for (int y = lo.y(), idx = 0; y <= hi.y(); ++y)
     m_weight_y[idx++] = m_filter_weights[(int)(std::abs(y - pos.y()) * m_lookup_factor)];
   for (int y = lo.y(), yr = 0; y <= hi.y(); ++y, ++yr)
-    for (int x = lo.x(), xr = 0; x <= hi.x(); ++x, ++xr)
+    for (int x = lo.x(), xr = 0; x <= hi.x(); ++x, ++xr) {
       m_buffer.at({y, x}) += val * m_weight_x[xr] * m_weight_y[yr];
+    }
   return true;
 }
 
 void ImageBlock::set_size(const Vector2i &size) {
   if (m_size == size) return;
   m_size = size;
-  m_buffer = math::Tensor<Color4, 2>(m_size + 2 * m_border_size);
+  auto actual_size = m_size + 2 * m_border_size;
+  m_buffer = math::Tensor<Color4, 2>::from_linear_indexed({actual_size.y(), actual_size.x()}, [&](int) { return Color4(0.f); });
 }
 
 void ImageBlock::clear() {
