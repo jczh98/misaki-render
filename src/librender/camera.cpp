@@ -24,7 +24,7 @@ Camera::Camera(const Properties &props) {
     m_sampler = pmgr->create_comp<Sampler>(Properties("independent"));
   }
   m_aspect = m_film->size().x() / (Float)m_film->size().y();
-  m_resolution = m_film->size();
+  m_resolution = Vector2(m_film->size());
 }
 
 MSK_REGISTER_CLASS(Camera)

@@ -22,6 +22,18 @@ Film::Film(const Properties &props) {
   }
 }
 
+void Film::put(const ImageBlock *block) {
+  MSK_NOT_IMPLEMENTED("put");
+}
+
+void Film::set_destination_file(const fs::path &filename) {
+  MSK_NOT_IMPLEMENTED("set_destination_file");
+}
+
+void Film::develop() {
+  MSK_NOT_IMPLEMENTED("develop");
+}
+
 std::string Film::to_string() const {
   std::ostringstream oss;
   oss << "Film[" << std::endl

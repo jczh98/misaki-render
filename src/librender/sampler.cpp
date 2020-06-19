@@ -9,6 +9,10 @@ Sampler::Sampler(const Properties &props) {
   m_base_seed = props.get_int("base_seed", 0);
 }
 
+std::unique_ptr<Sampler> Sampler::clone() {
+  MSK_NOT_IMPLEMENTED("clone");
+}
+
 void Sampler::seed(uint64_t seed_value) {
   MSK_NOT_IMPLEMENTED("seed");
 }

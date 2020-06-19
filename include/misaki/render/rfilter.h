@@ -10,7 +10,7 @@ namespace misaki::render {
 class MSK_EXPORT ReconstructionFilter : public Component {
  public:
   ReconstructionFilter(const Properties &props);
-  virtual Float eval(Float x) const = 0;
+  virtual Float eval(Float x) const;
   Float radius() const { return m_radius; }
   MSK_DECL_COMP(Component)
  protected:

@@ -34,7 +34,7 @@ ImageBlock::~ImageBlock() {
 void ImageBlock::put(const ImageBlock *b) {
   auto offset = b->offset() - m_offset + (m_border_size - b->border_size());
   auto size = b->size() + 2 * b->border_size();
-  tbb::mutex::scoped_lock lock(m_mutex);
+  std::lock_guard<tbb::spin_mutex> lock(m_mutex);
   for (int y = offset.y(), yr = 0; y < size.y(); ++y, ++yr)
     for (int x = offset.x(), xr = 0; x < size.x(); ++x, ++xr)
       m_buffer.at({y, x}) += b->data().at({yr, xr});
@@ -42,6 +42,7 @@ void ImageBlock::put(const ImageBlock *b) {
 
 bool ImageBlock::put(const Vector2 &pos_, const Color4 &val) {
   auto offset = Vector2(m_offset);
+  // TODO: check all value are valid
   Vector2 pos = pos_ - (offset - m_border_size + 0.5f);
   Vector2u lo = Vector2u(math::cwise_max(math::ceil2int(pos - m_filter_radius), 0)),
            hi = Vector2u(math::cwise_min(math::floor2int(pos + m_filter_radius), m_size - 1));
@@ -52,6 +53,7 @@ bool ImageBlock::put(const Vector2 &pos_, const Color4 &val) {
   for (int y = lo.y(), yr = 0; y <= hi.y(); ++y, ++yr)
     for (int x = lo.x(), xr = 0; x <= hi.x(); ++x, ++xr)
       m_buffer.at({y, x}) += val * m_weight_x[xr] * m_weight_y[yr];
+  return true;
 }
 
 void ImageBlock::set_size(const Vector2i &size) {
@@ -61,7 +63,7 @@ void ImageBlock::set_size(const Vector2i &size) {
 }
 
 void ImageBlock::clear() {
-  m_buffer = math::Tensor<Color4, 2>::from_linear_indexed(m_buffer.shape(), [&](int) { return 0.f; });
+  m_buffer = math::Tensor<Color4, 2>::from_linear_indexed(m_buffer.shape(), [&](int) { return Color4(0.f); });
 }
 
 std::string ImageBlock::to_string() const {
@@ -140,8 +142,5 @@ std::tuple<Vector2i, Vector2i> BlockGenerator::next_block() {
 
   return {offset, size};
 }
-
-MSK_REGISTER_CLASS_VOIDCTOR(ImageBlock)
-MSK_REGISTER_CLASS_VOIDCTOR(BlockGenerator)
 
 }  // namespace misaki::render

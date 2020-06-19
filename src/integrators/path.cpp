@@ -13,7 +13,7 @@ class PathTracer final : public Integrator {
   PathTracer(const Properties &props) : Integrator(props) {
   }
 
-  bool render(Scene *scene) {
+  bool render(const std::shared_ptr<Scene> &scene) {
     auto camera = scene->camera();
     auto film = camera->film();
     auto film_size = film->size();
@@ -36,5 +36,7 @@ class PathTracer final : public Integrator {
 
  private:
 };
+
+MSK_EXPORT_PLUGIN(PathTracer)
 
 }  // namespace misaki::render

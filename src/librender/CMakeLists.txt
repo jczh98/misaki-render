@@ -11,6 +11,11 @@ add_library(misaki-render SHARED
         ${INC_DIR}/scene.h scene.cpp
         ${INC_DIR}/camera.h camera.cpp
         ${INC_DIR}/xml.h xml.cpp
+        ${INC_DIR}/film.h film.cpp
+        ${INC_DIR}/imageblock.h imageblock.cpp
+        ${INC_DIR}/rfilter.h rfilter.cpp
+        ${INC_DIR}/sampler.h sampler.cpp
+        ${INC_DIR}/integrator.h integrator.cpp
         )
 set_target_properties(misaki-render PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib"

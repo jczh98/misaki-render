@@ -1,6 +1,5 @@
 #pragma once
 
-#include <tbb/mutex.h>
 #include <tbb/spin_mutex.h>
 
 #include "component.h"
@@ -38,7 +37,7 @@ class MSK_EXPORT ImageBlock : public Component {
   Float m_filter_radius = 0;
   Float *m_weight_x = nullptr, *m_weight_y = nullptr;
   Float m_lookup_factor = 0;
-  tbb::mutex m_mutex;
+  tbb::spin_mutex m_mutex;
 };
 
 class MSK_EXPORT BlockGenerator : public Component {
