@@ -39,7 +39,7 @@ class PathTracer final : public Integrator {
                 if (pos.x() >= size.x() || pos.y() >= size.y()) continue;
                 pos = pos + Vector2(offset);
                 auto position_sample = pos + sampler->next2d();
-                block->put(position_sample, Color4(Color3(0, 0, 1)));
+                block->put(position_sample, Color4(Color3(0.f, 0.f, float(i) / total_blocks)));
               }
             }
             film->put(block.get());

@@ -60,7 +60,7 @@ bool ImageBlock::put(const Vector2 &pos_, const Color4 &val) {
   // TODO: check all value are valid
   Vector2 pos = pos_ - (offset - m_border_size + 0.5f);
   Vector2u lo = Vector2u(math::cwise_max(math::ceil2int(pos - m_filter_radius), 0)),
-           hi = Vector2u(math::cwise_min(math::floor2int(pos + m_filter_radius), m_size - 1));
+           hi = Vector2u(math::cwise_min(math::floor2int(pos + m_filter_radius), m_size + 2 * m_border_size - 1));
   for (int x = lo.x(), idx = 0; x <= hi.x(); ++x)
     m_weight_x[idx++] = m_filter_weights[(int)(std::abs(x - pos.x()) * m_lookup_factor)];
   for (int y = lo.y(), idx = 0; y <= hi.y(); ++y)
@@ -76,11 +76,11 @@ void ImageBlock::set_size(const Vector2i &size) {
   if (m_size == size) return;
   m_size = size;
   auto actual_size = m_size + 2 * m_border_size;
-  m_buffer = math::Tensor<Color4, 2>::from_linear_indexed({actual_size.y(), actual_size.x()}, [&](int) { return Color4(0.f); });
+  m_buffer = math::Tensor<Color4, 2>::from_linear_indexed({actual_size.y(), actual_size.x()}, [&](int) { return Color4(); });
 }
 
 void ImageBlock::clear() {
-  m_buffer = math::Tensor<Color4, 2>::from_linear_indexed(m_buffer.shape(), [&](int) { return Color4(0.f); });
+  m_buffer = math::Tensor<Color4, 2>::from_linear_indexed(m_buffer.shape(), [&](int) { return Color4(); });
 }
 
 std::string ImageBlock::to_string() const {
