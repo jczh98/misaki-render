@@ -15,6 +15,7 @@ add_library(misaki-render SHARED
         ${INC_DIR}/imageblock.h imageblock.cpp
         ${INC_DIR}/rfilter.h rfilter.cpp
         ${INC_DIR}/sampler.h sampler.cpp
+        ${INC_DIR}/imageio.h imageio.cpp
         ${INC_DIR}/integrator.h integrator.cpp
         )
 set_target_properties(misaki-render PROPERTIES
@@ -29,4 +30,6 @@ target_link_libraries(misaki-render PUBLIC
         RTTR::Core
         pugixml
         TBB::tbb
+        OpenImageIO::OpenImageIO OpenImageIO::OpenImageIO_Util
+        ${EMBREE_LIBRARIES}
         )

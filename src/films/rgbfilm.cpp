@@ -1,5 +1,6 @@
 #include <misaki/render/film.h>
 #include <misaki/render/imageblock.h>
+#include <misaki/render/imageio.h>
 #include <misaki/render/properties.h>
 #include <misaki/utils/image.h>
 
@@ -26,6 +27,7 @@ class RGBFilm final : public Film {
           return math::linear_to_srgb(m_storage->data().raw_data()[i].divide_by_filter_weight());
         });
     image::write_rgb_image("test.png", bitmap);
+    write_float_rgb_image("out.png", bitmap);
   }
 
   void set_destination_file(const fs::path &filename) {

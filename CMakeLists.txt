@@ -7,6 +7,8 @@ find_package(fmt CONFIG REQUIRED)
 find_package(rttr CONFIG REQUIRED)
 find_package(pugixml CONFIG REQUIRED)
 find_package(TBB CONFIG REQUIRED)
+find_package(OpenImageIO CONFIG REQUIRED)
+find_package(embree 3 REQUIRED)
 
 add_subdirectory(external/misaki-utils)
 

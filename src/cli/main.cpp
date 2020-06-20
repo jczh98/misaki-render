@@ -1,3 +1,4 @@
+#include <OpenImageIO/imageio.h>
 #include <misaki/render/camera.h>
 #include <misaki/render/component.h>
 #include <misaki/render/integrator.h>
@@ -13,7 +14,7 @@
 using namespace misaki::render;
 
 int main(int argc, char** argv) {
-  //tbb::task_scheduler_init init(1);
+  tbb::task_scheduler_init init(1);
   // Append executable directory to file resolver
   get_file_resolver()->append(fs::path(argv[0]).parent_path());
   try {
