@@ -16,12 +16,14 @@ using namespace misaki::render;
 int main(int argc, char** argv) {
   tbb::task_scheduler_init init(1);
   // Append executable directory to file resolver
+  fs::path path = "assets/scene.xml";
   get_file_resolver()->append(fs::path(argv[0]).parent_path());
   try {
-    auto comp = xml::load_file(get_file_resolver()->resolve("assets/scene.xml"));
+    auto comp = xml::load_file(get_file_resolver()->resolve(path));
     Log(Info, "load success");
     auto scene = std::dynamic_pointer_cast<Scene>(comp);
     auto film = scene->camera()->film();
+    film->set_destination_file(path.replace_extension("png"));
     auto integrator = scene->integrator();
     integrator->render(scene);
     film->develop();

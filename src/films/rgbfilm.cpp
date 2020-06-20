@@ -26,8 +26,9 @@ class RGBFilm final : public Film {
         [&](int i) {
           return math::linear_to_srgb(m_storage->data().raw_data()[i].divide_by_filter_weight());
         });
-    image::write_rgb_image("test.png", bitmap);
-    write_float_rgb_image("out.png", bitmap);
+    auto another = m_dest_file;
+    image::write_rgb_image(another.replace_extension("jpg").string(), bitmap);
+    write_float_rgb_image(m_dest_file.string(), bitmap);
   }
 
   void set_destination_file(const fs::path &filename) {

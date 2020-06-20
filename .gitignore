@@ -2,3 +2,5 @@
 cmake-build-debug
 build
 .vscode
+assets/*
+!assets/*.xml
