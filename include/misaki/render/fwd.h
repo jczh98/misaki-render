@@ -36,6 +36,24 @@ class Shape;
 class Mesh;
 
 using Float = float;
+
+template <typename T>
+constexpr auto Infinity = std::numeric_limits<T>::infinity();
+template <typename T>
+constexpr auto Epsilon = std::numeric_limits<T>::epsilon() / 2;
+template <typename T>
+constexpr auto RayEpsilon = Epsilon<T> * 1500;
+template <typename T>
+constexpr auto ShadowEpsilon = RayEpsilon<T> * 10;
+template <typename T>
+constexpr auto Pi = T(3.14159265358979323846);
+template <typename T>
+constexpr auto InvPi = T(0.31830988618379067154);
+template <typename T>
+constexpr auto InvTwoPi = T(0.15915494309189533577);
+template <typename T>
+constexpr auto InvFourPi = T(0.07957747154594766788);
+
 using Vector2f = math::TVector<float, 2>;
 using Vector3f = math::TVector<float, 3>;
 using Vector4f = math::TVector<float, 4>;
@@ -65,4 +83,8 @@ using Transform4f = math::Transform<float, 4>;
 using Color3 = math::TColor<Float, 3>;
 using Color4 = math::TColor<Float, 4>;
 
+using BoundingBox3 = math::TBoundingBox<Float, 3>;
+
+using Frame = math::TFrame<Float>;
+#define MSK_ENABLE_EMBREE 1
 }  // namespace misaki::render

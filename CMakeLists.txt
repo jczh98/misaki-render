@@ -12,6 +12,7 @@ find_package(embree 3 REQUIRED)
 
 add_subdirectory(external/misaki-utils)
 
+option(MSK_ENABLE_EMBREE  "Use Embree for ray tracing intersection" ON)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /std:c++17")

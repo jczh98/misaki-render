@@ -17,6 +17,8 @@ add_library(misaki-render SHARED
         ${INC_DIR}/sampler.h sampler.cpp
         ${INC_DIR}/imageio.h imageio.cpp
         ${INC_DIR}/integrator.h integrator.cpp
+        ${INC_DIR}/shape.h shape.cpp
+        ${INC_DIR}/mesh.h mesh.cpp
         )
 set_target_properties(misaki-render PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib"
