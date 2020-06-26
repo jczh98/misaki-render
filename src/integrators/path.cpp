@@ -24,6 +24,8 @@ class PathTracer final : public Integrator {
     Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(), film_size.y(), total_spp);
     BlockGenerator gen(film_size, m_block_size);
     size_t total_blocks = gen.block_count();
+    util::ProgressBar pbar(total_blocks, 70);
+    util::Timer timer;
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, total_blocks, 1),
         [&](const tbb::blocked_range<size_t> &range) {
@@ -43,14 +45,19 @@ class PathTracer final : public Integrator {
                   auto position_sample = pos + sampler->next2d();
                   auto [ray, ray_weight] = camera->sample_ray(position_sample);
                   auto result = sample(scene, sampler.get(), ray);
-                  if (result) block->put(position_sample, Color4(*result));
-                  else block->put(position_sample, Color4(0.f, 0.f, 0.f, 0.f));
+                  if (result)
+                    block->put(position_sample, Color4(*result));
+                  else
+                    block->put(position_sample, Color4(0.f, 0.f, 0.f, 0.f));
                 }
               }
             }
             film->put(block.get());
+            pbar.update();
           }
         });
+    pbar.done();
+    Log(Info, "Rendering finished. (took {})", util::time_string(timer.value(), true));
     return true;
   }
 
