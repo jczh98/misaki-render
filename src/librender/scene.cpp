@@ -44,12 +44,13 @@ static RTCDevice __embree_device = nullptr;
 void Scene::accel_init(const Properties &props) {
   if (!__embree_device)
     __embree_device = rtcNewDevice("");
+  util::Timer timer;
   RTCScene embree_scene = rtcNewScene(__embree_device);
   m_accel = embree_scene;
   for (auto &shape : m_shapes)
     rtcAttachGeometry(embree_scene, shape->embree_geometry(__embree_device));
   rtcCommitScene(embree_scene);
-  Log(Info, "Embree ready.");
+  Log(Info, "Embree ready.  (took {})", util::time_string(timer.value()));
 }
 
 void Scene::accel_release() {

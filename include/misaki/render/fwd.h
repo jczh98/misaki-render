@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <misaki/utils/math.h>
 #include <misaki/utils/system.h>
+#include <misaki/utils/util.h>
 #include <rttr/registration.h>
 #include <rttr/rttr_enable.h>
 

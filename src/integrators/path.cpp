@@ -39,20 +39,29 @@ class PathTracer final : public Integrator {
                 Vector2 pos = Vector2(x, y);
                 if (pos.x() >= size.x() || pos.y() >= size.y()) continue;
                 pos = pos + Vector2(offset);
-                auto position_sample = pos + sampler->next2d();
-                auto [ray, ray_weight] = camera->sample_ray(position_sample);
-                auto si = scene->ray_intersect(ray);
-                if (si) {
-                  auto ns = si->geom.sh_frame.n;
-                  block->put(position_sample, Color4(Color3({std::abs(ns.x()), std::abs(ns.y()), std::abs(ns.z())})));
+                for (int s = 0; s < total_spp; ++s) {
+                  auto position_sample = pos + sampler->next2d();
+                  auto [ray, ray_weight] = camera->sample_ray(position_sample);
+                  auto result = sample(scene, sampler.get(), ray);
+                  if (result) block->put(position_sample, Color4(*result));
+                  else block->put(position_sample, Color4(0.f, 0.f, 0.f, 0.f));
                 }
-                block->put(position_sample, Color4(Color3(0.f, 0.f, 0.f)));
               }
             }
             film->put(block.get());
           }
         });
     return true;
+  }
+
+  std::optional<Color3> sample(const std::shared_ptr<Scene> &scene, Sampler *sampler, const Ray &ray) const {
+    auto si = scene->ray_intersect(ray);
+    if (si) {
+      auto ns = si->geom.sh_frame.n;
+      return Color3({std::abs(ns.x()), std::abs(ns.y()), std::abs(ns.z())});
+    } else {
+      return Color3({0.f, 0.f, 0.f});
+    }
   }
 
   MSK_DECL_COMP(Integrator)
