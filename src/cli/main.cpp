@@ -14,10 +14,11 @@
 using namespace misaki::render;
 
 int main(int argc, char** argv) {
-  tbb::task_scheduler_init init(1);
+  //tbb::task_scheduler_init init(1);
   // Append executable directory to file resolver
   fs::path path = "assets/scene.xml";
   get_file_resolver()->append(fs::path(argv[0]).parent_path());
+  get_file_resolver()->append(path.parent_path());
   try {
     auto comp = xml::load_file(get_file_resolver()->resolve(path));
     Log(Info, "load success");

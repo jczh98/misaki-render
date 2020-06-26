@@ -49,6 +49,7 @@ void Scene::accel_init(const Properties &props) {
   for (auto &shape : m_shapes)
     rtcAttachGeometry(embree_scene, shape->embree_geometry(__embree_device));
   rtcCommitScene(embree_scene);
+  Log(Info, "Embree ready.");
 }
 
 void Scene::accel_release() {

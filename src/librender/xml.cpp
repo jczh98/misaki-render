@@ -137,6 +137,56 @@ static void check_attributes(XMLSource &src, const pugi::xml_node &node,
     src.throw_error(node, "missing attribute \"{}\" in element \"{}\"", *attrs.begin(), node.name());
 }
 
+void expand_value_to_xyz(XMLSource &src, pugi::xml_node &node) {
+  if (node.attribute("value")) {
+    auto list = string::tokenize(node.attribute("value").value());
+    if (node.attribute("x") || node.attribute("y") || node.attribute("z"))
+      src.throw_error(node, "can't mix and match \"value\" and \"x\"/\"y\"/\"z\" attributes");
+    if (list.size() == 1) {
+      node.append_attribute("x") = list[0].c_str();
+      node.append_attribute("y") = list[0].c_str();
+      node.append_attribute("z") = list[0].c_str();
+    } else if (list.size() == 3) {
+      node.append_attribute("x") = list[0].c_str();
+      node.append_attribute("y") = list[1].c_str();
+      node.append_attribute("z") = list[2].c_str();
+    } else {
+      src.throw_error(node, "\"value\" attribute must have exactly 1 or 3 elements");
+    }
+    node.remove_attribute("value");
+  }
+}
+
+Vector3 parse_named_vector(XMLSource &src, pugi::xml_node &node, const std::string &attr_name) {
+  auto vec_str = node.attribute(attr_name.c_str()).value();
+  auto list = string::tokenize(vec_str);
+  if (list.size() != 3)
+    src.throw_error(node, "\"{}\" attribute must have exactly 3 elements", attr_name);
+  try {
+    return Vector3(detail::stof(list[0]),
+                   detail::stof(list[1]),
+                   detail::stof(list[2]));
+  } catch (...) {
+    src.throw_error(node, "could not parse floating point values in \"{}\"", vec_str);
+  }
+}
+
+Vector3 parse_vector(XMLSource &src, pugi::xml_node &node, Float def_val = 0.f) {
+  std::string value;
+  try {
+    Float x = def_val, y = def_val, z = def_val;
+    value = node.attribute("x").value();
+    if (!value.empty()) x = detail::stof(value);
+    value = node.attribute("y").value();
+    if (!value.empty()) y = detail::stof(value);
+    value = node.attribute("z").value();
+    if (!value.empty()) z = detail::stof(value);
+    return Vector3(x, y, z);
+  } catch (...) {
+    src.throw_error(node, "could not parse floating point value \"{}\"", value);
+  }
+}
+
 static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseContext &ctx,
                                                      pugi::xml_node &node, Tag parent_tag,
                                                      Properties &props, ParameterList &param,
@@ -167,11 +217,13 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
     tags["camera"] = Tag::Object;
     tags["film"] = Tag::Object;
     tags["sampler"] = Tag::Object;
+    tags["shape"] = Tag::Object;
     tag_alias["scene"] = "Scene";
     tag_alias["integrator"] = "Integrator";
     tag_alias["camera"] = "Camera";
     tag_alias["film"] = "Film";
     tag_alias["sampler"] = "Sampler";
+    tag_alias["shape"] = "Shape";
   });
   try {
     if (!param.empty()) {
@@ -262,6 +314,66 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
         inst.src_id = src.id;
         inst.location = node.offset_debug();
         return {name, id};
+      } break;
+      case Tag::String: {
+        check_attributes(src, node, {"name", "value"});
+        props.set_string(node.attribute("name").value(), node.attribute("value").value());
+      } break;
+      case Tag::Float: {
+        check_attributes(src, node, {"name", "value"});
+        std::string value = node.attribute("value").value();
+        Float value_float;
+        try {
+          value_float = detail::stof(value);
+        } catch (...) {
+          src.throw_error(node, "could not parse floating point value \"%s\"", value);
+        }
+        props.set_float(node.attribute("name").value(), value_float);
+      } break;
+      case Tag::Integer: {
+        check_attributes(src, node, {"name", "value"});
+        std::string value = node.attribute("value").value();
+        int64_t value_long;
+        try {
+          value_long = detail::stoll(value);
+        } catch (...) {
+          src.throw_error(node, "could not parse integer value \"%s\"", value);
+        }
+        props.set_int(node.attribute("name").value(), value_long);
+      } break;
+      case Tag::Vector: {
+        detail::expand_value_to_xyz(src, node);
+        check_attributes(src, node, {"name", "x", "y", "z"});
+        props.set_vector3(node.attribute("name").value(),
+                          detail::parse_vector(src, node));
+      } break;
+      case Tag::Transform: {
+        check_attributes(src, node, {"name"});
+        ctx.transform = Transform4();
+      } break;
+      case Tag::LookAt: {
+        check_attributes(src, node, {"origin", "target", "up"});
+
+        auto origin = parse_named_vector(src, node, "origin");
+        auto target = parse_named_vector(src, node, "target");
+        auto up = parse_named_vector(src, node, "up");
+
+        auto result = Transform4::lookat(origin, target, up);
+        if (result.matrix().hasNaN())
+          src.throw_error(node, "invalid lookat transformation");
+        ctx.transform = result * ctx.transform;
+      } break;
+      case Tag::Translate: {
+        detail::expand_value_to_xyz(src, node);
+        check_attributes(src, node, {"x", "y", "z"}, false);
+        auto vec = detail::parse_vector(src, node);
+        ctx.transform = Transform4::translate(vec) * ctx.transform;
+      } break;
+      case Tag::Scale: {
+        detail::expand_value_to_xyz(src, node);
+        check_attributes(src, node, {"x", "y", "z"}, false);
+        auto vec = detail::parse_vector(src, node, 1.f);
+        ctx.transform = Transform4::scale(vec) * ctx.transform;
       } break;
     }
     for (pugi::xml_node &ch : node.children())

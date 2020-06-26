@@ -44,7 +44,7 @@ class PathTracer final : public Integrator {
                 auto si = scene->ray_intersect(ray);
                 if (si) {
                   auto ns = si->geom.sh_frame.n;
-                  block->put(position_sample, Color4(Color3({ns.x(), ns.y(), ns.z()})));
+                  block->put(position_sample, Color4(Color3({std::abs(ns.x()), std::abs(ns.y()), std::abs(ns.z())})));
                 }
                 block->put(position_sample, Color4(Color3(0.f, 0.f, 0.f)));
               }

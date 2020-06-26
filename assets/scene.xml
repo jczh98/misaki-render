@@ -1,13 +1,19 @@
 <scene>
 	<integrator type='path'/>
 	<camera type='perspective'>
+		<float name="fov" value="16"/>
 		<film type="rgbfilm">
-			<integer name="width" value="1024"/>
+			<integer name="width" value="768"/>
 			<integer name="height" value="768"/>
 		</film>
-
+		<transform name="to_world">
+			<lookat target="-0.0123771, 0.0540913, -0.239922" origin="-0.0315182, 0.284011, 0.7331" up="0.00717446, 0.973206, -0.229822"/>
+		</transform>
 		<sampler type="independent">
-			<integer name="sample_count" value="4"/>
+			<integer name="sample_count" value="1"/>
 		</sampler>
 	</camera>
+	<shape type="obj">
+		<string name="filename" value="bunny.obj"/>
+	</shape>
 </scene>
