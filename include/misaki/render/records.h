@@ -1,3 +1,5 @@
+#pragma once
+
 #include "interaction.h"
 
 namespace misaki::render {

@@ -52,6 +52,7 @@ Mesh::InterpolatedPoint Mesh::compute_surface_point(int prim_index, const Vector
     auto ns = math::normalize(n0 * b0 + n1 * b1 + n2 * b2);
     ip.ns = ns;
   }
+  return ip;
 }
 
 #if defined(MSK_ENABLE_EMBREE)

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <OpenImageIO/imageio.h>
 
 #include "fwd.h"

@@ -15,7 +15,7 @@ class MSK_EXPORT Shape : public Component {
     Vector3 p; // position
     Vector3 ns;
     Vector3 ng;
-    Vector3 uv;
+    Vector2 uv;
   };
 
   virtual InterpolatedPoint compute_surface_point(int prim_index, const Vector2 &uv) const;

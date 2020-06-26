@@ -3,6 +3,7 @@
 #include <misaki/render/interaction.h>
 #include <misaki/render/logger.h>
 #include <misaki/render/properties.h>
+#include <misaki/render/ray.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/shape.h>
 

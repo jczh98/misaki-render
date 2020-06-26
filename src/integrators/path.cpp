@@ -1,6 +1,7 @@
 #include <misaki/render/camera.h>
 #include <misaki/render/film.h>
 #include <misaki/render/integrator.h>
+#include <misaki/render/interaction.h>
 #include <misaki/render/logger.h>
 #include <misaki/render/properties.h>
 #include <misaki/render/scene.h>
@@ -39,7 +40,13 @@ class PathTracer final : public Integrator {
                 if (pos.x() >= size.x() || pos.y() >= size.y()) continue;
                 pos = pos + Vector2(offset);
                 auto position_sample = pos + sampler->next2d();
-                block->put(position_sample, Color4(Color3(0.f, 0.f, float(i) / total_blocks)));
+                auto [ray, ray_weight] = camera->sample_ray(position_sample);
+                auto si = scene->ray_intersect(ray);
+                if (si) {
+                  auto ns = si->geom.sh_frame.n;
+                  block->put(position_sample, Color4(Color3({ns.x(), ns.y(), ns.z()})));
+                }
+                block->put(position_sample, Color4(Color3(0.f, 0.f, 0.f)));
               }
             }
             film->put(block.get());

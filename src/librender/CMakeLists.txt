@@ -19,6 +19,7 @@ add_library(misaki-render SHARED
         ${INC_DIR}/integrator.h integrator.cpp
         ${INC_DIR}/shape.h shape.cpp
         ${INC_DIR}/mesh.h mesh.cpp
+        ${INC_DIR}/endpoint.h endpoint.cpp
         )
 set_target_properties(misaki-render PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib"
@@ -26,6 +27,7 @@ set_target_properties(misaki-render PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY   "${CMAKE_BINARY_DIR}/dist")
 target_compile_definitions(misaki-render PRIVATE -DMSK_EXPORTS)
 target_compile_definitions(misaki-render PUBLIC -D_CRT_SECURE_NO_WARNINGS)
+SET(EMBREE_LIBRARY ${EMBREE_ROOT_DIR}/lib/embree3.lib)
 target_link_libraries(misaki-render PUBLIC
         misaki-utils
         fmt::fmt
@@ -33,5 +35,5 @@ target_link_libraries(misaki-render PUBLIC
         pugixml
         TBB::tbb
         OpenImageIO::OpenImageIO OpenImageIO::OpenImageIO_Util
-        ${EMBREE_LIBRARIES}
+        ${EMBREE_LIBRARY}
         )

@@ -4,7 +4,7 @@
 
 namespace misaki::render {
 
-Camera::Camera(const Properties &props) {
+Camera::Camera(const Properties &props) : Endpoint(props) {
   for (auto &kv : props.components()) {
     auto film = std::dynamic_pointer_cast<Film>(kv.second);
     auto sampler = std::dynamic_pointer_cast<Sampler>(kv.second);
@@ -27,6 +27,17 @@ Camera::Camera(const Properties &props) {
   m_resolution = Vector2(m_film->size());
 }
 
+std::pair<Ray, Vector3> Camera::sample_ray(const Vector2 &pos_sample) const {
+  MSK_NOT_IMPLEMENTED("sample_ray");
+}
+
+ProjectiveCamera::ProjectiveCamera(const Properties &props) : Camera(props) {
+  m_near_clip = props.get_float("near_clip", 1e-2f);
+  m_far_clip = props.get_float("far_clip", 1e4f);
+  m_focus_distance = props.get_float("focus_distance", m_far_clip);
+}
+
 MSK_REGISTER_CLASS(Camera)
+MSK_REGISTER_CLASS(ProjectiveCamera)
 
 }  // namespace misaki::render

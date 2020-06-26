@@ -8,7 +8,7 @@
 
 namespace misaki::render {
 
-class Scene : public Component {
+class MSK_EXPORT Scene : public Component {
  public:
   Scene(const Properties& props);
   ~Scene();
