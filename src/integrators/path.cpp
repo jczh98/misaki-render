@@ -68,7 +68,6 @@ class PathTracer final : public Integrator {
     auto ray = ray_;
     Color3 throughput(1.f), result(0.f);
     auto si = scene->ray_intersect(ray);
-
     for (int depth = 1;; ++depth) {
       if (!si) {
         // Handle enviroment lighting
@@ -85,17 +84,32 @@ class PathTracer final : public Integrator {
         throughput *= 1.f / q;
       }
       if ((uint32_t)depth >= (uint32_t)m_max_depth) break;
-      // Sample BSDF * cos(theta)
+      // ------------------Direct sample light--------------------------
       BSDFContext ctx;
       const BSDF *bsdf = si->shape->bsdf();
+      if (has_flag(bsdf->flags(), BSDFFlags::Diffuse)) {
+        auto [ds, emit_val] = scene->sample_direct_light(si->geom, sampler->next2d());
+        auto wo = si->to_local(ds.d);
+        auto bsdf_val = bsdf->eval(ctx, si->geom, wi, wo) * std::abs(math::dot(ds.d, si->geom.sh_frame.n));
+        auto bsdf_pdf = bsdf->pdf(ctx, si->geom, wi, wo);
+        result += throughput * bsdf_val * emit_val;
+      }
+      // --------------------- BSDF Sampling ------------------------
+      // Sample BSDF * cos(theta)
       auto [bs, bsdf_val] = bsdf->sample(ctx, si->geom, wi, sampler->next2d());
       auto wo_world = si->to_world(bs.wo);
-      throughput *= bsdf_val * std::abs(math::dot(wo_world, si->geom.sh_frame.n)) / bs.pdf;
+      //throughput *= bsdf_val * std::abs(math::dot(wo_world, si->geom.sh_frame.n)) / bs.pdf;
       ray.spawn(si->geom, wo_world);
       auto si_bsdf = scene->ray_intersect(ray);
       si = std::move(si_bsdf);
     }
     return result;
+  }
+
+  Float mis_weight(Float pdf_a, Float pdf_b) const {
+    pdf_a *= pdf_a;
+    pdf_b *= pdf_b;
+    return pdf_a > 0.f ? pdf_a / (pdf_a + pdf_b) : 0.f;
   }
 
   MSK_DECL_COMP(Integrator)

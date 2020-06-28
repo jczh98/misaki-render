@@ -29,6 +29,10 @@ std::pair<PointGeometry, Float> Shape::sample_position(const Vector2 &sample) co
   MSK_NOT_IMPLEMENTED("sample_position");
 }
 
+Float Shape::pdf_position(const PointGeometry &geom) const {
+  MSK_NOT_IMPLEMENTED("pdf_position");
+}
+
 BoundingBox3 Shape::bbox() const {
   MSK_NOT_IMPLEMENTED("bbox");
 }

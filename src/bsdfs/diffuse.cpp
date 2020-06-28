@@ -40,7 +40,7 @@ class DiffuseBSDF final : public BSDF {
     if (cos_theta_i > 0.f && cos_theta_o > 0.f) {
       return m_reflectance * math::InvPi<Float>;
     } else {
-      return 0.f;
+      return Color3(0.f);
     }
   }
 

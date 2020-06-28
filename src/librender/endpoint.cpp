@@ -24,11 +24,12 @@ Float Endpoint::pdf_position(const PointGeometry &geom) const {
   MSK_NOT_IMPLEMENTED("pdf_position");
 }
 
-std::tuple<PointGeometry, Vector3, Vector3> Endpoint::sample_direct(const Vector2 &position_sample, const Vector2 &direction_sample) const {
+std::pair<DirectSample, Color3>
+Endpoint::sample_direct(const PointGeometry &geom_ref, const Vector2 &position_sample) const {
   MSK_NOT_IMPLEMENTED("sample_direct");
 }
 
-Float Endpoint::pdf_direct(const PointGeometry &geom_surface, const PointGeometry &geom_endpoint, const Vector3 &wo) const {
+Float Endpoint::pdf_direct(const PointGeometry &geom_ref, const DirectSample &ds) const {
   MSK_NOT_IMPLEMENTED("pdf_direct");
 }
 

@@ -5,8 +5,8 @@
 namespace misaki::render {
 
 struct PointGeometry {
-  Vector3 p;                           // Position
-  Vector2 uv;                          // Texture coordinates
+  Vector3 p{0.f};                           // Position
+  Vector2 uv{0.f};                          // Texture coordinates
   Frame sh_frame = Frame({0, 0, 0});   // Shading frame with shading normal
   Frame geo_frame = Frame({0, 0, 0});  // Geo frame with geo normal
 

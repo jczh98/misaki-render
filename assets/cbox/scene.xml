@@ -9,7 +9,7 @@
                     up    ="  0,   1,    0"/>
         </transform>
         <sampler type="independent">
-            <integer name="sample_count" value="128"/>
+            <integer name="sample_count" value="32"/>
         </sampler>
         <film type="rgbfilm">
             <integer name="width" value="800"/>

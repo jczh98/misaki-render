@@ -1,6 +1,7 @@
 #include <misaki/render/camera.h>
 #include <misaki/render/integrator.h>
 #include <misaki/render/interaction.h>
+#include <misaki/render/light.h>
 #include <misaki/render/logger.h>
 #include <misaki/render/properties.h>
 #include <misaki/render/ray.h>
@@ -14,9 +15,13 @@ Scene::Scene(const Properties &props) {
     auto shape = std::dynamic_pointer_cast<Shape>(kv.second);
     auto camera = std::dynamic_pointer_cast<Camera>(kv.second);
     auto integrator = std::dynamic_pointer_cast<Integrator>(kv.second);
+    auto light = std::dynamic_pointer_cast<Light>(kv.second);
     if (shape) {
+      if (shape->is_light()) m_lights.emplace_back(shape->light());
       m_bbox.expand(shape->bbox());
       m_shapes.push_back(shape);
+    } else if (light) {
+      if (!has_flag(light->flags(), LightFlags::Surface)) m_lights.emplace_back(light);
     } else if (camera) {
       if (m_camera) Throw("Can only have one camera.");
       m_camera = camera;
@@ -34,6 +39,37 @@ Scene::Scene(const Properties &props) {
 
 Scene::~Scene() {
   accel_release();
+}
+
+std::pair<DirectSample, Color3> Scene::sample_direct_light(const PointGeometry &geom,
+                                                           const Vector2 &sample_, bool test_visibility) const {
+  DirectSample ds;
+  Color3 emitted;
+  Vector2 sample(sample_);
+  if (!m_lights.empty()) {
+    if (m_lights.size() == 1) {
+      std::tie(ds, emitted) = m_lights[0]->sample_direct(geom, sample);
+    } else {
+      auto light_sel_pdf = 1.f / m_lights.size();
+      auto index = std::min(uint32_t(sample.x() * (Float)m_lights.size()), (uint32_t)m_lights.size() - 1);
+      sample.x() = (sample.x() - index * light_sel_pdf) * m_lights.size();
+      std::tie(ds, emitted) = m_lights[index]->sample_direct(geom, sample);
+      ds.pdf *= light_sel_pdf;
+      emitted *= m_lights.size();
+    }
+  } else {
+    emitted = 0.f;
+  }
+  return { ds, emitted };
+}
+
+Float Scene::pdf_direct_light(const PointGeometry &geom_ref, const DirectSample &ds, const Light *light) const {
+  if (m_lights.size() == 1) {
+    return m_lights[0]->pdf_direct(geom_ref, ds);
+  } else {
+    return light->pdf_direct(geom_ref, ds) *
+           (1.f / m_lights.size());
+  }
 }
 
 /*------------------------Embree specification---------------------------------*/

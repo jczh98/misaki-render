@@ -63,6 +63,7 @@ class MSK_EXPORT Mesh : public Shape {
   bool has_vertex_texcoords() const { return m_texcoord_offset != 0; }
 
   std::pair<PointGeometry, Float> sample_position(const Vector2 &sample) const override;
+  Float pdf_position(const PointGeometry &geom) const override;
 
   virtual InterpolatedPoint compute_surface_point(int prim_index, const Vector2 &uv) const override;
 

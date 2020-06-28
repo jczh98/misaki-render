@@ -1,9 +1,18 @@
 #pragma once
 
+#include <optional>
+
 #include "component.h"
 #include "interaction.h"
 
 namespace misaki::render {
+
+struct DirectSample {
+  PointGeometry geom;
+  Float pdf{0.f};
+  Vector3 d{0.f};
+  Float dist{0.f};
+};
 
 class MSK_EXPORT Endpoint : public Component {
  public:
@@ -17,9 +26,10 @@ class MSK_EXPORT Endpoint : public Component {
   virtual std::pair<PointGeometry, Vector3> sample_position(const Vector2 &sample) const;
   virtual Float pdf_position(const PointGeometry &geom) const;
 
-  // Returns sampled point geometry, direction, weight
-  virtual std::tuple<PointGeometry, Vector3, Vector3> sample_direct(const Vector2 &position_sample, const Vector2 &direction_sample) const;
-  virtual Float pdf_direct(const PointGeometry &geom_surface, const PointGeometry &geom_endpoint, const Vector3 &wo) const;
+  // Returns sampled point geometry, direction, radiance, pdf
+  virtual std::pair<DirectSample, Color3> sample_direct(const PointGeometry &geom_ref, const Vector2 &position_sample) const;
+  // Returns pdf associated with area measure
+  virtual Float pdf_direct(const PointGeometry &geom_ref, const DirectSample &ds) const;
 
   virtual Color3 eval(const PointGeometry &geom, const Vector3 &wi) const;
 

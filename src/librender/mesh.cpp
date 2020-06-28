@@ -38,7 +38,7 @@ Mesh::InterpolatedPoint Mesh::compute_surface_point(int prim_index, const Vector
   Vector3 p0 = vertex_position(fi[0]),
           p1 = vertex_position(fi[1]),
           p2 = vertex_position(fi[2]);
-  
+
   InterpolatedPoint ip;
   ip.p = p0 * b0 + p1 * b1 + p2 * b2;
   auto n = math::normalize(math::cross(p1 - p0, p2 - p0));
@@ -88,6 +88,10 @@ std::pair<PointGeometry, Float> Mesh::sample_position(const Vector2 &sample_) co
     ns = normalize(n0 * (1.f - b.x() - b.y()) + n1 * b.x() + n2 * b.y());
   }
   return {PointGeometry::make_on_surface(p, ng, ns, uv), m_area_distr.normalization()};
+}
+
+Float Mesh::pdf_position(const PointGeometry &geom) const {
+  return m_area_distr.normalization();
 }
 
 #if defined(MSK_ENABLE_EMBREE)

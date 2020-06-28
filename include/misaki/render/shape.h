@@ -13,6 +13,7 @@ class MSK_EXPORT Shape : public Component {
 
   // Returns sampled point geometry and associated pdf
   virtual std::pair<PointGeometry, Float> sample_position(const Vector2 &sample) const;
+  virtual Float pdf_position(const PointGeometry &geom) const;
 
   struct InterpolatedPoint {
     Vector3 p;  // position
@@ -26,8 +27,8 @@ class MSK_EXPORT Shape : public Component {
   bool is_mesh() const { return m_mesh; }
 
   const BSDF *bsdf() const { return m_bsdf.get(); }
-  BSDF* bsdf() { return m_bsdf.get(); }
-  
+  BSDF *bsdf() { return m_bsdf.get(); }
+
   bool is_light() const { return (bool)m_light; }
   const Light *light() const { return m_light.get(); }
   Light *light() { return m_light.get(); }
