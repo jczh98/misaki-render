@@ -21,7 +21,7 @@ class AreaLight final : public Light {
     Float dist_squared = math::squared_norm(ds.d);
     ds.dist = std::sqrt(dist_squared);
     ds.d /= ds.dist;
-    auto w_dot_n = math::dot(ds.d, ds.geom.sh_frame.n);
+    auto w_dot_n = math::dot(ds.d, ds.geom.shading.n);
     Float dp = std::abs(w_dot_n);
     if (dp != 0.f && w_dot_n < 0.f) {
       ds.pdf *= dist_squared / dp;
@@ -35,7 +35,7 @@ class AreaLight final : public Light {
 
   Float pdf_direct(const PointGeometry &geom_ref, const DirectSample &ds) const {
     Float pdf = m_shape->pdf_position(geom_ref),
-          dp = std::abs(math::dot(ds.d, ds.geom.sh_frame.n));
+          dp = std::abs(math::dot(ds.d, ds.geom.shading.n));
     pdf *= dp != 0 ? ds.dist * ds.dist / dp : 0.f;
     return pdf;
   }

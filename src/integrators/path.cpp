@@ -90,7 +90,7 @@ class PathTracer final : public Integrator {
       if (has_flag(bsdf->flags(), BSDFFlags::Diffuse)) {
         auto [ds, emit_val] = scene->sample_direct_light(si->geom, sampler->next2d());
         auto wo = si->to_local(ds.d);
-        auto bsdf_val = bsdf->eval(ctx, si->geom, wi, wo) * std::abs(math::dot(ds.d, si->geom.sh_frame.n));
+        auto bsdf_val = bsdf->eval(ctx, si->geom, wi, wo) * std::abs(math::dot(ds.d, si->geom.shading.n));
         auto bsdf_pdf = bsdf->pdf(ctx, si->geom, wi, wo);
         result += throughput * bsdf_val * emit_val;
       }
@@ -98,7 +98,7 @@ class PathTracer final : public Integrator {
       // Sample BSDF * cos(theta)
       auto [bs, bsdf_val] = bsdf->sample(ctx, si->geom, wi, sampler->next2d());
       auto wo_world = si->to_world(bs.wo);
-      //throughput *= bsdf_val * std::abs(math::dot(wo_world, si->geom.sh_frame.n)) / bs.pdf;
+      //throughput *= bsdf_val * std::abs(math::dot(wo_world, si->geom.shading.n)) / bs.pdf;
       ray.spawn(si->geom, wo_world);
       auto si_bsdf = scene->ray_intersect(ray);
       si = std::move(si_bsdf);
