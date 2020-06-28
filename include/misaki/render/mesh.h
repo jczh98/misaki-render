@@ -49,8 +49,20 @@ class MSK_EXPORT Mesh : public Shape {
     return Vector2(*texcoord, *(texcoord + 1));
   }
 
+  auto face_area(uint32_t index) const {
+    auto fi = face_indices(index);
+
+    auto p0 = vertex_position(fi[0]),
+         p1 = vertex_position(fi[1]),
+         p2 = vertex_position(fi[2]);
+
+    return 0.5f * math::norm(math::cross(p1 - p0, p2 - p0));
+  }
+
   bool has_vertex_normals() const { return m_normal_offset != 0; }
   bool has_vertex_texcoords() const { return m_texcoord_offset != 0; }
+
+  std::pair<PointGeometry, Float> sample_position(const Vector2 &sample) const override;
 
   virtual InterpolatedPoint compute_surface_point(int prim_index, const Vector2 &uv) const override;
 
@@ -70,6 +82,7 @@ class MSK_EXPORT Mesh : public Shape {
   uint32_t m_normal_offset = 0, m_texcoord_offset = 0;
   uint32_t m_vertex_count = 0, m_face_count = 0;
 
+  Distribution1D m_area_distr;
   std::string m_name;
   BoundingBox3 m_bbox;
   Transform4 m_to_world;

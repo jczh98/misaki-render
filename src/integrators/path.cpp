@@ -1,8 +1,11 @@
+#include <misaki/render/bsdf.h>
 #include <misaki/render/camera.h>
 #include <misaki/render/film.h>
 #include <misaki/render/integrator.h>
 #include <misaki/render/interaction.h>
+#include <misaki/render/light.h>
 #include <misaki/render/logger.h>
+#include <misaki/render/mesh.h>
 #include <misaki/render/properties.h>
 #include <misaki/render/scene.h>
 #include <tbb/parallel_for.h>
@@ -61,18 +64,43 @@ class PathTracer final : public Integrator {
     return true;
   }
 
-  std::optional<Color3> sample(const std::shared_ptr<Scene> &scene, Sampler *sampler, const Ray &ray) const {
+  std::optional<Color3> sample(const std::shared_ptr<Scene> &scene, Sampler *sampler, const Ray &ray_) const {
+    auto ray = ray_;
+    Color3 throughput(1.f), result(0.f);
     auto si = scene->ray_intersect(ray);
-    if (si) {
-      auto ns = si->geom.sh_frame.n;
-      return Color3({std::abs(ns.x()), std::abs(ns.y()), std::abs(ns.z())});
-    } else {
-      return Color3({0.f, 0.f, 0.f});
+
+    for (int depth = 1;; ++depth) {
+      if (!si) {
+        // Handle enviroment lighting
+        break;
+      }
+      const Light *light = si->shape->light();
+      const auto wi = si->to_local(-ray.d);
+      if (light != nullptr) {
+        result += light->eval(si->geom, wi) * throughput;
+      }
+      if (depth >= m_rr_depth) {
+        Float q = std::min(throughput.maxCoeff(), 0.95f);
+        if (sampler->next1d() >= q) break;
+        throughput *= 1.f / q;
+      }
+      if ((uint32_t)depth >= (uint32_t)m_max_depth) break;
+      // Sample BSDF * cos(theta)
+      BSDFContext ctx;
+      const BSDF *bsdf = si->shape->bsdf();
+      auto [bs, bsdf_val] = bsdf->sample(ctx, si->geom, wi, sampler->next2d());
+      auto wo_world = si->to_world(bs.wo);
+      throughput *= bsdf_val * std::abs(math::dot(wo_world, si->geom.sh_frame.n)) / bs.pdf;
+      ray.spawn(si->geom, wo_world);
+      auto si_bsdf = scene->ray_intersect(ray);
+      si = std::move(si_bsdf);
     }
+    return result;
   }
 
   MSK_DECL_COMP(Integrator)
  private:
+  int m_max_depth = -1, m_rr_depth = 3;
 };
 
 MSK_EXPORT_PLUGIN(PathTracer)

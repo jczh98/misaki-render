@@ -1,0 +1,1 @@
+add_plugin(area area.cpp)

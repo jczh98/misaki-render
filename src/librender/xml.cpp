@@ -218,12 +218,16 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
     tags["film"] = Tag::Object;
     tags["sampler"] = Tag::Object;
     tags["shape"] = Tag::Object;
+    tags["bsdf"] = Tag::Object;
+    tags["light"] = Tag::Object;
     tag_alias["scene"] = "Scene";
     tag_alias["integrator"] = "Integrator";
     tag_alias["camera"] = "Camera";
     tag_alias["film"] = "Film";
     tag_alias["sampler"] = "Sampler";
     tag_alias["shape"] = "Shape";
+    tag_alias["bsdf"] = "BSDF";
+    tag_alias["light"] = "Light";
   });
   try {
     if (!param.empty()) {
@@ -346,6 +350,28 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
         check_attributes(src, node, {"name", "x", "y", "z"});
         props.set_vector3(node.attribute("name").value(),
                           detail::parse_vector(src, node));
+      } break;
+      case Tag::RGB: {
+        check_attributes(src, node, {"name", "value"});
+        std::vector<std::string> tokens = string::tokenize(node.attribute("value").value());
+
+        if (tokens.size() == 1) {
+          tokens.push_back(tokens[0]);
+          tokens.push_back(tokens[0]);
+        }
+        if (tokens.size() != 3)
+          src.throw_error(node, "'rgb' tag requires one or three values (got \"%s\")",
+                          node.attribute("value").value());
+
+        Color3 color;
+        try {
+          color = Color3(detail::stof(tokens[0]),
+                         detail::stof(tokens[1]),
+                         detail::stof(tokens[2]));
+        } catch (...) {
+          src.throw_error(node, "could not parse RGB value \"%s\"", node.attribute("value").value());
+        }
+        props.set_color(node.attribute("name").value(), color);
       } break;
       case Tag::Transform: {
         check_attributes(src, node, {"name"});

@@ -161,6 +161,11 @@ class OBJMesh final : public Mesh {
       }
     }
     Log(Info, R"("{}": read {} faces, {} vertices)", m_name, m_face_count, m_vertex_count);
+    // Build surface area distribution
+    std::vector<Float> table;
+    for (uint32_t i = 0; i < m_face_count; ++i)
+      table.emplace_back(face_area(i));
+    m_area_distr = Distribution1D(table);
   }
   MSK_DECL_COMP(Mesh)
 };

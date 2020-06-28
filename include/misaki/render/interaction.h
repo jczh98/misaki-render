@@ -5,8 +5,8 @@
 namespace misaki::render {
 
 struct PointGeometry {
-  Vector3 p;        // Position
-  Vector2 uv;       // Texture coordinates
+  Vector3 p;                           // Position
+  Vector2 uv;                          // Texture coordinates
   Frame sh_frame = Frame({0, 0, 0});   // Shading frame with shading normal
   Frame geo_frame = Frame({0, 0, 0});  // Geo frame with geo normal
 
@@ -32,16 +32,21 @@ struct SceneInteraction {
     Intermediate
   };
   int type = None;
-  PointGeometry geom;  // Interaction point information
+  PointGeometry geom;            // Interaction point information
+  const Shape *shape = nullptr;  // Scene interact with surface and records its shape information
 
   bool is_type(uint32_t type_flag) const {
     return (type & type_flag) > 0;
   }
 
-  static SceneInteraction make_surface_interaction(const PointGeometry &geom) {
+  Vector3 to_world(const Vector3 &v) const { return geom.sh_frame.to_world(v); }
+  Vector3 to_local(const Vector3 &v) const { return geom.sh_frame.to_local(v); }
+
+  static SceneInteraction make_surface_interaction(const PointGeometry &geom, const Shape *shape) {
     SceneInteraction si;
     si.type = SurfaceInteraction;
     si.geom = geom;
+    si.shape = shape;
     return si;
   }
 };

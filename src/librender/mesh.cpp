@@ -1,11 +1,17 @@
+#include <misaki/render/interaction.h>
+#include <misaki/render/light.h>
 #include <misaki/render/logger.h>
 #include <misaki/render/mesh.h>
 #include <misaki/render/properties.h>
+#include <misaki/render/warp.h>
 
 namespace misaki::render {
+
 Mesh::Mesh(const Properties &props) : Shape(props) {
   m_to_world = props.transform("to_world", Transform4());
   m_mesh = true;
+  // Set children
+  if (m_light) m_light->set_shape(this);
 }
 
 BoundingBox3 Mesh::bbox() const {
@@ -23,7 +29,7 @@ BoundingBox3 Mesh::bbox(uint32_t index) const {
 }
 
 Float Mesh::surface_area() const {
-  return 0;
+  return m_area_distr.sum();
 }
 
 Mesh::InterpolatedPoint Mesh::compute_surface_point(int prim_index, const Vector2 &uv) const {
@@ -32,8 +38,9 @@ Mesh::InterpolatedPoint Mesh::compute_surface_point(int prim_index, const Vector
   Vector3 p0 = vertex_position(fi[0]),
           p1 = vertex_position(fi[1]),
           p2 = vertex_position(fi[2]);
+  
   InterpolatedPoint ip;
-  ip.p = p0 * b0 + p1 * b1 + p2 * p2;
+  ip.p = p0 * b0 + p1 * b1 + p2 * b2;
   auto n = math::normalize(math::cross(p1 - p0, p2 - p0));
   ip.ng = n;
   ip.ns = n;
@@ -53,6 +60,34 @@ Mesh::InterpolatedPoint Mesh::compute_surface_point(int prim_index, const Vector
     ip.ns = ns;
   }
   return ip;
+}
+
+std::pair<PointGeometry, Float> Mesh::sample_position(const Vector2 &sample_) const {
+  Vector2 sample = sample_;
+  uint32_t face_idx;
+  std::tie(face_idx, sample.y()) = m_area_distr.sample_reuse(sample.y());
+  auto fi = face_indices(face_idx);
+  Vector3 p0 = vertex_position(fi[0]),
+          p1 = vertex_position(fi[1]),
+          p2 = vertex_position(fi[2]);
+  auto e0 = p1 - p0, e1 = p2 - p0;
+  auto b = warp::square_to_uniform_triangle(sample);
+  auto p = p0 + e0 * b.x() + e1 * b.y();
+  auto uv = b;
+  if (has_vertex_texcoords()) {
+    auto uv0 = vertex_texcoord(fi[0]),
+         uv1 = vertex_texcoord(fi[1]),
+         uv2 = vertex_texcoord(fi[2]);
+    uv = uv0 * (1.f - b.x() - b.y()) + uv1 * b.x() + uv2 * b.y();
+  }
+  auto ng = normalize(cross(e0, e1)), ns = ng;
+  if (has_vertex_normals()) {
+    auto n0 = vertex_normal(fi[0]),
+         n1 = vertex_normal(fi[1]),
+         n2 = vertex_normal(fi[2]);
+    ns = normalize(n0 * (1.f - b.x() - b.y()) + n1 * b.x() + n2 * b.y());
+  }
+  return {PointGeometry::make_on_surface(p, ng, ns, uv), m_area_distr.normalization()};
 }
 
 #if defined(MSK_ENABLE_EMBREE)

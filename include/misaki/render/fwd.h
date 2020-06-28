@@ -35,6 +35,7 @@ class BSDF;
 class Scene;
 class Shape;
 class Mesh;
+struct PointGeometry;
 
 using Float = float;
 
@@ -87,5 +88,8 @@ using Color4 = math::TColor<Float, 4>;
 using BoundingBox3 = math::TBoundingBox<Float, 3>;
 
 using Frame = math::TFrame<Float>;
+
+using Distribution1D = math::DiscreteDistribution<Float>;
+
 #define MSK_ENABLE_EMBREE 1
 }  // namespace misaki::render

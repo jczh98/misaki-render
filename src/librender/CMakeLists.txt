@@ -20,6 +20,8 @@ add_library(misaki-render SHARED
         ${INC_DIR}/shape.h shape.cpp
         ${INC_DIR}/mesh.h mesh.cpp
         ${INC_DIR}/endpoint.h endpoint.cpp
+        ${INC_DIR}/bsdf.h bsdf.cpp
+        ${INC_DIR}/light.h light.cpp
         )
 set_target_properties(misaki-render PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib"

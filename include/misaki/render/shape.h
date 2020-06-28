@@ -11,16 +11,26 @@ class MSK_EXPORT Shape : public Component {
  public:
   Shape(const Properties &props);
 
+  // Returns sampled point geometry and associated pdf
+  virtual std::pair<PointGeometry, Float> sample_position(const Vector2 &sample) const;
+
   struct InterpolatedPoint {
-    Vector3 p; // position
+    Vector3 p;  // position
     Vector3 ns;
     Vector3 ng;
     Vector2 uv;
   };
 
   virtual InterpolatedPoint compute_surface_point(int prim_index, const Vector2 &uv) const;
-  
+
   bool is_mesh() const { return m_mesh; }
+
+  const BSDF *bsdf() const { return m_bsdf.get(); }
+  BSDF* bsdf() { return m_bsdf.get(); }
+  
+  bool is_light() const { return (bool)m_light; }
+  const Light *light() const { return m_light.get(); }
+  Light *light() { return m_light.get(); }
 
   virtual BoundingBox3 bbox() const;
   virtual BoundingBox3 bbox(uint32_t index) const;
@@ -32,6 +42,9 @@ class MSK_EXPORT Shape : public Component {
 
   MSK_DECL_COMP(Component)
  protected:
+  std::shared_ptr<Light> m_light;
+  std::shared_ptr<BSDF> m_bsdf;
+  Transform4 m_world_transform;
   bool m_mesh = false;
   std::string m_id;
 };
