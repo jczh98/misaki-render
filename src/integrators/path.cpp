@@ -88,7 +88,7 @@ class PathTracer final : public Integrator {
       // ------------------Direct sample light--------------------------
       BSDFContext ctx;
       const BSDF *bsdf = si->shape->bsdf();
-      if (has_flag(bsdf->flags(), BSDFFlags::Diffuse)) {
+      if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
         auto [ds, emit_val] = scene->sample_direct_light(si->geom, sampler->next2d());
         if (ds.pdf != 0.f) {
           auto wo = si->to_local(ds.d);
@@ -109,7 +109,7 @@ class PathTracer final : public Integrator {
         auto ds = DirectSample::make_between_geometries(si_bsdf->geom, si->geom);
         const auto light_bsdf = si_bsdf->shape->light();
         if (light_bsdf != nullptr) {
-          auto light_pdf = scene->pdf_direct_light(si->geom, ds, light_bsdf);
+          auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si->geom, ds, light_bsdf) : 0.f;
           emission_weight = mis_weight(bs.pdf, light_pdf);
         }
       }

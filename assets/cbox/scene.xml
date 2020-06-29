@@ -67,8 +67,9 @@
     </shape>
     <shape type="obj">
         <string name="filename" value="meshes/cbox_largebox.obj"/>
-        <bsdf type="diffuse">
+        <!-- <bsdf type="diffuse">
             <rgb name="reflectance" value="0.45, 0.30, 0.90"/>
-        </bsdf>
+        </bsdf> -->
+        <bsdf type="dielectric" />
     </shape>
 </scene>

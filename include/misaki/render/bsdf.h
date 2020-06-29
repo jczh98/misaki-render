@@ -17,10 +17,14 @@ enum class BSDFFlags : uint32_t {
   DiffuseTransmission = 0x00002,
   GlossyReflection = 0x00004,
   GlossyTransmission = 0x0008,
-  Reflection = DiffuseReflection | GlossyReflection,
+  DeltaReflection = 0x0010,
+  DeltaTransmission = 0x00020,
+  Reflection = DiffuseReflection | GlossyReflection | DeltaReflection,
   Diffuse = DiffuseReflection | DiffuseTransmission,
   Glossy = GlossyReflection | GlossyTransmission,
-  All = Diffuse | Glossy
+  Delta = DeltaReflection | DeltaTransmission,
+  Smooth = Diffuse | Glossy,
+  All = Diffuse | Glossy | Delta
 };
 
 constexpr uint32_t operator|(BSDFFlags f1, BSDFFlags f2) { return (uint32_t)f1 | (uint32_t)f2; }
@@ -64,9 +68,9 @@ class MSK_EXPORT BSDF : public Component {
 
   // Sample BSDF * cos(theta) and returns sampled bsdf information with BSDF * cos(theta) divided by pdf
   virtual std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
-                                                 const PointGeometry &geom,
-                                                 const Vector3 &wi,
-                                                 const Vector2 &sample) const;
+                                               const PointGeometry &geom,
+                                               const Vector3 &wi,
+                                               const Vector2 &sample) const;
 
   // Returns evaluated BSDF * cos(theta)
   virtual Color3 eval(const BSDFContext &ctx,
