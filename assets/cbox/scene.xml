@@ -1,5 +1,8 @@
 <scene>
-    <integrator type="path"/>
+    <integrator type="direct">
+        <integer name="bsdf_samples" value="1" />
+        <integer name="light_samples" value="1" />
+    </integrator>
     <camera type="perspective">
         <float name="near_clip" value="10"/>
         <float name="far_clip" value="2800"/>

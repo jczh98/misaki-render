@@ -12,6 +12,14 @@ struct DirectSample {
   Float pdf{0.f};
   Vector3 d{0.f};
   Float dist{0.f};
+  static DirectSample make_between_geometries(const PointGeometry &sampled, const PointGeometry &ref) {
+    DirectSample ds;
+    ds.geom = sampled;
+    ds.d = sampled.p - ref.p;
+    ds.dist = math::norm(ds.d);
+    ds.d /= ds.dist;
+    return ds;
+  }
 };
 
 class MSK_EXPORT Endpoint : public Component {

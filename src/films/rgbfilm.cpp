@@ -24,7 +24,7 @@ class RGBFilm final : public Film {
     auto bitmap = math::Tensor<Color3, 2>::from_linear_indexed(
         m_storage->data().shape(),
         [&](int i) {
-          return math::linear_to_srgb(m_storage->data().raw_data()[i].divide_by_filter_weight());
+          return m_storage->data().raw_data()[i].divide_by_filter_weight().to_srgb();
         });
     auto another = m_dest_file;
     image::write_rgb_image(another.replace_extension("jpg").string(), bitmap);

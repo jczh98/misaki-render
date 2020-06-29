@@ -57,10 +57,15 @@ std::pair<DirectSample, Color3> Scene::sample_direct_light(const PointGeometry &
       ds.pdf *= light_sel_pdf;
       emitted *= m_lights.size();
     }
+    if (test_visibility && ds.pdf != 0.f) {
+      Ray ray(geom.p, ds.d, RayEpsilon<Float> * (1.f + math::hmax(math::abs(geom.p))),
+              ds.dist * (1.f - ShadowEpsilon<Float>), 0);
+      if (ray_test(ray)) emitted = 0.f;
+    }
   } else {
     emitted = 0.f;
   }
-  return { ds, emitted };
+  return {ds, emitted};
 }
 
 Float Scene::pdf_direct_light(const PointGeometry &geom_ref, const DirectSample &ds, const Light *light) const {

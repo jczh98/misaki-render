@@ -14,9 +14,16 @@
 
 namespace misaki::render {
 
-class PathTracer final : public Integrator {
+class DirectIntegrator final : public Integrator {
  public:
-  PathTracer(const Properties &props) : Integrator(props) {
+  DirectIntegrator(const Properties &props) : Integrator(props) {
+    m_light_samples = props.get_int("light_samples", 1);
+    m_bsdf_samples = props.get_int("bsdf_samples", 1);
+    size_t sum = m_light_samples + m_bsdf_samples;
+    m_weight_bsdf = 1.f / (Float)m_bsdf_samples;
+    m_weight_lum = 1.f / (Float)m_light_samples;
+    m_frac_bsdf = m_bsdf_samples / (Float)sum;
+    m_frac_lum = m_light_samples / (Float)sum;
   }
 
   bool render(const std::shared_ptr<Scene> &scene) {
@@ -66,44 +73,51 @@ class PathTracer final : public Integrator {
 
   std::optional<Color3> sample(const std::shared_ptr<Scene> &scene, Sampler *sampler, const Ray &ray_) const {
     auto ray = ray_;
-    Color3 throughput(1.f), result(0.f);
+    Color3 result(0.f);
     auto si = scene->ray_intersect(ray);
-    for (int depth = 1;; ++depth) {
-      if (!si) {
-        // Handle enviroment lighting
-        break;
-      }
-      const Light *light = si->shape->light();
-      const auto wi = si->to_local(-ray.d);
-      if (light != nullptr) {
-        result += light->eval(si->geom, wi) * throughput;
-      }
-      if (depth >= m_rr_depth) {
-        Float q = std::min(throughput.maxCoeff(), 0.95f);
-        if (sampler->next1d() >= q) break;
-        throughput *= 1.f / q;
-      }
-      if ((uint32_t)depth >= (uint32_t)m_max_depth) break;
-      // ------------------Direct sample light--------------------------
-      BSDFContext ctx;
-      const BSDF *bsdf = si->shape->bsdf();
-      if (has_flag(bsdf->flags(), BSDFFlags::Diffuse)) {
+    if (!si) {
+      return result;
+    }
+    const Light *light = si->shape->light();
+    const auto wi = si->to_local(-ray.d);
+    if (light != nullptr) {
+      result += light->eval(si->geom, wi);
+    }
+    // -----------------Light Sampling-----------------------
+    BSDFContext ctx;
+    const BSDF *bsdf = si->shape->bsdf();
+    if (has_flag(bsdf->flags(), BSDFFlags::Diffuse)) {
+      for (size_t i = 0; i < m_light_samples; ++i) {
         auto [ds, emit_val] = scene->sample_direct_light(si->geom, sampler->next2d());
         if (ds.pdf != 0.f) {
           auto wo = si->to_local(ds.d);
           Color3 bsdf_val = bsdf->eval(ctx, si->geom, wi, wo);
           auto bsdf_pdf = bsdf->pdf(ctx, si->geom, wi, wo);
-          //result += throughput * bsdf_val * emit_val;
+          Float mis = mis_weight(ds.pdf * m_frac_lum, bsdf_pdf * m_frac_bsdf) * m_weight_lum;
+          result += mis * bsdf_val * emit_val;
         }
       }
-      // --------------------- BSDF Sampling ------------------------
-      // Sample BSDF * cos(theta)
+    }
+    // ------------------BSDF Sampling-----------------------
+    for (size_t i = 0; i < m_bsdf_samples; ++i) {
       auto [bs, bsdf_val] = bsdf->sample(ctx, si->geom, wi, sampler->next2d());
-      auto wo_world = si->to_world(bs.wo);
-      throughput *= bsdf_val;
-      ray.spawn(si->geom, wo_world);
-      auto si_bsdf = scene->ray_intersect(ray);
-      si = std::move(si_bsdf);
+      if (bsdf_val != 0.f) {
+        auto wo_world = si->to_world(bs.wo);
+        auto new_ray = ray;
+        new_ray.spawn(si->geom, wo_world);
+        auto si_bsdf = scene->ray_intersect(new_ray);
+        if (si_bsdf) {
+          auto wi_bsdf = si_bsdf->to_local(-new_ray.d);
+          const Light *light_bsdf = si_bsdf->shape->light();
+          if (light_bsdf != nullptr) {
+            auto emit_val = light_bsdf->eval(si_bsdf->geom, wi_bsdf);
+            auto ds_bsdf = DirectSample::make_between_geometries(si_bsdf->geom, si->geom);
+            auto light_pdf = scene->pdf_direct_light(si_bsdf->geom, ds_bsdf, light_bsdf);
+            Float mis = mis_weight(bs.pdf * m_frac_bsdf, light_pdf * m_frac_lum) * m_weight_bsdf;
+            result += bsdf_val * emit_val * mis;
+          }
+        }
+      }
     }
     return result;
   }
@@ -116,9 +130,11 @@ class PathTracer final : public Integrator {
 
   MSK_DECL_COMP(Integrator)
  private:
-  int m_max_depth = -1, m_rr_depth = 5;
+  int m_light_samples = -1, m_bsdf_samples = 5;
+  Float m_frac_bsdf, m_frac_lum;
+  Float m_weight_bsdf, m_weight_lum;
 };
 
-MSK_EXPORT_PLUGIN(PathTracer)
+MSK_EXPORT_PLUGIN(DirectIntegrator)
 
 }  // namespace misaki::render

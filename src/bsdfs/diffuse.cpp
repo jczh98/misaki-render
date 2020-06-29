@@ -25,7 +25,7 @@ class DiffuseBSDF final : public BSDF {
     bs.eta = 1.f;
     bs.sampled_type = +BSDFFlags::DiffuseReflection;
     bs.sampled_component = 0;
-    return {bs, bs.pdf > 0.f ? Color3(m_reflectance * math::InvPi<Float>) : 0.f};
+    return {bs, bs.pdf > 0.f ? m_reflectance : 0.f};
   }
 
   Color3 eval(const BSDFContext &ctx,
@@ -38,7 +38,7 @@ class DiffuseBSDF final : public BSDF {
     Float cos_theta_i = Frame::cos_theta(wi),
           cos_theta_o = Frame::cos_theta(wo);
     if (cos_theta_i > 0.f && cos_theta_o > 0.f) {
-      return m_reflectance * math::InvPi<Float>;
+      return m_reflectance * math::InvPi<Float> * cos_theta_o;
     } else {
       return Color3(0.f);
     }
