@@ -67,6 +67,7 @@ class PathTracer final : public Integrator {
   std::optional<Color3> sample(const std::shared_ptr<Scene> &scene, Sampler *sampler, const Ray &ray_) const {
     auto ray = ray_;
     Color3 throughput(1.f), result(0.f);
+    Float emission_weight = 1.f;
     auto si = scene->ray_intersect(ray);
     for (int depth = 1;; ++depth) {
       if (!si) {
@@ -76,7 +77,7 @@ class PathTracer final : public Integrator {
       const Light *light = si->shape->light();
       const auto wi = si->to_local(-ray.d);
       if (light != nullptr) {
-        result += light->eval(si->geom, wi) * throughput;
+        result += light->eval(si->geom, wi) * throughput * emission_weight;
       }
       if (depth >= m_rr_depth) {
         Float q = std::min(throughput.maxCoeff(), 0.95f);
@@ -93,7 +94,8 @@ class PathTracer final : public Integrator {
           auto wo = si->to_local(ds.d);
           Color3 bsdf_val = bsdf->eval(ctx, si->geom, wi, wo);
           auto bsdf_pdf = bsdf->pdf(ctx, si->geom, wi, wo);
-          //result += throughput * bsdf_val * emit_val;
+          Float mis = mis_weight(ds.pdf, bsdf_pdf);
+          result += throughput * bsdf_val * emit_val * mis;
         }
       }
       // --------------------- BSDF Sampling ------------------------
@@ -103,6 +105,14 @@ class PathTracer final : public Integrator {
       throughput *= bsdf_val;
       ray.spawn(si->geom, wo_world);
       auto si_bsdf = scene->ray_intersect(ray);
+      if (si_bsdf) {
+        auto ds = DirectSample::make_between_geometries(si_bsdf->geom, si->geom);
+        const auto light_bsdf = si_bsdf->shape->light();
+        if (light_bsdf != nullptr) {
+          auto light_pdf = scene->pdf_direct_light(si->geom, ds, light_bsdf);
+          emission_weight = mis_weight(bs.pdf, light_pdf);
+        }
+      }
       si = std::move(si_bsdf);
     }
     return result;
