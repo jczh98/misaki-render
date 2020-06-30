@@ -371,7 +371,10 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
         } catch (...) {
           src.throw_error(node, "could not parse RGB value \"%s\"", node.attribute("value").value());
         }
-        props.set_color(node.attribute("name").value(), color);
+        Properties props2("srgb");
+        props2.set_color("color", color);
+        auto obj = PluginManager::instance()->create_comp(props2, refl::type::get_by_name("Texture"));
+        props.set_component(node.attribute("name").value(), obj);
       } break;
       case Tag::Transform: {
         check_attributes(src, node, {"name"});

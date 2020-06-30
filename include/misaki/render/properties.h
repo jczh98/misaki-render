@@ -2,6 +2,7 @@
 
 #include "component.h"
 #include "fwd.h"
+#include "logger.h"
 #include "plugin.h"
 
 namespace misaki::render {
@@ -72,6 +73,46 @@ class MSK_EXPORT Properties {
   DEFINE_PROPERTY_METHODS(std::shared_ptr<Component>, set_component, component)
   DEFINE_PROPERTY_METHODS(void *const, set_pointer, pointer)
 #undef DEFINE_PROPERTY_METHODS
+
+  // Texture
+  template <typename Texture>
+  std::shared_ptr<Texture> texture(const std::string &name) const {
+    if (!has_property(name)) {
+      Throw(R"(Property {} has not been specified!)", name);
+    }
+    auto p_type = type(name);
+    if (p_type == Properties::Type::Component) {
+      std::shared_ptr<Component> comp = find_component(name);
+      auto result = std::reinterpret_pointer_cast<Texture>(comp);
+      if (result == nullptr) {
+        Throw(R"(Property {} has wrong type)", name);
+      }
+      return result;
+    } else if (p_type == Properties::Type::Float) {
+      Properties props("srgb");
+      props.set_color("color", Color3(get_float(name)));
+      return PluginManager::instance()->create_comp<Texture>(props);
+    } else {
+      Throw("The property \"{}\" has the wrong type.", name);
+    }
+  }
+
+  template <typename Texture>
+  std::shared_ptr<Texture> texture(const std::string &name, std::shared_ptr<Texture> &def_val) const {
+    if (!has_property(name)) return def_val;
+    return texture<Texture>(name);
+  }
+
+  template <typename Texture>
+  std::shared_ptr<Texture> texture(const std::string &name, Float def_val) const {
+    if (!has_property(name)) {
+      Properties props("srgb");
+      props.set_color("color", Color3(def_val));
+      return PluginManager::instance()->create_comp<Texture>(props);
+    }
+    return texture<Texture>(name);
+  }
+
  private:
   std::shared_ptr<Component> find_component(const std::string &name) const;
   struct Entry {

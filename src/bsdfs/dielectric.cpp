@@ -1,6 +1,7 @@
 #include <misaki/render/bsdf.h>
 #include <misaki/render/fresnel.h>
 #include <misaki/render/properties.h>
+#include <misaki/render/texture.h>
 
 namespace misaki::render {
 
@@ -10,8 +11,8 @@ class DielectricBSDF final : public BSDF {
     Float int_ior = props.get_float("int_ior", 1.49);
     Float ext_ior = props.get_float("ext_ior", 1.00028);
     m_eta = int_ior / ext_ior;
-    m_specular_reflectance = props.color("specular_reflectance", 1.f);
-    m_specular_transmittance = props.color("specular_transmittance", 1.f);
+    m_specular_reflectance = props.texture<Texture>("specular_reflectance", 1.f);
+    m_specular_transmittance = props.texture<Texture>("specular_transmittance", 1.f);
     m_components.push_back(+BSDFFlags::DeltaReflection);
     m_components.push_back(+BSDFFlags::DeltaTransmission);
     m_flags = m_components[0] | m_components[1];
@@ -44,8 +45,8 @@ class DielectricBSDF final : public BSDF {
     bs.wo = selected_r ? reflect(wi) : refract(wi, cos_theta_t, eta_ti);
     bs.eta = selected_r ? 1.f : eta_it;
     Color3 reflectance = 1.f, transmittance = 1.f;
-    if (selected_r) reflectance = m_specular_reflectance;
-    if (!selected_r) transmittance = m_specular_transmittance;
+    if (selected_r) reflectance = m_specular_reflectance->eval_3(geom);
+    if (!selected_r) transmittance = m_specular_transmittance->eval_3(geom);
     Color3 weight;
     if (has_reflection && has_transmission)
       weight = 1.f;
@@ -77,7 +78,7 @@ class DielectricBSDF final : public BSDF {
   MSK_DECL_COMP(BSDF)
  private:
   Float m_eta;
-  Color3 m_specular_reflectance, m_specular_transmittance;
+  std::shared_ptr<Texture> m_specular_reflectance, m_specular_transmittance;
 };
 
 MSK_EXPORT_PLUGIN(DielectricBSDF)

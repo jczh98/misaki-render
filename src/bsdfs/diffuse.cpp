@@ -1,6 +1,7 @@
 #include <misaki/render/bsdf.h>
 #include <misaki/render/logger.h>
 #include <misaki/render/properties.h>
+#include <misaki/render/texture.h>
 #include <misaki/render/warp.h>
 
 namespace misaki::render {
@@ -8,7 +9,7 @@ namespace misaki::render {
 class DiffuseBSDF final : public BSDF {
  public:
   DiffuseBSDF(const Properties &props) : BSDF(props) {
-    m_reflectance = props.color("reflectance", Color3(0.5f));
+    m_reflectance = props.texture<Texture>("reflectance", 0.5f);
     m_flags = +BSDFFlags::DiffuseReflection;
     m_components.push_back(m_flags);
   }
@@ -25,7 +26,7 @@ class DiffuseBSDF final : public BSDF {
     bs.eta = 1.f;
     bs.sampled_type = +BSDFFlags::DiffuseReflection;
     bs.sampled_component = 0;
-    return {bs, bs.pdf > 0.f ? m_reflectance : 0.f};
+    return {bs, bs.pdf > 0.f ? m_reflectance->eval_3(geom) : 0.f};
   }
 
   Color3 eval(const BSDFContext &ctx,
@@ -38,7 +39,7 @@ class DiffuseBSDF final : public BSDF {
     Float cos_theta_i = Frame::cos_theta(wi),
           cos_theta_o = Frame::cos_theta(wo);
     if (cos_theta_i > 0.f && cos_theta_o > 0.f) {
-      return m_reflectance * math::InvPi<Float> * cos_theta_o;
+      return m_reflectance->eval_3(geom) * math::InvPi<Float> * cos_theta_o;
     } else {
       return Color3(0.f);
     }
@@ -58,7 +59,7 @@ class DiffuseBSDF final : public BSDF {
 
   MSK_DECL_COMP(BSDF)
  protected:
-  Color3 m_reflectance;
+  std::shared_ptr<Texture> m_reflectance;
 };
 
 MSK_EXPORT_PLUGIN(DiffuseBSDF)

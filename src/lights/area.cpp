@@ -1,13 +1,14 @@
 #include <misaki/render/light.h>
 #include <misaki/render/mesh.h>
 #include <misaki/render/properties.h>
+#include <misaki/render/texture.h>
 
 namespace misaki::render {
 
 class AreaLight final : public Light {
  public:
   AreaLight(const Properties &props) : Light(props) {
-    m_radiance = props.color("radiance", 1.f);
+    m_radiance = props.texture<Texture>("radiance", 1.f);
 
     m_flags = +LightFlags::Surface;
   }
@@ -25,7 +26,7 @@ class AreaLight final : public Light {
     Float dp = std::abs(w_dot_n);
     if (dp != 0.f && w_dot_n < 0.f) {
       ds.pdf *= dist_squared / dp;
-      Color3 emitted = m_radiance / ds.pdf;
+      Color3 emitted = m_radiance->eval_3(ds.geom) / ds.pdf;
       return {ds, emitted};
     } else {
       ds.pdf = 0.f;
@@ -41,7 +42,7 @@ class AreaLight final : public Light {
   }
 
   Color3 eval(const PointGeometry &geom, const Vector3 &wi) const override {
-    return Frame::cos_theta(wi) > 0.f ? m_radiance : 0.f;
+    return Frame::cos_theta(wi) > 0.f ? m_radiance->eval_3(geom) : 0.f;
   }
 
   void set_shape(Shape *shape) override {
@@ -50,7 +51,7 @@ class AreaLight final : public Light {
 
   MSK_DECL_COMP(Light)
  private:
-  Color3 m_radiance;
+  std::shared_ptr<Texture> m_radiance;
 };
 
 MSK_EXPORT_PLUGIN(AreaLight)

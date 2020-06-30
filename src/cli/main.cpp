@@ -7,6 +7,8 @@
 #include <misaki/render/properties.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/xml.h>
+#include <misaki/render/bsdf.h>
+#include <misaki/render/texture.h>
 #include <tbb/task_scheduler_init.h>
 
 #include <iostream>
