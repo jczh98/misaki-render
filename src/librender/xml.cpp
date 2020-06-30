@@ -220,6 +220,7 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
     tags["shape"] = Tag::Object;
     tags["bsdf"] = Tag::Object;
     tags["light"] = Tag::Object;
+    tags["texture"] = Tag::Object;
     tag_alias["scene"] = "Scene";
     tag_alias["integrator"] = "Integrator";
     tag_alias["camera"] = "Camera";
@@ -228,6 +229,7 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
     tag_alias["shape"] = "Shape";
     tag_alias["bsdf"] = "BSDF";
     tag_alias["light"] = "Light";
+    tag_alias["texture"] = "Texture";
   });
   try {
     if (!param.empty()) {
@@ -318,6 +320,12 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
         inst.src_id = src.id;
         inst.location = node.offset_debug();
         return {name, id};
+      } break;
+      case Tag::NamedReference: {
+        check_attributes(src, node, {"name", "id"});
+        auto id = node.attribute("id").value();
+        auto name = node.attribute("name").value();
+        return std::make_pair(name, id);
       } break;
       case Tag::String: {
         check_attributes(src, node, {"name", "value"});
