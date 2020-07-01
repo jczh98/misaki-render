@@ -5,14 +5,35 @@
 namespace misaki::render {
 
 struct PointGeometry {
+  bool degenerated;                  // True if surface is a point
+  bool infinite;                     // True if point is at infinity
   Vector3 p{0.f};                    // Position
   Vector2 uv{0.f};                   // Texture coordinates
   Vector3 n{0.f};                    // Geometric normal
+  Vector3 wo{0.f};                   // Direction from a point at infinity (only when infinite = true)
   Frame shading = Frame({0, 0, 0});  // Shading frame with shading normal
+
+  static PointGeometry make_degenerated(const Vector3 &p) {
+    PointGeometry geom;
+    geom.degenerated = true;
+    geom.infinite = false;
+    geom.p = p;
+    return geom;
+  }
+
+  static PointGeometry make_infinite(const Vector3 &wo) {
+    PointGeometry geom;
+    geom.degenerated = false;
+    geom.infinite = true;
+    geom.wo = wo;
+    return geom;
+  }
 
   static PointGeometry make_on_surface(const Vector3 &p, const Vector3 &ng,
                                        const Vector3 &ns, const Vector2 &uv) {
     PointGeometry geom;
+    geom.degenerated = false;
+    geom.infinite = false;
     geom.p = p;
     geom.n = ng;
     geom.shading = Frame(ns);

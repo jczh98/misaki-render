@@ -17,17 +17,21 @@
             <integer name="height" value="600"/>
         </film>
     </camera>
+    <light type="point">
+        <vector name="position" x="278" y="548" z="279"/>
+        <rgb name="intensity" value="100000, 100000, 100000"/>
+    </light>
     <shape type="obj">
         <string name="filename" value="meshes/cbox_luminaire.obj"/>
-        <transform name="to_world">
+        <!-- <transform name="to_world">
             <translate x="0" y="-0.5" z="0"/>
-        </transform>
+        </transform> -->
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.936461, 0.740433, 0.705267"/>
         </bsdf>
-        <light type="area">
+        <!-- <light type="area">
             <rgb name="radiance" value="40, 40, 40"/>
-        </light>
+        </light> -->
     </shape>
     <shape type="obj">
         <string name="filename" value="meshes/cbox_floor.obj"/>

@@ -67,7 +67,7 @@ class PathTracer final : public Integrator {
   std::optional<Color3> sample(const std::shared_ptr<Scene> &scene, Sampler *sampler, const Ray &ray_) const {
     auto ray = ray_;
     Color3 throughput(1.f), result(0.f);
-    Float emission_weight = 1.f;
+    Float emission_weight = 1.f, eta = 1.f;
     auto si = scene->ray_intersect(ray);
     for (int depth = 1;; ++depth) {
       if (!si) {
@@ -80,7 +80,7 @@ class PathTracer final : public Integrator {
         result += light->eval(si->geom, wi) * throughput * emission_weight;
       }
       if (depth >= m_rr_depth) {
-        Float q = std::min(throughput.maxCoeff(), 0.95f);
+        Float q = std::min(throughput.maxCoeff() * eta * eta, 0.95f);
         if (sampler->next1d() >= q) break;
         throughput *= 1.f / q;
       }
@@ -94,7 +94,7 @@ class PathTracer final : public Integrator {
           auto wo = si->to_local(ds.d);
           Color3 bsdf_val = bsdf->eval(ctx, si->geom, wi, wo);
           auto bsdf_pdf = bsdf->pdf(ctx, si->geom, wi, wo);
-          Float mis = mis_weight(ds.pdf, bsdf_pdf);
+          Float mis = ds.geom.degenerated ? 1.f : mis_weight(ds.pdf, bsdf_pdf);
           result += throughput * bsdf_val * emit_val * mis;
         }
       }
@@ -103,6 +103,7 @@ class PathTracer final : public Integrator {
       auto [bs, bsdf_val] = bsdf->sample(ctx, si->geom, wi, sampler->next2d());
       auto wo_world = si->to_world(bs.wo);
       throughput *= bsdf_val;
+      eta *= bs.eta;
       ray.spawn(si->geom, wo_world);
       auto si_bsdf = scene->ray_intersect(ray);
       if (si_bsdf) {
