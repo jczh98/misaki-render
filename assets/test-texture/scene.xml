@@ -5,8 +5,7 @@
         <float name="far_clip" value="2800"/>
         <float name="fov" value="49.3077"/>
         <transform name="to_world">
-            <lookat origin="278, 273, -800"
-                    target="278, 273, -799"
+            <lookat origin="278, 273, -800" target="278, 273, -799"
                     up    ="  0,   1,    0"/>
         </transform>
         <sampler type="independent">
@@ -18,12 +17,17 @@
         </film>
     </camera>
     <bsdf type="diffuse" id="texture-checkerboard">
-        <texture name="reflectance" type="checkerboard" >
+        <texture name="reflectance" type="checkerboard">
             <rgb name="color1" value="0.325, 0.31, 0.25"/>
             <rgb name="color0" value="0.725, 0.71, 0.68"/>
-            <transform name="to_uv" >
+            <transform name="to_uv">
                 <scale x="10" y="10" />
             </transform>
+        </texture>
+    </bsdf>
+    <bsdf type="diffuse" id="texture-bitmap">
+        <texture name="reflectance" type="bitmap">
+            <string name="filename" value="anime.jpg"/>
         </texture>
     </bsdf>
     <shape type="obj">
@@ -35,7 +39,7 @@
             <rgb name="reflectance" value="0.936461, 0.740433, 0.705267"/>
         </bsdf>
         <light type="area">
-          <rgb name="radiance" value="40, 40, 40"/>
+            <rgb name="radiance" value="40, 40, 40"/>
         </light>
     </shape>
     <shape type="obj">
@@ -52,10 +56,10 @@
     </shape>
     <shape type="obj">
         <string name="filename" value="meshes/cbox_back.obj"/>
-        <ref id="texture-checkerboard"/>
-<!--        <bsdf type="diffuse">-->
-<!--            <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>-->
-<!--        </bsdf>-->
+        <ref id="texture-bitmap"/>
+        <!--        <bsdf type="diffuse">-->
+        <!--            <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>-->
+        <!--        </bsdf>-->
     </shape>
     <shape type="obj">
         <string name="filename" value="meshes/cbox_greenwall.obj"/>
