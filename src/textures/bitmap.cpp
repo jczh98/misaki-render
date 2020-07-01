@@ -20,13 +20,13 @@ class BitmapTexture final : public Texture {
   Float eval_1(const PointGeometry &geom) const override {
     auto uv = m_transform.transform_affine_point(geom.uv);
     uv = uv - Vector2(math::floor2int(uv));
-    return texture::nearest_sample2d(uv, m_bitmap).luminance();
+    return texture::linear_sample2d(uv, m_bitmap).luminance();
   }
 
   Color3 eval_3(const PointGeometry &geom) const override {
     auto uv = m_transform.transform_affine_point(geom.uv);
     uv = uv - Vector2(math::floor2int(uv));
-    return texture::nearest_sample2d(uv, m_bitmap);
+    return texture::linear_sample2d(uv, m_bitmap);
   }
 
   MSK_DECL_COMP(Texture)
