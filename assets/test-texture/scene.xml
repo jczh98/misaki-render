@@ -57,9 +57,9 @@
     <shape type="obj">
         <string name="filename" value="meshes/cbox_back.obj"/>
         <ref id="texture-bitmap"/>
-        <!--        <bsdf type="diffuse">-->
-        <!--            <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>-->
-        <!--        </bsdf>-->
+        <!-- <bsdf type="diffuse">
+            <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>
+        </bsdf> -->
     </shape>
     <shape type="obj">
         <string name="filename" value="meshes/cbox_greenwall.obj"/>
