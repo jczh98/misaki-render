@@ -29,7 +29,18 @@ BoundingBox3 Mesh::bbox(uint32_t index) const {
 }
 
 Float Mesh::surface_area() const {
-  return m_area_distr.sum();
+  return m_surface_area;
+}
+
+void Mesh::area_distr_build() {
+  // Build surface area distribution
+  std::vector<Float> table;
+  for (uint32_t i = 0; i < m_face_count; ++i) {
+    const auto tri_area = face_area(i);
+    m_surface_area += tri_area;
+    table.emplace_back(tri_area);
+  }
+  m_area_distr.init(table.data(), table.size());
 }
 
 Mesh::InterpolatedPoint Mesh::compute_surface_point(int prim_index, const Vector2 &uv) const {
@@ -87,11 +98,11 @@ std::pair<PointGeometry, Float> Mesh::sample_position(const Vector2 &sample_) co
          n2 = vertex_normal(fi[2]);
     ns = normalize(n0 * (1.f - b.x() - b.y()) + n1 * b.x() + n2 * b.y());
   }
-  return {PointGeometry::make_on_surface(p, ng, ns, uv), m_area_distr.normalization()};
+  return {PointGeometry::make_on_surface(p, ng, ns, uv), 1.f / m_surface_area};
 }
 
 Float Mesh::pdf_position(const PointGeometry &geom) const {
-  return m_area_distr.normalization();
+  return 1.f / m_surface_area;
 }
 
 #if defined(MSK_ENABLE_EMBREE)

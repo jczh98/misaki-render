@@ -90,7 +90,7 @@ using BoundingBox3 = math::TBoundingBox<Float, 3>;
 
 using Frame = math::TFrame<Float>;
 
-using Distribution1D = math::DiscreteDistribution<Float>;
+using Distribution1D = math::Distribution1D<Float>;
 
 #define MSK_ENABLE_EMBREE 1
 }  // namespace misaki::render

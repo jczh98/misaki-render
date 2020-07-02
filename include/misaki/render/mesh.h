@@ -67,6 +67,8 @@ class MSK_EXPORT Mesh : public Shape {
 
   virtual InterpolatedPoint compute_surface_point(int prim_index, const Vector2 &uv) const override;
 
+  void area_distr_build();
+
   BoundingBox3 bbox() const override;
   BoundingBox3 bbox(uint32_t index) const override;
   Float surface_area() const override;
@@ -84,6 +86,7 @@ class MSK_EXPORT Mesh : public Shape {
   uint32_t m_vertex_count = 0, m_face_count = 0;
 
   Distribution1D m_area_distr;
+  Float m_surface_area;
   std::string m_name;
   BoundingBox3 m_bbox;
   Transform4 m_to_world;
