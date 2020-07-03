@@ -76,6 +76,8 @@ class DirectIntegrator final : public Integrator {
     Color3 result(0.f);
     auto si = scene->ray_intersect(ray);
     if (!si) {
+      const auto wi = -ray.d;
+      if (scene->environment()) result += scene->environment()->eval({}, wi);
       return result;
     }
     const Light *light = si->shape->light();
@@ -93,7 +95,7 @@ class DirectIntegrator final : public Integrator {
           auto wo = si->to_local(ds.d);
           Color3 bsdf_val = bsdf->eval(ctx, si->geom, wi, wo);
           auto bsdf_pdf = bsdf->pdf(ctx, si->geom, wi, wo);
-          Float mis = mis_weight(ds.pdf * m_frac_lum, bsdf_pdf * m_frac_bsdf) * m_weight_lum;
+          Float mis = ds.geom.degenerated ? 1.f : mis_weight(ds.pdf * m_frac_lum, bsdf_pdf * m_frac_bsdf) * m_weight_lum;
           result += mis * bsdf_val * emit_val;
         }
       }
@@ -113,6 +115,16 @@ class DirectIntegrator final : public Integrator {
             auto emit_val = light_bsdf->eval(si_bsdf->geom, wi_bsdf);
             auto ds_bsdf = DirectSample::make_between_geometries(si_bsdf->geom, si->geom);
             auto light_pdf = scene->pdf_direct_light(si_bsdf->geom, ds_bsdf, light_bsdf);
+            Float mis = mis_weight(bs.pdf * m_frac_bsdf, light_pdf * m_frac_lum) * m_weight_bsdf;
+            result += bsdf_val * emit_val * mis;
+          }
+        } else {
+          DirectSample ds;
+          ds.d = ray.d;
+          const auto light_env = scene->environment();
+          if (light_env != nullptr) {
+            auto emit_val = light_env->eval({}, -wo_world);
+            auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si->geom, ds, light_env) : 0.f;
             Float mis = mis_weight(bs.pdf * m_frac_bsdf, light_pdf * m_frac_lum) * m_weight_bsdf;
             result += bsdf_val * emit_val * mis;
           }
