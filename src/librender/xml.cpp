@@ -359,6 +359,24 @@ static std::pair<std::string, std::string> parse_xml(XMLSource &src, XMLParseCon
         props.set_vector3(node.attribute("name").value(),
                           detail::parse_vector(src, node));
       } break;
+      case Tag::Matrix: {
+        check_attributes(src, node, {"value"});
+        auto tokens = string::tokenize(node.attribute("value").value(), " ");
+        if (tokens.size() != 16) Throw("matrix: expected 16 values");
+        Matrix4 matrix;
+        for (int i = 0; i < 4; ++i) {
+          for (int j = 0; j < 4; ++j) {
+            try {
+              matrix(i, j) = detail::stof(tokens[i * 4 + j]);
+            } catch (...) {
+              src.throw_error(node, "could not parse floating point value \"{}\"",
+                              tokens[i * 4 + j]);
+            }
+          }
+        }
+        ctx.transform = Transform4(matrix) * ctx.transform;
+        break;
+      }
       case Tag::RGB: {
         check_attributes(src, node, {"name", "value"});
         std::vector<std::string> tokens = string::tokenize(node.attribute("value").value());

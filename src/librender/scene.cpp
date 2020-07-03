@@ -22,6 +22,10 @@ Scene::Scene(const Properties &props) {
       m_shapes.push_back(shape);
     } else if (light) {
       if (!has_flag(light->flags(), LightFlags::Surface)) m_lights.emplace_back(light);
+      if (light->is_environment()) {
+        if (m_environment) Throw("Can only have one environment light");
+        m_environment = light;
+      }
     } else if (camera) {
       if (m_camera) Throw("Can only have one camera.");
       m_camera = camera;
@@ -35,6 +39,9 @@ Scene::Scene(const Properties &props) {
     m_integrator = PluginManager::instance()->create_comp<Integrator>(Properties("path"));
   }
   accel_init(props);
+  for (auto light : m_lights) {
+    light->set_scene(this);
+  }
 }
 
 Scene::~Scene() {

@@ -21,8 +21,9 @@ struct PointGeometry {
     return geom;
   }
 
-  static PointGeometry make_infinite(const Vector3 &wo) {
+  static PointGeometry make_infinite(const Vector3 &p, const Vector3 &wo) {
     PointGeometry geom;
+    geom.p = p;
     geom.degenerated = false;
     geom.infinite = true;
     geom.wo = wo;

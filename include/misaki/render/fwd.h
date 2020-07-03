@@ -87,10 +87,12 @@ using Color3 = math::TColor<Float, 3>;
 using Color4 = math::TColor<Float, 4>;
 
 using BoundingBox3 = math::TBoundingBox<Float, 3>;
+using BoundingSphere3 = math::TBoundingSphere<Float, 3>;
 
 using Frame = math::TFrame<Float>;
 
 using Distribution1D = math::Distribution1D<Float>;
+using Distribution2D = math::Distribution2D<Float>;
 
 #define MSK_ENABLE_EMBREE 1
 }  // namespace misaki::render

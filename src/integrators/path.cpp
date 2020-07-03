@@ -71,7 +71,9 @@ class PathTracer final : public Integrator {
     auto si = scene->ray_intersect(ray);
     for (int depth = 1;; ++depth) {
       if (!si) {
-        // Handle enviroment lighting
+        // Handle environment lighting
+        const auto wi = -ray.d;
+        if (scene->environment()) result += scene->environment()->eval({}, wi) * throughput * emission_weight;
         break;
       }
       const Light *light = si->shape->light();
@@ -111,6 +113,15 @@ class PathTracer final : public Integrator {
         const auto light_bsdf = si_bsdf->shape->light();
         if (light_bsdf != nullptr) {
           auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si->geom, ds, light_bsdf) : 0.f;
+          emission_weight = mis_weight(bs.pdf, light_pdf);
+        }
+      } else {
+        // Sample environment
+        DirectSample ds;
+        ds.d = ray.d;
+        const auto light_env = scene->environment();
+        if (light_env != nullptr) {
+          auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si->geom, ds, light_env) : 0.f;
           emission_weight = mis_weight(bs.pdf, light_pdf);
         }
       }

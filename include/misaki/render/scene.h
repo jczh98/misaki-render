@@ -19,7 +19,7 @@ class MSK_EXPORT Scene : public Component {
   void accel_release();
 
   std::pair<DirectSample, Color3> sample_direct_light(const PointGeometry& geom, const Vector2& sample, bool test_visibility = true) const;
-  Float pdf_direct_light(const PointGeometry& geom_ref, const DirectSample& ds, const Light *light) const;
+  Float pdf_direct_light(const PointGeometry& geom_ref, const DirectSample& ds, const Light* light) const;
 
   const Camera* camera() const { return m_camera.get(); }
   Camera* camera() { return m_camera.get(); }
@@ -27,6 +27,7 @@ class MSK_EXPORT Scene : public Component {
   const Integrator* integrator() const { return m_integrator.get(); }
   Integrator* integrator() { return m_integrator.get(); }
 
+  const Light* environment() const { return m_environment.get(); }
   const std::vector<std::shared_ptr<Light>>& lights() const { return m_lights; }
   std::vector<std::shared_ptr<Light>>& lights() { return m_lights; }
 
@@ -42,6 +43,7 @@ class MSK_EXPORT Scene : public Component {
   std::shared_ptr<Camera> m_camera;
   std::vector<std::shared_ptr<Shape>> m_shapes;
   std::vector<std::shared_ptr<Light>> m_lights;
+  std::shared_ptr<Light> m_environment;
   BoundingBox3 m_bbox;
 };
 
