@@ -68,20 +68,17 @@ class MSK_EXPORT BSDF : public Component {
 
   // Sample BSDF * cos(theta) and returns sampled bsdf information with BSDF * cos(theta) divided by pdf
   virtual std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
-                                               const PointGeometry &geom,
-                                               const Vector3 &wi,
+                                               const SceneInteraction &si,
                                                const Vector2 &sample) const;
 
   // Returns evaluated BSDF * cos(theta)
   virtual Color3 eval(const BSDFContext &ctx,
-                      const PointGeometry &geom,
-                      const Vector3 &wi,
+                      const SceneInteraction &si,
                       const Vector3 &wo) const;
 
   // Returns pdf of BSDF * cos(theta)
   virtual Float pdf(const BSDFContext &ctx,
-                    const PointGeometry &geom,
-                    const Vector3 &wi,
+                    const SceneInteraction &si,
                     const Vector3 &wo) const;
 
   uint32_t flags() const { return m_flags; }

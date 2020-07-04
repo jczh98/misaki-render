@@ -14,6 +14,7 @@ add_library(misaki-render SHARED
         ${INC_DIR}/film.h film.cpp
         ${INC_DIR}/imageblock.h imageblock.cpp
         ${INC_DIR}/rfilter.h rfilter.cpp
+        ${INC_DIR}/interaction.h interaction.cpp
         ${INC_DIR}/sampler.h sampler.cpp
         ${INC_DIR}/imageio.h imageio.cpp
         ${INC_DIR}/integrator.h integrator.cpp
@@ -33,7 +34,7 @@ target_compile_definitions(misaki-render PUBLIC -D_CRT_SECURE_NO_WARNINGS)
 SET(EMBREE_LIBRARY ${EMBREE_ROOT_DIR}/lib/embree3.lib)
 target_link_libraries(misaki-render PUBLIC
         misaki-utils
-        fmt::fmt
+        fmt::fmt-header-only
         RTTR::Core
         pugixml
         TBB::tbb

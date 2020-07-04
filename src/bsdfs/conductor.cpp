@@ -19,33 +19,30 @@ class ConductorBSDF final : public BSDF {
   }
 
   std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
-                                       const PointGeometry &geom,
-                                       const Vector3 &wi,
+                                       const SceneInteraction &si,
                                        const Vector2 &sample) const override {
-    Float cos_theta_i = Frame::cos_theta(wi);
+    Float cos_theta_i = Frame::cos_theta(si.wi);
     BSDFSample bs;
     if (cos_theta_i <= 0.f || !ctx.is_enabled(BSDFFlags::DeltaReflection)) return {bs, 0.f};
-    bs.wo = reflect(wi);
+    bs.wo = reflect(si.wi);
     bs.pdf = 1.f;
     bs.eta = 1.f;
     bs.sampled_type = +BSDFFlags::DeltaReflection;
     bs.sampled_component = 0;
-    Color3 value = m_specular_reflectance->eval_3(geom) * fresnel_conductor(cos_theta_i,
-                                                                            m_eta->eval_3(geom),
-                                                                            m_k->eval_3(geom));
+    Color3 value = m_specular_reflectance->eval_3(si.geom) * fresnel_conductor(cos_theta_i,
+                                                                               m_eta->eval_3(si.geom),
+                                                                               m_k->eval_3(si.geom));
     return {bs, value};
   }
 
   Color3 eval(const BSDFContext &ctx,
-              const PointGeometry &geom,
-              const Vector3 &wi,
+              const SceneInteraction &si,
               const Vector3 &wo) const override {
     return 0.f;
   }
 
   Float pdf(const BSDFContext &ctx,
-            const PointGeometry &geom,
-            const Vector3 &wi,
+            const SceneInteraction &si,
             const Vector3 &wo) const override {
     return 0.f;
   }

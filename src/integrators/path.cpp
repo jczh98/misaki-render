@@ -7,6 +7,7 @@
 #include <misaki/render/logger.h>
 #include <misaki/render/mesh.h>
 #include <misaki/render/properties.h>
+#include <misaki/render/records.h>
 #include <misaki/render/scene.h>
 #include <tbb/parallel_for.h>
 
@@ -47,11 +48,15 @@ class PathTracer final : public Integrator {
                 for (int s = 0; s < total_spp; ++s) {
                   auto position_sample = pos + sampler->next2d();
                   auto [ray, ray_weight] = camera->sample_ray(position_sample);
-                  auto result = sample(scene, sampler.get(), ray);
-                  if (result)
-                    block->put(position_sample, Color4(*result));
-                  else
-                    block->put(position_sample, Color4(0.f, 0.f, 0.f, 0.f));
+                  try {
+                    auto result = sample(scene, sampler.get(), ray);
+                    if (result)
+                      block->put(position_sample, Color4(*result));
+                    else
+                      block->put(position_sample, Color4(0.f, 0.f, 0.f, 0.f));
+                  } catch (std::exception &e) {
+                    Throw("{}", e.what());
+                  }
                 }
               }
             }
@@ -69,61 +74,42 @@ class PathTracer final : public Integrator {
     Color3 throughput(1.f), result(0.f);
     Float emission_weight = 1.f, eta = 1.f;
     auto si = scene->ray_intersect(ray);
+    auto light = si.light(scene);
     for (int depth = 1;; ++depth) {
-      if (!si) {
-        // Handle environment lighting
-        const auto wi = -ray.d;
-        if (scene->environment()) result += scene->environment()->eval({}, wi) * throughput * emission_weight;
-        break;
-      }
-      const Light *light = si->shape->light();
-      const auto wi = si->to_local(-ray.d);
       if (light != nullptr) {
-        result += light->eval(si->geom, wi) * throughput * emission_weight;
+        result += light->eval(si) * throughput * emission_weight;
       }
       if (depth >= m_rr_depth) {
         Float q = std::min(throughput.maxCoeff() * eta * eta, 0.95f);
         if (sampler->next1d() >= q) break;
         throughput *= 1.f / q;
       }
-      if ((uint32_t)depth >= (uint32_t)m_max_depth) break;
+      if ((uint32_t)depth >= (uint32_t)m_max_depth || !si.is_valid()) break;
       // ------------------Direct sample light--------------------------
       BSDFContext ctx;
-      const BSDF *bsdf = si->shape->bsdf();
+      const BSDF *bsdf = si.bsdf(ray);
       if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
-        auto [ds, emit_val] = scene->sample_direct_light(si->geom, sampler->next2d());
+        auto [ds, emit_val] = scene->sample_direct_light(si.geom, sampler->next2d());
         if (ds.pdf != 0.f) {
-          auto wo = si->to_local(ds.d);
-          Color3 bsdf_val = bsdf->eval(ctx, si->geom, wi, wo);
-          auto bsdf_pdf = bsdf->pdf(ctx, si->geom, wi, wo);
+          auto wo = si.to_local(ds.d);
+          Color3 bsdf_val = bsdf->eval(ctx, si, wo);
+          auto bsdf_pdf = bsdf->pdf(ctx, si, wo);
           Float mis = ds.geom.degenerated ? 1.f : mis_weight(ds.pdf, bsdf_pdf);
           result += throughput * bsdf_val * emit_val * mis;
         }
       }
       // --------------------- BSDF Sampling ------------------------
       // Sample BSDF * cos(theta)
-      auto [bs, bsdf_val] = bsdf->sample(ctx, si->geom, wi, sampler->next2d());
-      auto wo_world = si->to_world(bs.wo);
+      auto [bs, bsdf_val] = bsdf->sample(ctx, si, sampler->next2d());
       throughput *= bsdf_val;
       eta *= bs.eta;
-      ray.spawn(si->geom, wo_world);
+      ray = si.spawn_ray(si.to_world(bs.wo));
       auto si_bsdf = scene->ray_intersect(ray);
-      if (si_bsdf) {
-        auto ds = DirectSample::make_between_geometries(si_bsdf->geom, si->geom);
-        const auto light_bsdf = si_bsdf->shape->light();
-        if (light_bsdf != nullptr) {
-          auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si->geom, ds, light_bsdf) : 0.f;
-          emission_weight = mis_weight(bs.pdf, light_pdf);
-        }
-      } else {
-        // Sample environment
-        DirectSample ds;
-        ds.d = ray.d;
-        const auto light_env = scene->environment();
-        if (light_env != nullptr) {
-          auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si->geom, ds, light_env) : 0.f;
-          emission_weight = mis_weight(bs.pdf, light_pdf);
-        }
+      light = si_bsdf.light(scene);
+      auto ds = DirectSample::make_with_interactions(si_bsdf, si);
+      if (light != nullptr) {
+        auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si.geom, ds, light) : 0.f;
+        emission_weight = mis_weight(bs.pdf, light_pdf);
       }
       si = std::move(si_bsdf);
     }

@@ -7,24 +7,12 @@
 
 namespace misaki::render {
 
-struct DirectSample {
-  PointGeometry geom;
-  Float pdf{0.f};
-  Vector3 d{0.f};
-  Float dist{0.f};
-  static DirectSample make_between_geometries(const PointGeometry &sampled, const PointGeometry &ref) {
-    DirectSample ds;
-    ds.geom = sampled;
-    ds.d = sampled.p - ref.p;
-    ds.dist = math::norm(ds.d);
-    ds.d /= ds.dist;
-    return ds;
-  }
-};
-
 class MSK_EXPORT Endpoint : public Component {
  public:
   Endpoint(const Properties &props);
+
+  // Returns Sampled ray with structred RaySample
+  virtual std::pair<Ray, Vector3> sample_ray(const Vector2 &pos_sample) const;
 
   // Returns direction, weight
   virtual std::pair<Vector3, Vector3> sample_direction(const Vector2 &sample, const PointGeometry &geom) const;
@@ -34,12 +22,12 @@ class MSK_EXPORT Endpoint : public Component {
   virtual std::pair<PointGeometry, Vector3> sample_position(const Vector2 &sample) const;
   virtual Float pdf_position(const PointGeometry &geom) const;
 
-  // Returns sampled point geometry, direction, radiance, pdf
+  // Returns sampled DirectSample, radiance
   virtual std::pair<DirectSample, Color3> sample_direct(const PointGeometry &geom_ref, const Vector2 &position_sample) const;
   // Returns pdf associated with area measure
   virtual Float pdf_direct(const PointGeometry &geom_ref, const DirectSample &ds) const;
 
-  virtual Color3 eval(const PointGeometry &geom, const Vector3 &wi) const;
+  virtual Color3 eval(const SceneInteraction &si) const;
 
   virtual void set_shape(Shape *shape);
   virtual void set_scene(const Scene *scene);

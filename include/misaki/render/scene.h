@@ -14,7 +14,7 @@ class MSK_EXPORT Scene : public Component {
   ~Scene();
 
   bool ray_test(const Ray& ray) const;
-  std::optional<SceneInteraction> ray_intersect(const Ray& ray) const;
+  SceneInteraction ray_intersect(const Ray& ray) const;
   void accel_init(const Properties& props);
   void accel_release();
 
