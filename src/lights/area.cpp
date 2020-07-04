@@ -1,7 +1,6 @@
 #include <misaki/render/light.h>
 #include <misaki/render/mesh.h>
 #include <misaki/render/properties.h>
-#include <misaki/render/records.h>
 #include <misaki/render/texture.h>
 
 namespace misaki::render {
@@ -42,8 +41,8 @@ class AreaLight final : public Light {
     return pdf;
   }
 
-  Color3 eval(const SceneInteraction &si) const override {
-    return Frame::cos_theta(si.wi) > 0.f ? m_radiance->eval_3(si.geom) : 0.f;
+  Color3 eval(const PointGeometry &geom, const Vector3 &wi) const override {
+    return Frame::cos_theta(wi) > 0.f ? m_radiance->eval_3(geom) : 0.f;
   }
 
   void set_shape(Shape *shape) override {

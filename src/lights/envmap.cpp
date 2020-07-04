@@ -1,7 +1,6 @@
 #include <misaki/render/imageio.h>
 #include <misaki/render/light.h>
 #include <misaki/render/properties.h>
-#include <misaki/render/records.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/texture.h>
 
@@ -45,7 +44,7 @@ class EnvironmentMap final : public Light {
         math::safe_rsqrt(std::max(math::sqr(d.x()) + math::sqr(d.z()), math::sqr(Epsilon<Float>)));
     d = m_world_transform.transform_affine_point(d);
     DirectSample ds;
-    ds.geom = PointGeometry::make_infinite(geom_ref.p + d * dist, -d, uv);
+    ds.geom = PointGeometry::make_infinite(geom_ref.p + d * dist, d);
     ds.pdf = pdf > 0.f ? pdf * inv_sin_theta * (1.f / (2.f * math::sqr(math::Pi<Float>))) : 0.f;
     ds.d = d;
     ds.dist = dist;
@@ -62,8 +61,8 @@ class EnvironmentMap final : public Light {
     return m_dist.pdf(uv) * inv_sin_theta * (1.f / (2.f * math::sqr(math::Pi<Float>)));
   }
 
-  Color3 eval(const SceneInteraction &si) const override {
-    auto v = m_world_transform.inverse().transform_affine_point(-si.wi);
+  Color3 eval(const PointGeometry &geom, const Vector3 &wi) const override {
+    auto v = m_world_transform.inverse().transform_affine_point(-wi);
     Vector2 uv = {std::atan2(v.x(), -v.z()) * math::InvTwoPi<Float>,
                   math::safe_acos(v.y()) * math::InvPi<Float>};
     uv = uv - Vector2(math::floor2int(uv));

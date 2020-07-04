@@ -45,8 +45,7 @@ Float Shape::surface_area() const {
   MSK_NOT_IMPLEMENTED("surface_area");
 }
 
-std::tuple<Vector3, Vector3, Vector3, Vector2>
-Shape::compute_surface_point(int prim_index, const Vector2 &uv) const {
+Shape::InterpolatedPoint Shape::compute_surface_point(int prim_index, const Vector2 &uv) const {
   MSK_NOT_IMPLEMENTED("compute_surface_point");
 }
 

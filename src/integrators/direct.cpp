@@ -7,7 +7,6 @@
 #include <misaki/render/logger.h>
 #include <misaki/render/mesh.h>
 #include <misaki/render/properties.h>
-#include <misaki/render/records.h>
 #include <misaki/render/scene.h>
 #include <tbb/parallel_for.h>
 
@@ -18,7 +17,6 @@ namespace misaki::render {
 class DirectIntegrator final : public Integrator {
  public:
   DirectIntegrator(const Properties &props) : Integrator(props) {
-    m_hide_light = props.get_bool("hide_light", false);
     m_light_samples = props.get_int("light_samples", 1);
     m_bsdf_samples = props.get_int("bsdf_samples", 1);
     size_t sum = m_light_samples + m_bsdf_samples;
@@ -77,23 +75,26 @@ class DirectIntegrator final : public Integrator {
     auto ray = ray_;
     Color3 result(0.f);
     auto si = scene->ray_intersect(ray);
-    if (!m_hide_light) {
-      const auto light = si.light(scene);
-      if (light != nullptr) {
-        result += light->eval(si);
-      }
+    if (!si) {
+      const auto wi = -ray.d;
+      if (scene->environment()) result += scene->environment()->eval({}, wi);
+      return result;
     }
-    if (!si.is_valid()) return result;
+    const Light *light = si->shape->light();
+    const auto wi = si->to_local(-ray.d);
+    if (light != nullptr) {
+      result += light->eval(si->geom, wi);
+    }
     // -----------------Light Sampling-----------------------
     BSDFContext ctx;
-    const BSDF *bsdf = si.bsdf(ray);
+    const BSDF *bsdf = si->shape->bsdf();
     if (has_flag(bsdf->flags(), BSDFFlags::Diffuse)) {
       for (size_t i = 0; i < m_light_samples; ++i) {
-        auto [ds, emit_val] = scene->sample_direct_light(si.geom, sampler->next2d());
+        auto [ds, emit_val] = scene->sample_direct_light(si->geom, sampler->next2d());
         if (ds.pdf != 0.f) {
-          auto wo = si.to_local(ds.d);
-          Color3 bsdf_val = bsdf->eval(ctx, si, wo);
-          auto bsdf_pdf = bsdf->pdf(ctx, si, wo);
+          auto wo = si->to_local(ds.d);
+          Color3 bsdf_val = bsdf->eval(ctx, si->geom, wi, wo);
+          auto bsdf_pdf = bsdf->pdf(ctx, si->geom, wi, wo);
           Float mis = ds.geom.degenerated ? 1.f : mis_weight(ds.pdf * m_frac_lum, bsdf_pdf * m_frac_bsdf) * m_weight_lum;
           result += mis * bsdf_val * emit_val;
         }
@@ -101,16 +102,32 @@ class DirectIntegrator final : public Integrator {
     }
     // ------------------BSDF Sampling-----------------------
     for (size_t i = 0; i < m_bsdf_samples; ++i) {
-      auto [bs, bsdf_val] = bsdf->sample(ctx, si, sampler->next2d());
+      auto [bs, bsdf_val] = bsdf->sample(ctx, si->geom, wi, sampler->next2d());
       if (bsdf_val != 0.f) {
-        auto si_bsdf = scene->ray_intersect(si.spawn_ray(si.to_world(bs.wo)));
-        const auto light = si_bsdf.light(scene);
-        if (light != nullptr) {
-          auto emit_val = light->eval(si);
-          auto ds = DirectSample::make_with_interactions(si_bsdf, si);
-          auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si.geom, ds, light) : 0.f;
-          Float mis = mis_weight(bs.pdf * m_frac_bsdf, light_pdf * m_frac_lum) * m_weight_bsdf;
-          result += bsdf_val * emit_val * mis;
+        auto wo_world = si->to_world(bs.wo);
+        auto new_ray = ray;
+        new_ray.spawn(si->geom, wo_world);
+        auto si_bsdf = scene->ray_intersect(new_ray);
+        if (si_bsdf) {
+          auto wi_bsdf = si_bsdf->to_local(-new_ray.d);
+          const Light *light_bsdf = si_bsdf->shape->light();
+          if (light_bsdf != nullptr) {
+            auto emit_val = light_bsdf->eval(si_bsdf->geom, wi_bsdf);
+            auto ds_bsdf = DirectSample::make_between_geometries(si_bsdf->geom, si->geom);
+            auto light_pdf = scene->pdf_direct_light(si_bsdf->geom, ds_bsdf, light_bsdf);
+            Float mis = mis_weight(bs.pdf * m_frac_bsdf, light_pdf * m_frac_lum) * m_weight_bsdf;
+            result += bsdf_val * emit_val * mis;
+          }
+        } else {
+          DirectSample ds;
+          ds.d = ray.d;
+          const auto light_env = scene->environment();
+          if (light_env != nullptr) {
+            auto emit_val = light_env->eval({}, -wo_world);
+            auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si->geom, ds, light_env) : 0.f;
+            Float mis = mis_weight(bs.pdf * m_frac_bsdf, light_pdf * m_frac_lum) * m_weight_bsdf;
+            result += bsdf_val * emit_val * mis;
+          }
         }
       }
     }
@@ -128,7 +145,6 @@ class DirectIntegrator final : public Integrator {
   int m_light_samples = -1, m_bsdf_samples = 5;
   Float m_frac_bsdf, m_frac_lum;
   Float m_weight_bsdf, m_weight_lum;
-  bool m_hide_light;
 };
 
 MSK_EXPORT_PLUGIN(DirectIntegrator)

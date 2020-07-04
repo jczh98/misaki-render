@@ -19,11 +19,12 @@ class DielectricBSDF final : public BSDF {
   }
 
   std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
-                                       const SceneInteraction &si,
+                                       const PointGeometry &geom,
+                                       const Vector3 &wi,
                                        const Vector2 &sample) const override {
     bool has_reflection = ctx.is_enabled(BSDFFlags::DeltaReflection, 0),
          has_transmission = ctx.is_enabled(BSDFFlags::DeltaTransmission, 1);
-    Float cos_theta_i = Frame::cos_theta(si.wi);
+    Float cos_theta_i = Frame::cos_theta(wi);
     auto [r_i, cos_theta_t, eta_it, eta_ti] = fresnel(cos_theta_i, m_eta);
     Float t_i = 1.f - r_i;
     BSDFSample bs;
@@ -41,11 +42,11 @@ class DielectricBSDF final : public BSDF {
     }
     bs.sampled_component = selected_r ? 0 : 1;
     bs.sampled_type = selected_r ? +BSDFFlags::DeltaReflection : +BSDFFlags::DeltaTransmission;
-    bs.wo = selected_r ? reflect(si.wi) : refract(si.wi, cos_theta_t, eta_ti);
+    bs.wo = selected_r ? reflect(wi) : refract(wi, cos_theta_t, eta_ti);
     bs.eta = selected_r ? 1.f : eta_it;
     Color3 reflectance = 1.f, transmittance = 1.f;
-    if (selected_r) reflectance = m_specular_reflectance->eval_3(si.geom);
-    if (!selected_r) transmittance = m_specular_transmittance->eval_3(si.geom);
+    if (selected_r) reflectance = m_specular_reflectance->eval_3(geom);
+    if (!selected_r) transmittance = m_specular_transmittance->eval_3(geom);
     Color3 weight;
     if (has_reflection && has_transmission)
       weight = 1.f;
@@ -61,13 +62,15 @@ class DielectricBSDF final : public BSDF {
   }
 
   Color3 eval(const BSDFContext &ctx,
-              const SceneInteraction &si,
+              const PointGeometry &geom,
+              const Vector3 &wi,
               const Vector3 &wo) const override {
     return 0.f;
   }
 
   Float pdf(const BSDFContext &ctx,
-            const SceneInteraction &si,
+            const PointGeometry &geom,
+            const Vector3 &wi,
             const Vector3 &wo) const override {
     return 0;
   }

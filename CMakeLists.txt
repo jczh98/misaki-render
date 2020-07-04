@@ -16,9 +16,6 @@ option(MSK_ENABLE_EMBREE  "Use Embree for ray tracing intersection" ON)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /std:c++17")
-    add_definitions(/D "__TBB_NO_IMPLICIT_LINKAGE")
-    add_definitions(/D "NOMINMAX")
-    add_compile_options("/bigobj")
     add_compile_options("/wd4819") # Eigen half
     add_compile_options("/wd4566") # fmt warning
 endif ()

@@ -1,16 +1,11 @@
 #include <misaki/render/endpoint.h>
 #include <misaki/render/logger.h>
 #include <misaki/render/properties.h>
-#include <misaki/render/records.h>
 
 namespace misaki::render {
 
 Endpoint::Endpoint(const Properties &props) : m_id(props.id()) {
   m_world_transform = props.transform("to_world", Transform4());
-}
-
-std::pair<Ray, Vector3> Endpoint::sample_ray(const Vector2 &pos_sample) const {
-  MSK_NOT_IMPLEMENTED("sample_ray");
 }
 
 std::pair<Vector3, Vector3> Endpoint::sample_direction(const Vector2 &sample, const PointGeometry &geom) const {
@@ -38,7 +33,7 @@ Float Endpoint::pdf_direct(const PointGeometry &geom_ref, const DirectSample &ds
   MSK_NOT_IMPLEMENTED("pdf_direct");
 }
 
-Color3 Endpoint::eval(const SceneInteraction &si) const {
+Color3 Endpoint::eval(const PointGeometry &geom, const Vector3 &wi) const {
   MSK_NOT_IMPLEMENTED("eval");
 }
 

@@ -36,10 +36,7 @@ class BSDF;
 class Scene;
 class Shape;
 class Mesh;
-struct Ray;
 struct PointGeometry;
-struct DirectSample;
-struct RaySample;
 
 using Float = float;
 

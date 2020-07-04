@@ -1,18 +1,16 @@
 #pragma once
 
 #include "fwd.h"
-#include "ray.h"
 
 namespace misaki::render {
 
-// If a quantity requires incident direction wi, then use SceneInteraction as parameter.
-// Otherwise uses PointGeometry
 struct PointGeometry {
   bool degenerated;                  // True if surface is a point
   bool infinite;                     // True if point is at infinity
   Vector3 p{0.f};                    // Position
   Vector2 uv{0.f};                   // Texture coordinates
   Vector3 n{0.f};                    // Geometric normal
+  Vector3 wo{0.f};                   // Direction from a point at infinity (only when infinite = true)
   Frame shading = Frame({0, 0, 0});  // Shading frame with shading normal
 
   static PointGeometry make_degenerated(const Vector3 &p) {
@@ -23,14 +21,12 @@ struct PointGeometry {
     return geom;
   }
 
-  static PointGeometry make_infinite(const Vector3 &p, const Vector3 &n, const Vector2 &uv) {
+  static PointGeometry make_infinite(const Vector3 &p, const Vector3 &wo) {
     PointGeometry geom;
     geom.p = p;
-    geom.n = n;
-    geom.uv = uv;
-    geom.shading = Frame(n);
     geom.degenerated = false;
     geom.infinite = true;
+    geom.wo = wo;
     return geom;
   }
 
@@ -47,7 +43,7 @@ struct PointGeometry {
   }
 };
 
-struct MSK_EXPORT SceneInteraction {
+struct SceneInteraction {
   enum Type : uint32_t {
     None = 0,
     CameraEndpoint,
@@ -59,42 +55,22 @@ struct MSK_EXPORT SceneInteraction {
   };
   int type = None;
   PointGeometry geom;            // Interaction point information
-  Vector3 wi;                    // Incident direction in local shading frame
   const Shape *shape = nullptr;  // Scene interact with surface and records its shape information
 
-  static SceneInteraction make_surface_interaction(const PointGeometry &geom, const Vector3 &wi_world, const Shape *shape) {
-    SceneInteraction si;
-    si.type = SurfaceInteraction;
-    si.geom = geom;
-    si.wi = si.to_local(wi_world);
-    si.shape = shape;
-    return si;
-  }
-
-  static SceneInteraction make_none(const Vector3 &wi) {
-    SceneInteraction si;
-    si.wi = wi;
-    return si;
-  }
-
   bool is_type(uint32_t type_flag) const {
-    return type == type_flag;
+    return (type & type_flag) > 0;
   }
-
-  bool is_valid() const { return !is_type(Type::None); }
 
   Vector3 to_world(const Vector3 &v) const { return geom.shading.to_world(v); }
   Vector3 to_local(const Vector3 &v) const { return geom.shading.to_local(v); }
 
-  Ray spawn_ray(const Vector3f &d) const {
-    return Ray(geom.p, d, (1.f + math::hmax(math::abs(geom.p))) * RayEpsilon<Float>,
-               Infinity<Float>, 0.f);
+  static SceneInteraction make_surface_interaction(const PointGeometry &geom, const Shape *shape) {
+    SceneInteraction si;
+    si.type = SurfaceInteraction;
+    si.geom = geom;
+    si.shape = shape;
+    return si;
   }
-
-  const Light *light(const std::shared_ptr<Scene> &scene) const;
-
-  const BSDF *bsdf(const Ray &ray) const;
-  const BSDF *bsdf() const;
 };
 
 }  // namespace misaki::render
