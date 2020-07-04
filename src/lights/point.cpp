@@ -1,5 +1,6 @@
 #include <misaki/render/light.h>
 #include <misaki/render/properties.h>
+#include <misaki/render/records.h>
 #include <misaki/render/texture.h>
 
 namespace misaki::render {
@@ -34,7 +35,7 @@ class PointLight final : public Light {
     return 0.f;
   }
 
-  Color3 eval(const PointGeometry &geom, const Vector3 &wi) const override {
+  Color3 eval(const SceneInteraction &si) const override {
     return 0.f;
   }
 

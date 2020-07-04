@@ -1,7 +1,6 @@
 #pragma once
 
 #include "fwd.h"
-#include "interaction.h"
 
 namespace misaki::render {
 
@@ -24,13 +23,6 @@ struct Ray {
 
   void update() {
     d_rcp = 1.0 / d;
-  }
-
-  void spawn(const PointGeometry &geom, const Vector3 &d) {
-    this->o = geom.p;
-    this->d = d;
-    this->mint = (1.f + math::hmax(math::abs(geom.p))) * RayEpsilon<Float>;
-    this->maxt = Infinity<Float>;
   }
 
   std::string to_string() const {

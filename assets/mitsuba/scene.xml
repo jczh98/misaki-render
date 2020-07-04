@@ -13,7 +13,7 @@
             <integer name="height" value="600"/>
         </film>
         <sampler type="independent">
-            <integer name="sample_count" value="128"/>
+            <integer name="sample_count" value="32"/>
         </sampler>
     </camera>
     <light type="envmap">
@@ -26,7 +26,7 @@
         <string name="filename" value="wood.png"/>
    </texture>
     <texture type="checkerboard" id="texture-checker"/> -->
-    <bsdf type="diffuse" id="bsdf-conductor">
+    <bsdf type="conductor" id="bsdf-conductor">
     </bsdf>
     <!-- <bsdf type="roughconductor" id="bsdf-conductor">
         <float name="alpha" value="0.05" />
