@@ -106,7 +106,7 @@ class DirectIntegrator final : public Integrator {
         auto si_bsdf = scene->ray_intersect(si.spawn_ray(si.to_world(bs.wo)));
         const auto light = si_bsdf.light(scene);
         if (light != nullptr) {
-          auto emit_val = light->eval(si);
+          auto emit_val = light->eval(si_bsdf);
           auto ds = DirectSample::make_with_interactions(si_bsdf, si);
           auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si.geom, ds, light) : 0.f;
           Float mis = mis_weight(bs.pdf * m_frac_bsdf, light_pdf * m_frac_lum) * m_weight_bsdf;

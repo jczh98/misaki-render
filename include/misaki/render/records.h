@@ -25,7 +25,7 @@ struct DirectSample {
     ds.d = sampled.geom.p - ref.geom.p;
     ds.dist = math::norm(ds.d);
     ds.d /= ds.dist;
-		if (!sampled.is_valid()) ds.d = -sampled.wi;
+    if (!sampled.is_valid()) ds.d = -sampled.wi;
     return ds;
   }
 };

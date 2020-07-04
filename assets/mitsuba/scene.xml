@@ -1,6 +1,6 @@
 <scene>
-    <integrator type="path">
-        <integer name="light_samples" value="1" />
+    <integrator type="direct">
+        <integer name="light_samples" value="0" />
         <integer name="bsdf_samples" value="1" />
     </integrator>
     <camera type="perspective">
@@ -13,7 +13,7 @@
             <integer name="height" value="600"/>
         </film>
         <sampler type="independent">
-            <integer name="sample_count" value="32"/>
+            <integer name="sample_count" value="128"/>
         </sampler>
     </camera>
     <light type="envmap">

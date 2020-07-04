@@ -1,4 +1,5 @@
 #include <OpenImageIO/imageio.h>
+#include <misaki/render/bsdf.h>
 #include <misaki/render/camera.h>
 #include <misaki/render/component.h>
 #include <misaki/render/integrator.h>
@@ -6,17 +7,17 @@
 #include <misaki/render/plugin.h>
 #include <misaki/render/properties.h>
 #include <misaki/render/scene.h>
-#include <misaki/render/xml.h>
-#include <misaki/render/bsdf.h>
 #include <misaki/render/texture.h>
-#include <tbb/task_scheduler_init.h>
+#include <misaki/render/xml.h>
+#include <tbb/global_control.h>
 
 #include <iostream>
 
 using namespace misaki::render;
 
 int main(int argc, char** argv) {
-  //tbb::task_scheduler_init init(1);
+  const int default_num_threads = tbb::global_control::active_value(tbb::global_control::max_allowed_parallelism);
+  tbb::global_control c(tbb::global_control::max_allowed_parallelism, default_num_threads);
   // Append executable directory to file resolver
   fs::path path = "assets/mitsuba/scene.xml";
   get_file_resolver()->append(fs::path(argv[0]).parent_path());
