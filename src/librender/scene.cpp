@@ -5,6 +5,7 @@
 #include <misaki/render/logger.h>
 #include <misaki/render/properties.h>
 #include <misaki/render/ray.h>
+#include <misaki/render/records.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/shape.h>
 
@@ -105,7 +106,7 @@ void Scene::accel_release() {
   rtcReleaseScene((RTCScene)m_accel);
 }
 
-std::optional<SceneInteraction> Scene::ray_intersect(const Ray &ray) const {
+SceneInteraction Scene::ray_intersect(const Ray &ray) const {
   RTCIntersectContext context;
   rtcInitIntersectContext(&context);
   RTCRayHit rh;
@@ -128,9 +129,10 @@ std::optional<SceneInteraction> Scene::ray_intersect(const Ray &ray) const {
     auto p = m_shapes[shape_index]->compute_surface_point(prim_index, {rh.hit.u, rh.hit.v});
     return SceneInteraction::make_surface_interaction(
         PointGeometry::make_on_surface(p.p, p.ng, p.ns, p.uv),
+        -ray.d,
         m_shapes[shape_index].get());
   } else {
-    return {};
+    return SceneInteraction::make_none(-ray.d);
   }
 }
 

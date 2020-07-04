@@ -23,6 +23,7 @@ add_library(misaki-render SHARED
         ${INC_DIR}/bsdf.h bsdf.cpp
         ${INC_DIR}/light.h light.cpp
         ${INC_DIR}/texture.h texture.cpp
+        ${INC_DIR}/interaction.h interaction.cpp
         )
 set_target_properties(misaki-render PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/lib"

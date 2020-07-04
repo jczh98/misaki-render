@@ -13,7 +13,7 @@ class MSK_EXPORT Camera : public Endpoint {
  public:
   Camera(const Properties&);
 
-  virtual std::pair<Ray, Vector3> sample_ray(const Vector2& pos_sample) const;
+  std::pair<Ray, Vector3> sample_ray(const Vector2& pos_sample) const override;
 
   Film* film() { return m_film.get(); }
   const Film* film() const { return m_film.get(); }
