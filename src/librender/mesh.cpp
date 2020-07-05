@@ -29,7 +29,6 @@ BoundingBox3 Mesh::bbox(uint32_t index) const {
 }
 
 Float Mesh::surface_area() const {
-  area_distr_ensure();
   return m_surface_area;
 }
 
@@ -75,7 +74,6 @@ Mesh::compute_surface_point(int prim_index, const Vector2 &bary) const {
 }
 
 std::pair<PointGeometry, Float> Mesh::sample_position(const Vector2 &sample_) const {
-  area_distr_ensure();
   Vector2 sample = sample_;
   uint32_t face_idx;
   std::tie(face_idx, sample.y()) = m_area_distr.sample_reuse(sample.y());
@@ -104,7 +102,6 @@ std::pair<PointGeometry, Float> Mesh::sample_position(const Vector2 &sample_) co
 }
 
 Float Mesh::pdf_position(const PointGeometry &geom) const {
-  area_distr_ensure();
   return 1.f / m_surface_area;
 }
 
