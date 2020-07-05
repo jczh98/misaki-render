@@ -65,7 +65,8 @@ class MSK_EXPORT Mesh : public Shape {
   std::pair<PointGeometry, Float> sample_position(const Vector2 &sample) const override;
   Float pdf_position(const PointGeometry &geom) const override;
 
-  virtual InterpolatedPoint compute_surface_point(int prim_index, const Vector2 &uv) const override;
+  virtual std::tuple<Vector3, Vector3, Vector3, Vector2>
+  compute_surface_point(int prim_index, const Vector2 &uv) const override;
 
   void area_distr_build();
 

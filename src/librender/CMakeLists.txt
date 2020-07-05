@@ -34,7 +34,7 @@ target_compile_definitions(misaki-render PUBLIC -D_CRT_SECURE_NO_WARNINGS)
 SET(EMBREE_LIBRARY ${EMBREE_ROOT_DIR}/lib/embree3.lib)
 target_link_libraries(misaki-render PUBLIC
         misaki-utils
-        fmt::fmt
+        fmt::fmt-header-only
         RTTR::Core
         pugixml
         TBB::tbb

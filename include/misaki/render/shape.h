@@ -15,14 +15,9 @@ class MSK_EXPORT Shape : public Component {
   virtual std::pair<PointGeometry, Float> sample_position(const Vector2 &sample) const;
   virtual Float pdf_position(const PointGeometry &geom) const;
 
-  struct InterpolatedPoint {
-    Vector3 p;  // position
-    Vector3 ns;
-    Vector3 ng;
-    Vector2 uv;
-  };
-
-  virtual InterpolatedPoint compute_surface_point(int prim_index, const Vector2 &uv) const;
+  // Returns position, geometry normal, shading normal, texcoords
+  virtual std::tuple<Vector3, Vector3, Vector3, Vector2>
+  compute_surface_point(int prim_index, const Vector2 &uv) const;
 
   bool is_mesh() const { return m_mesh; }
 

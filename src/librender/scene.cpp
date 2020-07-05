@@ -126,9 +126,9 @@ SceneInteraction Scene::ray_intersect(const Ray &ray) const {
   if (rh.ray.tfar != ray.maxt) {
     uint32_t shape_index = rh.hit.geomID;
     uint32_t prim_index = rh.hit.primID;
-    auto p = m_shapes[shape_index]->compute_surface_point(prim_index, {rh.hit.u, rh.hit.v});
+    auto [p, ng, ns, uv] = m_shapes[shape_index]->compute_surface_point(prim_index, {rh.hit.u, rh.hit.v});
     return SceneInteraction::make_surface_interaction(
-        PointGeometry::make_on_surface(p.p, p.ng, p.ns, p.uv),
+        PointGeometry::make_on_surface(p, ng, ns, uv),
         -ray.d,
         m_shapes[shape_index].get());
   } else {

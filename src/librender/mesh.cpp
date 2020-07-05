@@ -43,34 +43,34 @@ void Mesh::area_distr_build() {
   m_area_distr.init(table.data(), table.size());
 }
 
-Mesh::InterpolatedPoint Mesh::compute_surface_point(int prim_index, const Vector2 &uv) const {
-  Float b1 = uv.x(), b2 = uv.y(), b0 = 1.f - b1 - b2;
+std::tuple<Vector3, Vector3, Vector3, Vector2>
+Mesh::compute_surface_point(int prim_index, const Vector2 &bary) const {
+  Float b1 = bary.x(), b2 = bary.y(), b0 = 1.f - b1 - b2;
   auto fi = face_indices(prim_index);
   Vector3 p0 = vertex_position(fi[0]),
           p1 = vertex_position(fi[1]),
           p2 = vertex_position(fi[2]);
 
-  InterpolatedPoint ip;
-  ip.p = p0 * b0 + p1 * b1 + p2 * b2;
+  Vector3 p = p0 * b0 + p1 * b1 + p2 * b2;
   auto n = math::normalize(math::cross(p1 - p0, p2 - p0));
-  ip.ng = n;
-  ip.ns = n;
-  ip.uv = uv;
+  Vector3 ng = n;
+  Vector3 ns = n;
+  Vector2 uv = bary;
   if (has_vertex_texcoords()) {
     Vector2 uv0 = vertex_texcoord(fi[0]),
             uv1 = vertex_texcoord(fi[1]),
             uv2 = vertex_texcoord(fi[2]);
     auto intepolated_uv = uv0 * b0 + uv1 * b1 + uv2 * b2;
-    ip.uv = intepolated_uv;
+    uv = intepolated_uv;
   }
   if (has_vertex_normals()) {
     Vector3 n0 = vertex_normal(fi[0]),
             n1 = vertex_normal(fi[1]),
             n2 = vertex_normal(fi[2]);
-    auto ns = math::normalize(n0 * b0 + n1 * b1 + n2 * b2);
-    ip.ns = ns;
+    auto ns_ = math::normalize(n0 * b0 + n1 * b1 + n2 * b2);
+    ns = ns_;
   }
-  return ip;
+  return {p, ng, ns, uv};
 }
 
 std::pair<PointGeometry, Float> Mesh::sample_position(const Vector2 &sample_) const {
