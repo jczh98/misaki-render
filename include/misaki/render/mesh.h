@@ -68,6 +68,12 @@ class MSK_EXPORT Mesh : public Shape {
   virtual std::tuple<Vector3, Vector3, Vector3, Vector2>
   compute_surface_point(int prim_index, const Vector2 &uv) const override;
 
+  MSK_INLINE void area_distr_ensure() const {
+    if (unlikely(m_area_distr.cdf().size() == 1 || m_area_distr.cdf().size() == 0)) {
+      const_cast<Mesh *>(this)->area_distr_build();
+    }
+  }
+
   void area_distr_build();
 
   BoundingBox3 bbox() const override;

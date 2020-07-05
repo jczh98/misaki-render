@@ -161,7 +161,6 @@ class OBJMesh final : public Mesh {
       }
     }
     Log(Info, R"("{}": read {} faces, {} vertices)", m_name, m_face_count, m_vertex_count);
-    area_distr_build();
   }
   MSK_DECL_COMP(Mesh)
 };
