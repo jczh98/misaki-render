@@ -17,6 +17,10 @@ class SRGBTexture final : public Texture {
     return m_value;
   }
 
+  Float mean() const override {
+    return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
+  }
+
   MSK_DECL_COMP(Texture)
  private:
   Color3 m_value;

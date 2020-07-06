@@ -15,6 +15,10 @@ Color3 Texture::eval_3(const PointGeometry &geom) const {
   MSK_NOT_IMPLEMENTED("eval_3");
 }
 
+Float Texture::mean() const {
+  MSK_NOT_IMPLEMENTED("mean");
+}
+
 MSK_REGISTER_CLASS(Texture)
 
 }  // namespace misaki::render

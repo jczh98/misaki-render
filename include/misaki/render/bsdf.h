@@ -21,6 +21,7 @@ enum class BSDFFlags : uint32_t {
   DeltaTransmission = 0x00020,
   Reflection = DiffuseReflection | GlossyReflection | DeltaReflection,
   Diffuse = DiffuseReflection | DiffuseTransmission,
+  Transmission = DiffuseTransmission | GlossyTransmission | DeltaTransmission,
   Glossy = GlossyReflection | GlossyTransmission,
   Delta = DeltaReflection | DeltaTransmission,
   Smooth = Diffuse | Glossy,

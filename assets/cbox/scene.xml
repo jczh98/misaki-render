@@ -74,12 +74,20 @@
         <!-- <bsdf type="diffuse">
             <rgb name="reflectance" value="0.45, 0.30, 0.90"/>
         </bsdf> -->
-        <bsdf type="roughconductor">
+        <!-- <bsdf type="roughconductor">
             <float name="alpha" value="0.25" />
             <string name="distribution" value="beckmann" />
             <rgb name="specular_reflectance" value="1, 1, 1"/>
             <rgb name="eta" value="2.8656, 2.11918, 1.94008"/>
             <rgb name="k" value="3.03233, 2.05611, 1.61629"/>
+        </bsdf> -->
+        <bsdf type="roughplastic" id="bsdf-plastic">
+            <float name="alpha" value="0.1" />
+            <string name="distribution" value="ggx" />
+            <float name="int_ior" value="1.5" />
+            <float name="ext_ior" value="1" />
+            <boolean name="nonlinear" value="true" />
+            <rgb name="diffuse_reflectance" value="0.00631, 0.00631, 0.00631"/>
         </bsdf>
     </shape>
 </scene>

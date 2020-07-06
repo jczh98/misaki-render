@@ -38,8 +38,7 @@ class RoughConductor final : public BSDF {
     } else {
       m_alpha_u = m_alpha_v = props.texture<Texture>("alpha", 0.1f);
     }
-    if (props.has_property("specular_reflectance"))
-      m_specular_reflectance = props.texture<Texture>("specular_reflectance", 1.f);
+    m_specular_reflectance = props.texture<Texture>("specular_reflectance", 1.f);
     m_flags = +BSDFFlags::GlossyReflection;
     m_components.clear();
     m_components.push_back(m_flags);
@@ -89,8 +88,7 @@ class RoughConductor final : public BSDF {
     Float G = distr.G(si.wi, wo, H);
     Color3 result = D * G / (4.f * Frame::cos_theta(si.wi));
     Color3 F = fresnel_conductor(si.wi.dot(H), m_eta->eval_3(si.geom), m_k->eval_3(si.geom));
-    if (m_specular_reflectance)
-      result *= m_specular_reflectance->eval_3(si.geom);
+    result *= m_specular_reflectance->eval_3(si.geom);
     return F * result;
   }
 

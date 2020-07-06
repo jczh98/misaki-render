@@ -9,7 +9,8 @@ class MSK_EXPORT Texture : public Component {
   Texture(const Properties &props);
   virtual Float eval_1(const PointGeometry &geom) const;
   virtual Color3 eval_3(const PointGeometry &geom) const;
-
+  virtual Float mean() const;
+  
   MSK_DECL_COMP(Component)
  protected:
   std::string m_id;
