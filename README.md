@@ -16,11 +16,13 @@ make -j8
 #### Light transport algorithm
 - [x] Path tracing with mis
 #### Material models
-- [x] Basic bsdfs: diffuse, dieletric
-- [ ] Microfacet bsdfs: glass, disney...
+- [x] Basic bsdfs: diffuse, dieletric, conductor...
+- [x] Microfacet bsdfs: conductor, dieletric...
 #### Lights
-- [x] Area light
-- [ ] Envrioment map
+- [x] Area light and point light
+- [x] Envrioment map with importance sample
 ## Roadmap
 - Advance shading system
 ## Gallery
+Bedroom (pt 1024spp) (scene ref [here](https://benedikt-bitterli.me/resources/)):
+![pic](./assets/gallery/bedroom1024spp.png)

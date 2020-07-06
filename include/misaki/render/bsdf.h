@@ -13,17 +13,18 @@ enum class TransportMode : uint32_t {
 
 enum class BSDFFlags : uint32_t {
   None = 0x00000,
-  DiffuseReflection = 0x00001,
-  DiffuseTransmission = 0x00002,
-  GlossyReflection = 0x00004,
-  GlossyTransmission = 0x0008,
-  DeltaReflection = 0x0010,
-  DeltaTransmission = 0x00020,
+  Null = 0x00001,
+  DiffuseReflection = 0x00002,
+  DiffuseTransmission = 0x00004,
+  GlossyReflection = 0x00008,
+  GlossyTransmission = 0x0010,
+  DeltaReflection = 0x0020,
+  DeltaTransmission = 0x00040,
   Reflection = DiffuseReflection | GlossyReflection | DeltaReflection,
   Diffuse = DiffuseReflection | DiffuseTransmission,
   Transmission = DiffuseTransmission | GlossyTransmission | DeltaTransmission,
   Glossy = GlossyReflection | GlossyTransmission,
-  Delta = DeltaReflection | DeltaTransmission,
+  Delta = Null | DeltaReflection | DeltaTransmission,
   Smooth = Diffuse | Glossy,
   All = Diffuse | Glossy | Delta
 };

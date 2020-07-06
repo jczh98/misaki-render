@@ -3,4 +3,5 @@ cmake-build-debug
 build
 .vscode
 assets/*/*
+!assets/gallery/*
 !assets/*/*.xml
