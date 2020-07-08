@@ -100,7 +100,7 @@ class DirectIntegrator final : public Integrator {
     }
     // ------------------BSDF Sampling-----------------------
     for (size_t i = 0; i < m_bsdf_samples; ++i) {
-      auto [bs, bsdf_val] = bsdf->sample(ctx, si, sampler->next2d());
+      auto [bs, bsdf_val] = bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
       if (bsdf_val != 0.f) {
         auto si_bsdf = scene->ray_intersect(si.spawn_ray(si.to_world(bs.wo)));
         const auto light = si_bsdf.light(scene);

@@ -16,6 +16,7 @@ class DiffuseBSDF final : public BSDF {
 
   std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
                                        const SceneInteraction &si,
+                                       Float sample1,
                                        const Vector2 &sample) const override {
     Float cos_theta_i = Frame::cos_theta(si.wi);
     BSDFSample bs;

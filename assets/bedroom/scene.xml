@@ -8,7 +8,7 @@
 			<matrix value="-0.653592 -0.0128556 -0.756738 3.45558 2.84986e-009 0.999856 -0.0169858 1.21244 0.756847 -0.0111018 -0.653498 3.29897 0 0 0 1"/>
 		</transform>
 		<sampler type="independent">
-			<integer name="sample_count" value="1024" />
+			<integer name="sample_count" value="2048" />
 		</sampler>
 		<film type="rgbfilm">
 			<integer name="width" value="1280" />
@@ -81,7 +81,10 @@
 	</bsdf>
 	<bsdf type="twosided" id="Painting">
 		<bsdf type="diffuse">
-			<rgb name="reflectance" value="0.015396, 0.015396, 0.015396"/>
+			<texture name="reflectance" type="bitmap">
+				<string name="filename" value="textures/1.jpg" />
+			</texture>
+			<!-- <rgb name="reflectance" value="0.015396, 0.015396, 0.015396"/> -->
 		</bsdf>
 	</bsdf>
 	<bsdf type="twosided" id="Carpet">
@@ -160,7 +163,7 @@
 			<rgb name="k" value="9.22387, 6.26952, 4.837"/>
 		</bsdf>
 	</bsdf>
-	<bsdf type="dielectric" id="LampGlass">
+	<bsdf type="roughdielectric" id="LampGlass">
 		<float name="alpha" value="0.1" />
 		<string name="distribution" value="beckmann" />
 		<float name="int_ior" value="1.5" />

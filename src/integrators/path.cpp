@@ -96,7 +96,7 @@ class PathTracer final : public Integrator {
       }
       // --------------------- BSDF Sampling ------------------------
       // Sample BSDF * cos(theta)
-      auto [bs, bsdf_val] = bsdf->sample(ctx, si, sampler->next2d());
+      auto [bs, bsdf_val] = bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
       throughput *= bsdf_val;
       eta *= bs.eta;
       ray = si.spawn_ray(si.to_world(bs.wo));

@@ -16,6 +16,10 @@ Vector3 refract(const Vector3 &wi, Float cos_theta_t, Float eta_ti) {
   return Vector3(-eta_ti * wi.x(), -eta_ti * wi.y(), cos_theta_t);
 }
 
+Vector3 refract(const Vector3 &wi, const Vector3 &m, Float cos_theta_t, Float eta_ti) {
+  return m * (math::dot(wi, m) * eta_ti + cos_theta_t) - wi * eta_ti;
+}
+
 // return F(fresnel), cos_theta_t, eta_it, eta_ti
 std::tuple<Float, Float, Float, Float> fresnel(Float cos_theta_i, Float eta) {
   Float eta_it, eta_ti;

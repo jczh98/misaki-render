@@ -30,25 +30,26 @@ class TwoSidedBRDF final : public BSDF {
 
   std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx_,
                                        const SceneInteraction &si_,
+                                       Float sample1,
                                        const Vector2 &sample) const override {
     SceneInteraction si(si_);
     BSDFContext ctx(ctx_);
     BSDFSample bs;
     bool front_side = Frame::cos_theta(si.wi) > 0.f,
          back_side = Frame::cos_theta(si.wi) < 0.f;
-		auto ret = std::make_pair(bs, Color3(0.f));
+    auto ret = std::make_pair(bs, Color3(0.f));
     if (front_side) {
-      ret = m_brdf[0]->sample(ctx, si, sample);
+      ret = m_brdf[0]->sample(ctx, si, sample1, sample);
     }
     if (back_side) {
       if (ctx.component != (uint32_t)-1)
         ctx.component -= (uint32_t)m_brdf[0]->component_count();
       si.wi.z() *= -1.f;
-      auto result = m_brdf[1]->sample(ctx, si, sample);
+      auto result = m_brdf[1]->sample(ctx, si, sample1, sample);
       result.first.wo.z() *= -1.f;
       ret = result;
     }
-		return ret;
+    return ret;
   }
 
   Color3 eval(const BSDFContext &ctx_,

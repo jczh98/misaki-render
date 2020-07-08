@@ -71,6 +71,7 @@ class MSK_EXPORT BSDF : public Component {
   // Sample BSDF * cos(theta) and returns sampled bsdf information with BSDF * cos(theta) divided by pdf
   virtual std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
                                                const SceneInteraction &si,
+                                               Float sample1, // For selecting different bsdf lobe
                                                const Vector2 &sample) const;
 
   // Returns evaluated BSDF * cos(theta)

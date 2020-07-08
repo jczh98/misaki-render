@@ -27,6 +27,7 @@ class MaskBSDF final : public BSDF {
 
   std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
                                        const SceneInteraction &si,
+                                       Float sample1,
                                        const Vector2 &sample_) const override {
     Vector2 sample(sample_);
     uint32_t null_index = (uint32_t)component_count() - 1;
@@ -40,7 +41,7 @@ class MaskBSDF final : public BSDF {
     if (sample_transmission && sample_nested) {
       if (sample.x() < prob) {
         sample.x() /= prob;
-        auto [bs_, bs_val_] = m_nested_bsdf->sample(ctx, si, sample);
+        auto [bs_, bs_val_] = m_nested_bsdf->sample(ctx, si, sample1, sample);
         return {bs_, bs_val_ * opacity};
       } else {
         bs.wo = -si.wi;
@@ -60,7 +61,7 @@ class MaskBSDF final : public BSDF {
       result = 1.f - opacity;
       return {bs, result};
     } else {
-      auto [bs_, bs_val_] = m_nested_bsdf->sample(ctx, si, sample);
+      auto [bs_, bs_val_] = m_nested_bsdf->sample(ctx, si, sample1, sample);
       return {bs_, bs_val_ * opacity};
     }
   }

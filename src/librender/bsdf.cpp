@@ -9,6 +9,7 @@ BSDF::BSDF(const Properties &props) : m_flags(+BSDFFlags::None), m_id(props.id()
 
 std::pair<BSDFSample, Color3> BSDF::sample(const BSDFContext &ctx,
                                            const SceneInteraction &si,
+                                           Float sample1,
                                            const Vector2 &sample) const {
   MSK_NOT_IMPLEMENTED("sample");
 }

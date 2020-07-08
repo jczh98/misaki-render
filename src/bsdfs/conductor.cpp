@@ -20,6 +20,7 @@ class ConductorBSDF final : public BSDF {
 
   std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
                                        const SceneInteraction &si,
+                                       Float sample1,
                                        const Vector2 &sample) const override {
     Float cos_theta_i = Frame::cos_theta(si.wi);
     BSDFSample bs;
@@ -30,8 +31,8 @@ class ConductorBSDF final : public BSDF {
     bs.sampled_type = +BSDFFlags::DeltaReflection;
     bs.sampled_component = 0;
     Color3 value = m_specular_reflectance->eval_3(si.geom) * fresnel_conductor(cos_theta_i,
-                                                                            m_eta->eval_3(si.geom),
-                                                                            m_k->eval_3(si.geom));
+                                                                               m_eta->eval_3(si.geom),
+                                                                               m_k->eval_3(si.geom));
     return {bs, value};
   }
 

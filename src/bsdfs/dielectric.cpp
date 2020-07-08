@@ -20,6 +20,7 @@ class DielectricBSDF final : public BSDF {
 
   std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
                                        const SceneInteraction &si,
+                                       Float sample1,
                                        const Vector2 &sample) const override {
     bool has_reflection = ctx.is_enabled(BSDFFlags::DeltaReflection, 0),
          has_transmission = ctx.is_enabled(BSDFFlags::DeltaTransmission, 1);

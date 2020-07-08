@@ -25,4 +25,4 @@ make -j8
 - Advance shading system
 ## Gallery
 Bedroom (pt 1024spp) (scene ref [here](https://benedikt-bitterli.me/resources/)):
-![pic](./assets/gallery/bedroom1024spp.png)
+![pic](./assets/gallery/bedroom2048spp.png)

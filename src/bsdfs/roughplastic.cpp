@@ -35,6 +35,7 @@ class RoughPlastic final : public BSDF {
 
   std::pair<BSDFSample, Color3> sample(const BSDFContext &ctx,
                                        const SceneInteraction &si,
+                                       Float sample1,
                                        const Vector2 &sample) const override {
     BSDFSample bs;
     Float cos_theta_i = Frame::cos_theta(si.wi);
@@ -49,7 +50,7 @@ class RoughPlastic final : public BSDF {
     else
       prob_specular = prob_specular / (prob_specular + prob_diffuse);
     prob_diffuse = 1.f - prob_specular;
-    bool sample_specular = sample.y() < prob_specular,
+    bool sample_specular = sample1 < prob_specular,
          sample_diffuse = !sample_specular;
     bs.eta = 1.f;
     if (sample_specular) {
