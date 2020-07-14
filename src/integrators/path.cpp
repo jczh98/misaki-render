@@ -48,7 +48,7 @@ class PathTracer final : public Integrator {
                 for (int s = 0; s < total_spp; ++s) {
                   auto position_sample = pos + sampler->next2d();
                   auto [ray, ray_weight] = camera->sample_ray(position_sample);
-                  auto result = sample(scene, sampler.get(), ray);
+                  auto result = sample_ems(scene, sampler.get(), ray);
                   if (result)
                     block->put(position_sample, Color4(*result));
                   else
@@ -107,6 +107,53 @@ class PathTracer final : public Integrator {
         auto light_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta) ? scene->pdf_direct_light(si.geom, ds, light) : 0.f;
         emission_weight = mis_weight(bs.pdf, light_pdf);
       }
+      si = std::move(si_bsdf);
+    }
+    return result;
+  }
+
+  std::optional<Color3> sample_ems(const std::shared_ptr<Scene> &scene, Sampler *sampler, const Ray &ray_) const {
+    auto ray = ray_;
+    Color3 throughput(1.f), result(0.f);
+    Float eta = 1.f;
+    auto si = scene->ray_intersect(ray);
+    auto light = si.light(scene);
+    const Light *last_light = nullptr;
+    bool last_specular = false;
+    for (int depth = 1;; ++depth) {
+      if (light != nullptr && (depth == 1 || last_light == light || last_specular)) {
+        result += light->eval(si) * throughput;
+      }
+      if (depth >= m_rr_depth) {
+        Float q = std::min(throughput.maxCoeff() * eta * eta, 0.95f);
+        if (sampler->next1d() >= q) break;
+        throughput *= 1.f / q;
+      }
+      if ((uint32_t)depth >= (uint32_t)m_max_depth || !si.is_valid()) break;
+      // ------------------Direct sample light--------------------------
+      BSDFContext ctx;
+      const BSDF *bsdf = si.bsdf(ray);
+      if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
+        auto [ds, emit_val] = scene->sample_direct_light(si.geom, sampler->next2d());
+        if (ds.pdf != 0.f) {
+          auto wo = si.to_local(ds.d);
+          Color3 bsdf_val = bsdf->eval(ctx, si, wo);
+          auto bsdf_pdf = bsdf->pdf(ctx, si, wo);
+          result += throughput * bsdf_val * emit_val;
+        }
+        last_specular = false;
+      } else {
+        last_specular = true;
+      }
+      // --------------------- BSDF Sampling ------------------------
+      // Sample BSDF * cos(theta)
+      auto [bs, bsdf_val] = bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
+      throughput *= bsdf_val;
+      eta *= bs.eta;
+      ray = si.spawn_ray(si.to_world(bs.wo));
+      auto si_bsdf = scene->ray_intersect(ray);
+      light = si_bsdf.light(scene);
+      last_light = si.light(scene);
       si = std::move(si_bsdf);
     }
     return result;
