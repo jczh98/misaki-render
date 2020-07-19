@@ -4,6 +4,10 @@
 
 namespace misaki::render {
 
+MSK_INLINE Float schlick_weight(Float cos_theta) { 
+  return math::power<5>(std::clamp<float>(1 - cos_theta, 0, 1)); 
+}
+
 Vector3 reflect(const Vector3 &wi) {
   return Vector3(-wi.x(), -wi.y(), wi.z());
 }

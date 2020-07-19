@@ -78,7 +78,7 @@ class DisneyPrincipledBRDF final : public BSDF {
     Float alpha = math::safe_sqrt(1.f - 0.9f * anisotropic);
     Float a_x = math::sqr(roughness) / alpha, a_y = math::sqr(roughness) * alpha;
     MicrofacetDistribution distr(MicrofacetDistribution::Type::GGX, a_x, a_y);
-    Float Ds = distr.eval(h);
+    Float Ds = distr.eval(h); 
     Float Gs = distr.G(si.wi, wo, h);
     auto Fs = lerp(c_spec, schlick_fresnel(cos_theta_d), 1.f);
     Color3 f_specular = Fs * Ds * Gs / (4.f * cos_theta_i * cos_theta_o);
@@ -87,7 +87,7 @@ class DisneyPrincipledBRDF final : public BSDF {
     // Clearcoat
     Float Fc = 0.04 + 0.96 * schlick_fresnel(cos_theta_d);
     Float Gc = smith_g1(cos_theta_i, 0.25) * smith_g1(cos_theta_o, 0.25);
-    Float Dc = gtr1(Frame::cos_theta(h), lerp(clearcoat_gloss, .1f, .001f));
+    Float Dc = gtr1(Frame::cos_theta(h), math::lerp(clearcoat_gloss, .1f, .001f));
     Color3 f_clearcoat = clearcoat * Fc * Gc * Dc / (4.f * cos_theta_i * cos_theta_o);
     return f_diffuse + f_specular + f_clearcoat + f_sheen;
   }
@@ -117,10 +117,6 @@ class DisneyPrincipledBRDF final : public BSDF {
   }
 
   Color3 lerp(Color3 t, Color3 v1, Color3 v2) const {
-    return (1 - t) * v1 + t * v2;
-  }
-
-  Float lerp(Float t, Float v1, Float v2) const {
     return (1 - t) * v1 + t * v2;
   }
 

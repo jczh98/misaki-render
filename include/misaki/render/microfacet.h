@@ -6,6 +6,42 @@
 
 namespace misaki::render {
 
+namespace microfacet {
+
+Float gtr1(Float cos_theta_h, Float alpha) noexcept {
+  const Float a2 = alpha * alpha;
+  const Float t = 1 + (a2 - 1) * math::sqr(cos_theta_h);
+  return (a2 - 1) / (math::Pi<Float> * std::log(a2) * t);
+}
+
+Float gtr2(Float cos_theta_h, Float alpha) noexcept {
+  const Float a2 = alpha * alpha;
+  const Float t = 1 + (a2 - 1) * math::sqr(cos_theta_h);
+  return a2 / (math::Pi<Float> * t * t);
+}
+
+Float gtr2_aniso(Float sin_theta_h, Float cos_theta_h,
+                 Float sin_phi_h, Float cos_phi_h, Float ax, Float ay) noexcept {
+  const Float t = math::sqr(cos_phi_h / ax) + math::sqr(sin_phi_h / ay);
+  const Float t2 = math::sqr(sin_theta_h) * t + math::sqr(cos_theta_h);
+  return 1.f / (math::Pi<Float> * ax * ay * math::sqr(t2));
+}
+
+Float smith_g1_ggx(Float tan_theta, Float alpha) noexcept {
+  if (!tan_theta) return 1.f;
+  const Float t = tan_theta * alpha;
+  return 2.f / (1.f + std::sqrt(1 + t * t));
+}
+
+Float smith_g1_ggx_aniso(Float tan_theta, Float sin_phi, Float cos_phi, Float ax, Float ay) noexcept {
+  const Float t = math::sqr(ax * cos_phi) + math::sqr(ay * sin_phi);
+  const Float sqr_val = 1 + t * math::sqr(tan_theta);
+  const Float lambda = -Float(0.5) + Float(0.5) * std::sqrt(sqr_val);
+  return 1 / (1 + lambda);
+}
+
+}  // namespace microfacet
+
 class MicrofacetDistribution {
  public:
   enum class Type : uint32_t {
