@@ -40,6 +40,33 @@ Float smith_g1_ggx_aniso(Float tan_theta, Float sin_phi, Float cos_phi, Float ax
   return 1 / (1 + lambda);
 }
 
+Vector3 sample_gtr1(Float alpha, const Vector2 &sample) noexcept {
+  const Float phi = 2 * math::Pi<Float> * sample.x();
+  const Float cos_theta = std::sqrt((std::pow(alpha, 2 - 2 * sample.y()) - 1) / (math::sqr(alpha) - 1));
+  const Float sin_theta = math::safe_sqrt(1.f - cos_theta * cos_theta);
+  return math::normalize(Vector3(
+      sin_theta * std::cos(phi),
+      sin_theta * std::sin(phi),
+      cos_theta));
+}
+
+Vector3 sample_gtr2_aniso(Float ax, Float ay, const Vector2 &sample) noexcept {
+  Float sin_phi_h = ay * std::sin(2 * math::Pi<Float> * sample.x());
+  Float cos_phi_h = ax * std::cos(2 * math::Pi<Float> * sample.x());
+  const Float nor = 1 / std::sqrt(math::sqr(sin_phi_h) + math::sqr(cos_phi_h));
+  sin_phi_h *= nor;
+  cos_phi_h *= nor;
+
+  const Float A = math::sqr(cos_phi_h / ax) + math::sqr(sin_phi_h / ay);
+  const Float cos_theta_h = std::sqrt(A * (1 - sample.y()) / ((1 - A) * sample.y() + A));
+  const Float sin_theta_h = std::sqrt(
+      std::max<Float>(0, 1 - math::sqr(cos_theta_h)));
+
+  return math::normalize(Vector3(sin_theta_h * cos_phi_h,
+                                 sin_theta_h * sin_phi_h,
+                                 cos_theta_h));
+}
+
 }  // namespace microfacet
 
 class MicrofacetDistribution {

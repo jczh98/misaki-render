@@ -30,9 +30,47 @@ class DisneyPrincipledBRDF final : public BSDF {
                                        const SceneInteraction &si,
                                        Float sample1,
                                        const Vector2 &sample) const override {
-    Float cos_theta_i = Frame::cos_theta(si.wi);
     BSDFSample bs;
-    if (cos_theta_i <= 0.f || !ctx.is_enabled(BSDFFlags::DiffuseReflection)) return {bs, 0.f};
+    Float cos_theta_i = Frame::cos_theta(si.wi);
+    bool has_specular = ctx.is_enabled(BSDFFlags::GlossyReflection, 0),
+         has_diffuse = ctx.is_enabled(BSDFFlags::DiffuseReflection, 1);
+    if ((!has_specular && !has_diffuse) || cos_theta_i <= 0) return {bs, 0.f};
+    // Eval textures
+    auto base_color = m_base_color->eval_3(si.geom);
+    auto metallic = m_metallic->eval_1(si.geom);
+    auto subsurface = m_subsurface->eval_1(si.geom);
+    auto specular = m_specular->eval_1(si.geom);
+    auto specular_tint = m_specular_tint->eval_1(si.geom);
+    auto roughness = m_roughness->eval_1(si.geom);
+    auto anisotropic = m_anisotropic->eval_1(si.geom);
+    auto sheen = m_sheen->eval_1(si.geom);
+    auto sheen_tint = m_sheen_tint->eval_1(si.geom);
+    auto clearcoat = m_clearcoat->eval_1(si.geom);
+    auto clearcoat_gloss = m_clearcoat_gloss->eval_1(si.geom);
+    Float prob_diffuse = (1 - metallic) / 2;
+    if (sample1 < prob_diffuse) {
+      bs.wo = sample_diffuse(sample);
+      bs.sampled_component = 1;
+      bs.sampled_type = +BSDFFlags::DiffuseReflection;
+    } else {
+      Float alpha = math::safe_sqrt(1.f - 0.9f * anisotropic);
+      Float a_x = std::max(.001f, math::sqr(roughness) / alpha),
+            a_y = std::max(.001f, math::sqr(roughness) * alpha);
+      Float gtr2 = 1 / (1 + clearcoat);
+      if (sample1 - prob_diffuse < gtr2) {
+        bs.wo = sample_specular(si.wi, sample, a_x, a_y);
+      } else {
+        bs.wo = sample_clearcoat(si.wi, sample, roughness);
+      }
+      bs.sampled_component = 0;
+      bs.sampled_type = +BSDFFlags::GlossyReflection;
+      bs.eta = 1.f;
+    }
+    Color3 result(0.f);
+    bs.pdf = pdf(ctx, si, bs.wo);
+    if (bs.pdf <= 0.f) return {bs, 0.f};
+    result = eval(ctx, si, bs.wo);
+    return {bs, result / bs.pdf};
   }
 
   Color3 eval(const BSDFContext &ctx,
@@ -65,58 +103,124 @@ class DisneyPrincipledBRDF final : public BSDF {
     auto c_spec = lerp(metallic, specular * .8f * lerp(specular_tint, 1.f, c_tint), c_dlin);
     // Computes
     auto h = math::normalize(si.wi + wo);
-    auto cos_theta_d = math::dot(si.wi, h);
+    auto cos_theta_d = math::dot(wo, h);
+    auto cos_theta_h = Frame::cos_theta(h);
+    auto sin_theta_h = Frame::sin_theta(h);
+    auto tan_theta_i = Frame::tan_theta(si.wi);
+    auto tan_theta_o = Frame::tan_theta(wo);
+    auto [sin_phi_h, cos_phi_h] = Frame::sincos_phi(h);
+    auto [sin_phi_i, cos_phi_i] = Frame::sincos_phi(si.wi);
+    auto [sin_phi_o, cos_phi_o] = Frame::sincos_phi(wo);
     // Diffuse
     Float f_d90 = 0.5f + 2.f * math::sqr(cos_theta_d) * roughness;
-    auto pow5 = [&](Float x) -> Float { return x * x * x * x * x; };
-    Color3 f_diffuse = base_color / math::Pi<Float> * (1.f + (f_d90 - 1) * pow5(1 - cos_theta_i)) * (1.f + (f_d90 - 1) * pow5(1 - cos_theta_o));
+    Float fl = schlick_weight(cos_theta_i), fv = schlick_weight(cos_theta_o);
+    Float f_d = math::lerp(1.f, f_d90, fl) * math::lerp(1.f, f_d90, fv);
     // Subsurface
-    auto f_ss90 = math::sqr(cos_theta_d) * roughness;
-    auto f_ss = (1.f + (f_ss90 - 1) * pow5(1 - cos_theta_i)) * (1.f + (f_ss90 - 1) * pow5(1 - cos_theta_o));
-    Color3 f_subsurface = base_color * 1.25f / math::Pi<Float> * (f_ss * (1.f / (cos_theta_i + cos_theta_o) - 0.5f) + 0.5f);
+    Float f_ss90 = math::sqr(cos_theta_d) * roughness;
+    Float f_ss = math::lerp(1.f, f_ss90, fl) * math::lerp(1.f, f_ss90, fv);
+    Float f_subsurface = 1.25 * (f_ss * (1 / (cos_theta_i + cos_theta_o) - .5) + .5);
     // Specular
     Float alpha = math::safe_sqrt(1.f - 0.9f * anisotropic);
-    Float a_x = math::sqr(roughness) / alpha, a_y = math::sqr(roughness) * alpha;
-    MicrofacetDistribution distr(MicrofacetDistribution::Type::GGX, a_x, a_y);
-    Float Ds = distr.eval(h); 
-    Float Gs = distr.G(si.wi, wo, h);
-    auto Fs = lerp(c_spec, schlick_fresnel(cos_theta_d), 1.f);
-    Color3 f_specular = Fs * Ds * Gs / (4.f * cos_theta_i * cos_theta_o);
+    Float a_x = std::max(.001f, math::sqr(roughness) / alpha),
+          a_y = std::max(.001f, math::sqr(roughness) * alpha);
+    Float Ds = microfacet::gtr2_aniso(sin_theta_h, cos_theta_h, sin_phi_h, cos_phi_h, a_x, a_y);
+    Color3 Fs = lerp(c_spec, 1.f, schlick_weight(cos_theta_d));
+    Float Gs = microfacet::smith_g1_ggx_aniso(tan_theta_i, sin_phi_i, cos_phi_i, a_x, a_y) * microfacet::smith_g1_ggx_aniso(tan_theta_o, sin_phi_o, cos_phi_o, a_x, a_y);
+    Color3 f_specular = Fs * Ds * Gs;
     // Sheen
-    Color3 f_sheen = lerp(sheen_tint, 1.f, c_tint) * sheen * schlick_fresnel(cos_theta_d);
+    Color3 f_sheen = lerp(1.f, c_tint, sheen_tint) * schlick_weight(cos_theta_d) * sheen;
     // Clearcoat
-    Float Fc = 0.04 + 0.96 * schlick_fresnel(cos_theta_d);
-    Float Gc = smith_g1(cos_theta_i, 0.25) * smith_g1(cos_theta_o, 0.25);
-    Float Dc = gtr1(Frame::cos_theta(h), math::lerp(clearcoat_gloss, .1f, .001f));
-    Color3 f_clearcoat = clearcoat * Fc * Gc * Dc / (4.f * cos_theta_i * cos_theta_o);
-    return f_diffuse + f_specular + f_clearcoat + f_sheen;
+    Float Dc = microfacet::gtr1(cos_theta_h, math::lerp(.1f, .001f, clearcoat_gloss));
+    Float Fc = math::lerp(.04f, 1.f, schlick_weight(cos_theta_d));
+    Float Gc = microfacet::smith_g1_ggx(cos_theta_i, 0.25) * microfacet::smith_g1_ggx(cos_theta_o, 0.25);
+    Color3 f_clearcoat = .25 * clearcoat * Gc * Fc * Dc;
+    // Result
+    Color3 f_diffuse = ((1 / math::Pi<Float>)*math::lerp(f_d, f_subsurface, subsurface) * c_dlin + f_sheen) * (1 - metallic);
+    if (has_diffuse && has_specular)
+      return cos_theta_o * (f_diffuse + f_specular + f_clearcoat);
+    else if (has_diffuse)
+      return f_diffuse * cos_theta_o;
+    else
+      return (f_specular + f_clearcoat) * cos_theta_o;
   }
 
   Float pdf(const BSDFContext &ctx,
             const SceneInteraction &si,
             const Vector3 &wo) const override {
+    bool has_specular = ctx.is_enabled(BSDFFlags::GlossyReflection, 0),
+         has_diffuse = ctx.is_enabled(BSDFFlags::DiffuseReflection, 1);
+    Float cos_theta_i = Frame::cos_theta(si.wi),
+          cos_theta_o = Frame::cos_theta(wo);
+    auto m = math::normalize(wo + si.wi);
+    if ((!has_specular && !has_diffuse) ||
+        !(cos_theta_i > 0.f && cos_theta_o > 0.f && si.wi.dot(m) > 0.f && wo.dot(m) > 0.f)) {
+      return 0.f;
+    }
+    // Eval textures
+    auto base_color = m_base_color->eval_3(si.geom);
+    auto metallic = m_metallic->eval_1(si.geom);
+    auto subsurface = m_subsurface->eval_1(si.geom);
+    auto specular = m_specular->eval_1(si.geom);
+    auto specular_tint = m_specular_tint->eval_1(si.geom);
+    auto roughness = m_roughness->eval_1(si.geom);
+    auto anisotropic = m_anisotropic->eval_1(si.geom);
+    auto sheen = m_sheen->eval_1(si.geom);
+    auto sheen_tint = m_sheen_tint->eval_1(si.geom);
+    auto clearcoat = m_clearcoat->eval_1(si.geom);
+    auto clearcoat_gloss = m_clearcoat_gloss->eval_1(si.geom);
+    // Computes
+    auto h = math::normalize(si.wi + wo);
+    auto cos_theta_d = math::dot(si.wi, h);
+    auto cos_theta_h = Frame::cos_theta(h);
+    auto sin_theta_h = Frame::sin_theta(h);
+    auto tan_theta_i = Frame::tan_theta(si.wi);
+    auto tan_theta_o = Frame::tan_theta(wo);
+    auto [sin_phi_h, cos_phi_h] = Frame::sincos_phi(h);
+    auto [sin_phi_i, cos_phi_i] = Frame::sincos_phi(si.wi);
+    auto [sin_phi_o, cos_phi_o] = Frame::sincos_phi(wo);
+    // Pdf
+    Float pdf = 0.f;
+    Float prob_diffuse = (1 - metallic) / 2.f;
+    Float prob_specular = (1.f / (1 + clearcoat));
+    Float prob_clearcoat = 1.f - prob_specular;
+    Float alpha = math::safe_sqrt(1.f - 0.9f * anisotropic);
+    Float a_x = std::max(.001f, math::sqr(roughness) / alpha),
+          a_y = std::max(.001f, math::sqr(roughness) * alpha);
+    const Float specular_d = microfacet::gtr2_aniso(
+        sin_theta_h, cos_theta_h, sin_phi_h, cos_phi_h, a_x, a_y);
+    auto pdf_diffuse = warp::square_to_cosine_hemisphere_pdf(wo);
+    auto pdf_specular = microfacet::smith_g1_ggx_aniso(tan_theta_i, sin_phi_i, cos_phi_i, a_x, a_y) * specular_d / (4 * cos_theta_i);
+    const Float clearcoat_d = microfacet::gtr1(cos_theta_h, clearcoat_gloss);
+    auto pdf_clearcoat = cos_theta_h * clearcoat_d / (4 * cos_theta_d);
+    if (has_diffuse && has_specular) {
+      pdf = prob_diffuse * pdf_diffuse + (1.f - prob_diffuse) * (prob_specular * pdf_specular + prob_clearcoat * pdf_clearcoat);
+    } else if (has_diffuse) {
+      pdf = pdf_diffuse;
+    } else {
+      pdf = prob_specular * pdf_specular + prob_clearcoat * pdf_clearcoat;
+    }
+    return pdf;
   }
 
   MSK_DECL_COMP(BSDF)
  private:
-  Float schlick_fresnel(float u) const {
-    auto pow5 = [&](Float x) -> Float { return x * x * x * x * x; };
-    return pow5(math::clamp(1.f - u, 0.f, 1.f));
+  Vector3 sample_diffuse(const Vector2 &sample2) const {
+    return warp::square_to_cosine_hemisphere(sample2);
   }
 
-  Float smith_g1(Float NdotV, Float alphaG) const {
-    Float a = alphaG * alphaG;
-    Float b = NdotV * NdotV;
-    return 1 / (NdotV + math::safe_sqrt(a + b - a * b));
+  Vector3 sample_specular(const Vector3 &wi, const Vector2 &sample, Float ax, Float ay) const {
+    auto wh = microfacet::sample_gtr2_aniso(ax, ay, sample);
+    auto wo = reflect(wi, wh);
+    return wo;
   }
 
-  Float gtr1(Float cos_theta_h, Float a) const {
-    Float a2 = a * a;
-    Float t = 1 + (a2 - 1) * cos_theta_h * cos_theta_h;
-    return (a2 - 1) / (math::Pi<Float> * std::log(a2) * t);
+  Vector3 sample_clearcoat(const Vector3 &wi, const Vector2 &sample, Float roughness) const {
+    auto wh = microfacet::sample_gtr1(roughness, sample);
+    auto wo = reflect(wi, wh);
+    return wo;
   }
 
-  Color3 lerp(Color3 t, Color3 v1, Color3 v2) const {
+  Color3 lerp(Color3 v1, Color3 v2, Color3 t) const {
     return (1 - t) * v1 + t * v2;
   }
 
