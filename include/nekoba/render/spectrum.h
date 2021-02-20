@@ -5,16 +5,11 @@
 namespace nekoba {
 
 template <typename Value_, size_t Size_ = 3>
-struct Color : Eigen::Array<Value_, Size_, 1> {
-  using Base = Eigen::Array<Value_, Size_, 1>;
+struct Color : Eigen::Matrix<Value_, Size_, 1> {
+  using Base = Eigen::Matrix<Value_, Size_, 1>;
 
   using Base::Base;
   using Base::operator=;
-
-  Color(Value_ value = 0) : Base(value, value, value) {}
-  template <typename T> Color(T r, T g, T b) : Base(r, g, b) {}
-  template <typename Derived>
-  Color(const Eigen::ArrayBase<Derived> &p) : Base(p) {}
 
   decltype(auto) r() const { return Base::x(); }
   decltype(auto) r() { return Base::x(); }
@@ -38,7 +33,7 @@ Color<Float, 3> srgb_to_xyz(const Color<Float, 3> &rgb) {
   Matrix3f M;
   M << 0.412453f, 0.357580f, 0.180423f, 0.212671f, 0.715160f, 0.072169f,
       0.019334f, 0.119193f, 0.950227f;
-  return M * Vector3(rgb.r(), rgb.g(), rgb.b());
+  return M * rgb;
 }
 
 // Convert XYZ tristimulus values to ITU-R Rec. BT.709 linear RGB
@@ -48,7 +43,7 @@ Color<Float, 3> xyz_to_srgb(const Color<Float, 3> &rgb) {
   Matrix3f M;
   M << 3.240479f, -1.537150f, -0.498535f, -0.969256f, 1.875991f, 0.041556f,
       0.055648f, -0.204043f, 1.057311f;
-  return M * Vector3(rgb.r(), rgb.g(), rgb.b());
+  return M * rgb;
 }
 
 template <typename Float> Float luminance(const Color<Float, 3> &c) {
