@@ -2,9 +2,13 @@
 
 #include "bbox.h"
 #include "transform.h"
+#include "platform.h"
 #include <Eigen/Dense>
+#include <filesystem>
 
 namespace nekoba {
+
+namespace fs = std::filesystem;
 
 using Float = float;
 
