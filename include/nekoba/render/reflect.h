@@ -1,5 +1,8 @@
 #pragma once
 
-#include "spectrum.h"
+#include <tuple>
 
-namespace nekoba {}
+namespace nekoba {
+
+
+}
