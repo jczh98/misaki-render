@@ -3,7 +3,7 @@
 #include "fwd.h"
 #include <fmt/format.h>
 
-namespace nekoba {
+namespace aspirin {
 
 class Formatter;
 
@@ -15,7 +15,7 @@ enum LogLevel : int {
   Error = 400   // Error message, causes an exception to be thrown
 };
 
-class NEK_EXPORT Logger {
+class APR_EXPORT Logger {
  public:
   Logger(LogLevel log_level = Debug);
   ~Logger();
@@ -33,7 +33,7 @@ class NEK_EXPORT Logger {
   LogLevel m_log_level, m_error_level;
 };
 
-NEK_EXPORT Logger *get_instanced_logger();
+APR_EXPORT Logger *get_instanced_logger();
 
 class Formatter {
   friend class Logger;
@@ -57,10 +57,10 @@ class Formatter {
 
 namespace detail {
 
-[[noreturn]] extern NEK_EXPORT void Throw(LogLevel level, const char *file, int line, const std::string &msg);
+[[noreturn]] extern APR_EXPORT void Throw(LogLevel level, const char *file, int line, const std::string &msg);
 
 template <typename... Args>
-NEK_INLINE static void Log(LogLevel level, const char *filename, int line, Args &&... args) {
+APR_INLINE static void Log(LogLevel level, const char *filename, int line, Args &&... args) {
   auto logger = get_instanced_logger();
   if (logger && level >= logger->log_level())
     logger->log(level, filename, line, fmt::format(std::forward<Args>(args)...));
@@ -70,13 +70,13 @@ NEK_INLINE static void Log(LogLevel level, const char *filename, int line, Args 
 
 #define Log(level, ...)                                    \
   do {                                                     \
-    nekoba::detail::Log(level, __FILE__, __LINE__, \
+    aspirin::detail::Log(level, __FILE__, __LINE__, \
                                 ##__VA_ARGS__);            \
   } while (0)
 
 #define Throw(...)                                           \
   do {                                                       \
-    nekoba::detail::Throw(Error, __FILE__, __LINE__, \
+    aspirin::detail::Throw(Error, __FILE__, __LINE__, \
                                   fmt::format(__VA_ARGS__)); \
   } while (0)
 

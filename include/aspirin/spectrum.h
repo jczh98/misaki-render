@@ -2,7 +2,7 @@
 
 #include "fwd.h"
 
-namespace nekoba {
+namespace aspirin {
 
 template <typename Value_, size_t Size_ = 3>
 struct Color : Eigen::Matrix<Value_, Size_, 1> {

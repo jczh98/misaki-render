@@ -3,7 +3,7 @@
 #include "bsphere.h"
 #include <limits>
 
-namespace nekoba {
+namespace aspirin {
 
 template <typename Value, int Size> struct BoundingBox {
   using PointType = Eigen::Matrix<Value, Size, 1>;

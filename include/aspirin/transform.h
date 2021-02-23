@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 #include <sstream>
 
-namespace nekoba {
+namespace aspirin {
 
 template <typename Float, int Size> struct Transform {
   using Matrix = Eigen::Matrix<Float, Size, Size>;

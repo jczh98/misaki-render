@@ -1,7 +1,7 @@
-#include <nekoba/render/logger.h>
+#include <aspirin/logger.h>
 #include <iostream>
 
-namespace nekoba {
+namespace aspirin {
 
 Logger *get_instanced_logger() {
   static std::unique_ptr<Logger> logger;

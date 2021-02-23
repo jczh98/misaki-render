@@ -1,12 +1,13 @@
 
 set(INC_DIR ../../include/nekoba/render)
 
-add_library(nekoba-render SHARED
+add_library(aspirin-render SHARED
         reflect.cpp
         logger.cpp
         )
 
-target_link_libraries(nekoba-render PUBLIC
+target_link_libraries(aspirin-render PUBLIC
+        fmt::fmt
         spdlog::spdlog
         pugixml::pugixml
         TBB::tbb

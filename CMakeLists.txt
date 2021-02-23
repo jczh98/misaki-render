@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(nekoba)
+project(aspirin)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -11,7 +11,7 @@ find_package(TBB CONFIG REQUIRED)
 find_package(OpenImageIO CONFIG REQUIRED)
 find_package(embree 3 REQUIRED)
 
-option(NEK_ENABLE_EMBREE  "Use Embree for ray tracing intersection" ON)
+option(APR_ENABLE_EMBREE  "Use Embree for ray tracing intersection" ON)
 
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(include)

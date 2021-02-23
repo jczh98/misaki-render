@@ -1,2 +1,2 @@
-add_subdirectory(librender)
-add_subdirectory(nekoba)
+add_subdirectory(libaspirin)
+add_subdirectory(aspirin)

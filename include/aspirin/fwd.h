@@ -6,7 +6,7 @@
 #include <Eigen/Dense>
 #include <filesystem>
 
-namespace nekoba {
+namespace aspirin {
 
 namespace fs = std::filesystem;
 

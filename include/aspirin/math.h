@@ -1,6 +1,6 @@
 #pragma once
 
-namespace nekoba {
+namespace aspirin {
 
 namespace math {
 

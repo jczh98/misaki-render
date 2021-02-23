@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 
-namespace nekoba {
+namespace aspirin {
 
 template <typename Value_, int Size_> struct BoundingSphere {
   using Value = Value_;
