@@ -4,10 +4,13 @@
 #include "platform.h"
 #include "spectrum.h"
 #include "transform.h"
+#include "logger.h"
 #include <Eigen/Dense>
 #include <filesystem>
 #include <tuple>
 #include <type_traits>
+#include <set>
+#include <mutex>
 
 namespace aspirin {
 

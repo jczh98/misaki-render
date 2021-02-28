@@ -3,7 +3,6 @@
 #include "component.h"
 #include "fwd.h"
 #include "logger.h"
-#include "plugin.h"
 #include <map>
 #include <variant>
 
@@ -39,7 +38,7 @@ public:
         Pointer
     };
     Properties();
-    Properties(const std::string &plugin_name);
+    explicit Properties(const std::string &plugin_name);
     Properties(const Properties &props);
     void operator=(const Properties &props);
     ~Properties();
@@ -103,7 +102,8 @@ public:
         } else if (p_type == Properties::Type::Float) {
             Properties props("srgb");
             props.set_color("color", Color3(get_float(name)));
-            return PluginManager::instance()->create_comp<Texture>(props);
+            return ComponentManager::instance()->create_instance<Texture>(
+                props);
         } else {
             Throw("The property \"{}\" has the wrong type.", name);
         }
@@ -123,7 +123,7 @@ public:
         if (!has_property(name)) {
             Properties props("srgb");
             props.set_color("color", Color3(def_val));
-            return PluginManager::instance()->create_comp<Texture>(props);
+            return ComponentManager::instance()->create_instance<Texture>(props);
         }
         return texture<Texture>(name);
     }

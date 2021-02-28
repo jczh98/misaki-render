@@ -52,7 +52,7 @@ Properties::Properties(const std::string &plugin_name) : d(new PropertiesPrivate
 Properties::Properties(const Properties &props)
     : d(new PropertiesPrivate(*props.d)) {}
 
-Properties::~Properties() {}
+Properties::~Properties() = default;
 
 void Properties::operator=(const Properties &props) {
   (*d) = *props.d;
@@ -80,7 +80,7 @@ struct PropertyTypeVisitor {
 
 struct StreamVisitor {
   std::ostream &os;
-  StreamVisitor(std::ostream &os) : os(os) {}
+  explicit StreamVisitor(std::ostream &os) : os(os) {}
   void operator()(const std::nullptr_t &) { throw std::runtime_error("Internal error"); }
   void operator()(const bool &b) { os << (b ? "true" : "false"); }
   void operator()(const int &i) { os << i; }
@@ -134,7 +134,7 @@ std::vector<std::pair<std::string, NamedReference>> Properties::named_references
     if (type != Type::NamedReference)
       continue;
     auto const &value = (const NamedReference &)e.second.data;
-    result.push_back(std::make_pair(e.first, value));
+    result.emplace_back(e.first, value);
   }
   return result;
 }
@@ -146,7 +146,7 @@ std::vector<std::pair<std::string, std::shared_ptr<Component>>> Properties::comp
     auto type = std::visit(PropertyTypeVisitor(), e.second.data);
     if (type != Type::Component)
       continue;
-    result.push_back(std::make_pair(e.first, (const std::shared_ptr<Component> &)e.second));
+    result.emplace_back(e.first, (const std::shared_ptr<Component> &)e.second);
   }
   return result;
 }

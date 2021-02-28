@@ -3,6 +3,8 @@
 #include "platform.h"
 #include <string>
 #include <unordered_map>
+#include <memory>
+#include <functional>
 
 namespace aspirin {
 
@@ -29,7 +31,9 @@ public:
 
     std::shared_ptr<Component> create_instance(const Properties &props);
     template <typename T>
-    std::shared_ptr<T> create_instance(const Properties &props);
+    std::shared_ptr<T> create_instance(const Properties &props) {
+        return std::dynamic_pointer_cast<T>(create_instance(props));
+    }
 
 private:
     std::unordered_map<std::string, CreateShared> m_constructors;

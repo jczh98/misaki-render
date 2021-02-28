@@ -2,8 +2,11 @@
 set(INC_DIR ../../include/nekoba/render)
 
 add_library(aspirin-render SHARED
-        reflect.cpp
+        component.cpp
+        properties.cpp
         logger.cpp
+        string.cpp
+        xml.cpp
         )
 
 target_link_libraries(aspirin-render PUBLIC

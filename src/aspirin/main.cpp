@@ -1,12 +1,14 @@
+#include <aspirin/xml.h>
 #include <iostream>
-#include <aspirin/logger.h>
 #include <spdlog/spdlog.h>
 
 using namespace aspirin;
 
 int main() {
-  Transform4 transform = Transform4::translate(Vector3(1, 1, 1));
-  std::cout << transform << std::endl;
-  Log(Info, "aspirin");
-  return 0;
+    try {
+        auto scene = xml::load_file("../../../assets/bunny/scene.xml");
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+    }
+    return 0;
 }
