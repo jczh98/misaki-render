@@ -14,3 +14,5 @@ target_link_libraries(aspirin-render PUBLIC
         OpenImageIO::OpenImageIO OpenImageIO::OpenImageIO_Util
         embree
         )
+
+set_output_dir(aspirin-render)

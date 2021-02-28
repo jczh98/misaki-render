@@ -1,5 +1,6 @@
 #include <aspirin/logger.h>
 #include <iostream>
+#include <mutex>
 
 namespace aspirin {
 
