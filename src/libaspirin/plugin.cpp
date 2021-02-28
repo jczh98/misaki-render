@@ -5,7 +5,7 @@
 #include <mutex>
 #include <unordered_map>
 
-namespace misaki::render {
+namespace aspirin {
 
 struct Plugin {
   Plugin(const fs::path &path) {
@@ -86,4 +86,4 @@ std::shared_ptr<Component> PluginManager::create_comp(const Properties &props, c
   auto comp = std::reinterpret_pointer_cast<Component>(instanced_type);
   return comp;
 }
-}  // namespace misaki::render
+}  // namespace aspirin

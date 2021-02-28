@@ -1,0 +1,95 @@
+<scene>
+    <integrator type="path">
+    </integrator>
+    <camera type="perspective">
+        <float name="near_clip" value="10"/>
+        <float name="far_clip" value="2800"/>
+        <float name="fov" value="49.3077"/>
+        <transform name="to_world">
+            <lookat origin="278, 273, -800" target="278, 273, -799"
+                    up    ="  0,   1,    0"/>
+        </transform>
+        <sampler type="independent">
+            <integer name="sample_count" value="32"/>
+        </sampler>
+        <film type="rgbfilm">
+            <integer name="width" value="800"/>
+            <integer name="height" value="600"/>
+        </film>
+    </camera>
+    <!-- <light type="point">
+        <vector name="position" x="278" y="548" z="279"/>
+        <rgb name="intensity" value="100000, 100000, 100000"/>
+    </light> -->
+    <shape type="obj">
+        <string name="filename" value="meshes/cbox_luminaire.obj"/>
+        <transform name="to_world">
+            <translate x="0" y="-0.5" z="0"/>
+        </transform>
+        <bsdf type="diffuse">
+            <rgb name="reflectance" value="0.936461, 0.740433, 0.705267"/>
+        </bsdf>
+        <light type="area">
+            <rgb name="radiance" value="40, 40, 40"/>
+        </light>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="meshes/cbox_floor.obj"/>
+        <bsdf type="diffuse">
+            <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>
+        </bsdf>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="meshes/cbox_ceiling.obj"/>
+        <bsdf type="diffuse">
+            <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>
+        </bsdf>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="meshes/cbox_back.obj"/>
+        <bsdf type="diffuse">
+            <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>
+        </bsdf>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="meshes/cbox_greenwall.obj"/>
+        <bsdf type="diffuse">
+            <rgb name="reflectance" value="0.105421, 0.37798, 0.076425"/>
+        </bsdf>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="meshes/cbox_redwall.obj"/>
+        <bsdf type="diffuse">
+            <rgb name="reflectance" value="0.570068, 0.0430135, 0.0443706"/>
+        </bsdf>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="meshes/cbox_smallbox.obj"/>
+        <bsdf type="diffuse">
+            <rgb name="reflectance" value="0.45, 0.30, 0.90"/>
+        </bsdf>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="meshes/cbox_largebox.obj"/>
+        <!-- <bsdf type="diffuse">
+            <rgb name="reflectance" value="0.45, 0.30, 0.90"/>
+        </bsdf> -->
+        <bsdf type="disney_brdf">
+        </bsdf>
+        <!-- <bsdf type="roughconductor">
+            <float name="alpha" value="0.25" />
+            <string name="distribution" value="beckmann" />
+            <rgb name="specular_reflectance" value="1, 1, 1"/>
+            <rgb name="eta" value="2.8656, 2.11918, 1.94008"/>
+            <rgb name="k" value="3.03233, 2.05611, 1.61629"/>
+        </bsdf> -->
+        <!-- <bsdf type="roughplastic" id="bsdf-plastic">
+            <float name="alpha" value="0.1" />
+            <string name="distribution" value="ggx" />
+            <float name="int_ior" value="1.5" />
+            <float name="ext_ior" value="1" />
+            <boolean name="nonlinear" value="true" />
+            <rgb name="diffuse_reflectance" value="0.00631, 0.00631, 0.00631"/>
+        </bsdf> -->
+    </shape>
+</scene>

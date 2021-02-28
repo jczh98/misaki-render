@@ -507,4 +507,4 @@ std::shared_ptr<Component> load_file(const fs::path &filename, ParameterList par
   return detail::instantiate_node(ctx, id);
 }
 
-}  // namespace misaki::render::xml
+}  // namespace aspirin::xml

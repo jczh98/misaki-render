@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math.h"
+#include "math_helper.h"
 #include <Eigen/Dense>
 #include <sstream>
 

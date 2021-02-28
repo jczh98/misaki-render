@@ -80,7 +80,7 @@ APR_INLINE static void Log(LogLevel level, const char *filename, int line, Args 
                                   fmt::format(__VA_ARGS__)); \
   } while (0)
 
-#define NEK_NOT_IMPLEMENTED(Name) \
+#define ARP_NOT_IMPLEMENTED(Name) \
   Throw("{}::" Name "(): not implemented!", __FILE__)
 
 }  // namespace nekoba

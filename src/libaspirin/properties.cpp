@@ -218,4 +218,4 @@ std::ostream &operator<<(std::ostream &os, const Properties &p) {
   return os;
 }
 
-}  // namespace misaki::render
+}  // namespace aspirin
