@@ -1,10 +1,13 @@
 #pragma once
 
 #include "bbox.h"
-#include "transform.h"
 #include "platform.h"
+#include "spectrum.h"
+#include "transform.h"
 #include <Eigen/Dense>
 #include <filesystem>
+#include <tuple>
+#include <type_traits>
 
 namespace aspirin {
 
@@ -28,15 +31,17 @@ using Vector2u = Eigen::Matrix<uint32_t, 2, 1>;
 using Vector3u = Eigen::Matrix<uint32_t, 3, 1>;
 using Vector4u = Eigen::Matrix<uint32_t, 4, 1>;
 
-using Matrix3 = Eigen::Matrix<Float, 3, 3>;
-using Matrix4 = Eigen::Matrix<Float, 4, 4>;
+using Matrix3  = Eigen::Matrix<Float, 3, 3>;
+using Matrix4  = Eigen::Matrix<Float, 4, 4>;
 using Matrix3f = Eigen::Matrix<float, 3, 3>;
 using Matrix4f = Eigen::Matrix<float, 4, 4>;
+
+using Color3 = Color<Float, 3>;
 
 using Transform3 = Transform<Float, 3>;
 using Transform4 = Transform<Float, 4>;
 
-using BoundingBox3 = BoundingBox<Float, 3>;
+using BoundingBox3    = BoundingBox<Float, 3>;
 using BoundingSphere3 = BoundingSphere<Float, 3>;
 
 template <typename Value, size_t Size> struct Color;
@@ -55,4 +60,4 @@ template <typename Spectrum> class Scene;
 template <typename Spectrum> class Sensor;
 template <typename Spectrum> class Texture;
 
-} // namespace nekoba
+} // namespace aspirin

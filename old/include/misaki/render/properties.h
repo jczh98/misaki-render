@@ -1,7 +1,6 @@
 #pragma once
 
 #include "component.h"
-#include "fwd.h"
 #include "logger.h"
 #include "plugin.h"
 
