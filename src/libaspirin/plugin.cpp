@@ -7,83 +7,26 @@
 
 namespace aspirin {
 
-struct Plugin {
-  Plugin(const fs::path &path) {
-    library = std::make_unique<system::SharedLibrary>(path.string());
-    using StringFunc = const char *(*)();
-    try {
-      plugin_name = ((StringFunc)library->load_symbol("plugin_name"))();
-    } catch (std::exception &e) {
-      library.release();
-      throw std::runtime_error(fmt::format("Error loading plugin: {}", e.what()));
+ref<Object> PluginManager::create_object(const Properties &props,
+                                         const Class *class_) {
+    assert(class_ != nullptr);
+    if (class_->name() == "Scene")
+        return class_->construct(props);
+    const Class *plugin_class =
+        Class::for_name(props.plugin_name(), class_->variant());
+    assert(plugin_class != nullptr);
+    auto object = plugin_class->construct(props);
+    if (!object->clazz()->derives_from(class_)) {
+        const Class *oc = object->clazz();
+        if (oc->parent())
+            oc = oc->parent();
+        Throw("Type mismatch when loading plugin \"{}\": Expected "
+              "an instance of type \"{}\" (variant \"{}\"), got an instance of "
+              "type \"{}\" (variant \"{}\")",
+              props.plugin_name(), class_->name(), class_->variant(),
+              oc->name(), oc->variant());
     }
-  }
-  const char *plugin_name;
-  std::unique_ptr<system::SharedLibrary> library;
-};
-
-struct PluginManager::PluginManagerPrivate {
-  std::unordered_map<std::string, Plugin *> plugins;
-  std::mutex mutex;
-
-  Plugin *plugin(const std::string &name) {
-    std::lock_guard<std::mutex> guard(mutex);
-    auto it = plugins.find(name);
-    if (it != plugins.end()) {
-      return it->second;
-    }
-    auto filename = fs::path("plugins") / name;
-#if defined(MSK_PLATFORM_WINDOWS)
-    filename.replace_extension(".dll");
-#elif defined(MSK_PLATFORM_APPLE)
-    filename.replace_extension(".dylib");
-#else
-    filename.replace_extension(".so");
-#endif
-    auto resolver = get_file_resolver();
-    auto resolved = resolver->resolve(filename);
-    if (fs::exists(resolved)) {
-      Log(Info, R"(Loading plugin "{}" ..)", filename.string());
-      Plugin *plugin = new Plugin(filename);
-      plugins[name] = plugin;
-      return plugin;
-    }
-    Throw("Plugin {} not found", name.c_str());
-  }
-};
-
-PluginManager::PluginManager() : d(new PluginManagerPrivate()) {}
-
-PluginManager::~PluginManager() {
-  std::lock_guard<std::mutex> guard(d->mutex);
-  for (auto &pair : d->plugins) delete pair.second;
+    return object;
 }
 
-std::shared_ptr<Component> PluginManager::create_comp(const Properties &props) {
-  const Plugin *plugin = d->plugin(props.plugin_name());
-  auto type = refl::type::get_by_name(plugin->plugin_name);
-  // Needs to check whether type exists
-  auto instanced_type = type.create({props}).get_value<std::shared_ptr<void>>();
-  auto comp = std::reinterpret_pointer_cast<Component>(instanced_type);
-  return comp;
-}
-
-std::shared_ptr<Component> PluginManager::create_comp(const Properties &props, const refl::type &type) {
-  if (type.get_name().to_string() == "Scene") {
-    auto instanced_type = type.create({props}).get_value<std::shared_ptr<void>>();
-    auto comp = std::reinterpret_pointer_cast<Component>(instanced_type);
-    return comp;
-  }
-  const Plugin *plugin = d->plugin(props.plugin_name());
-  auto plugin_type = refl::type::get_by_name(plugin->plugin_name);
-  // Needs to check whether type exists
-  if (!plugin_type.is_derived_from(type)) {
-    auto base_type = *type.get_base_classes().end();
-    Throw(R"(Type mismatch when create component "{}": Expected an instance of type "{}", got an instance of type "{}".)",
-          props.plugin_name(), type.get_name().to_string(), base_type.get_name().to_string());
-  }
-  auto instanced_type = plugin_type.create({props}).get_value<std::shared_ptr<void>>();
-  auto comp = std::reinterpret_pointer_cast<Component>(instanced_type);
-  return comp;
-}
-}  // namespace aspirin
+} // namespace aspirin

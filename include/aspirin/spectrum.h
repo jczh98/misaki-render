@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fwd.h"
+#include <Eigen/Dense>
 
 namespace aspirin {
 

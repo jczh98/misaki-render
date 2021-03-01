@@ -1,7 +1,7 @@
 #pragma once
 
-#include "component.h"
-#include "fwd.h"
+#include "aspirin.h"
+#include "object.h"
 #include "logger.h"
 #include <map>
 #include <variant>
@@ -25,6 +25,7 @@ private:
 
 class APR_EXPORT Properties {
 public:
+    APR_IMPORT_CORE_TYPES(float)
     enum class Type {
         Bool,
         Int,
@@ -34,7 +35,7 @@ public:
         Color,
         String,
         NamedReference,
-        Component,
+        Object,
         Pointer
     };
     Properties();
@@ -52,8 +53,8 @@ public:
     std::vector<std::string> property_names() const;
     std::vector<std::pair<std::string, NamedReference>>
     named_references() const;
-    std::vector<std::pair<std::string, std::shared_ptr<Component>>>
-    components() const;
+    std::vector<std::pair<std::string, ref<Object>>>
+    objects() const;
 
     bool operator==(const Properties &props) const;
     bool operator!=(const Properties &props) const {
@@ -80,32 +81,31 @@ public:
     DEFINE_PROPERTY_METHODS(Vector3, set_vector3, vector3)
     DEFINE_PROPERTY_METHODS(Color3, set_color, color)
     DEFINE_PROPERTY_METHODS(Transform4, set_transform, transform)
-    DEFINE_PROPERTY_METHODS(std::shared_ptr<Component>, set_component,
-                            component)
+    DEFINE_PROPERTY_METHODS(ref<Object>, set_object,
+                            object)
     DEFINE_PROPERTY_METHODS(void *const, set_pointer, pointer)
 #undef DEFINE_PROPERTY_METHODS
 
     // Texture
     template <typename Texture>
-    std::shared_ptr<Texture> texture(const std::string &name) const {
+    ref<Texture> texture(const std::string &name) const {
         if (!has_property(name)) {
             Throw(R"(Property {} has not been specified!)", name);
         }
         auto p_type = type(name);
-        if (p_type == Properties::Type::Component) {
-            std::shared_ptr<Component> comp = find_component(name);
-            auto result = std::reinterpret_pointer_cast<Texture>(comp);
-            if (result == nullptr) {
-                Throw(R"(Property {} has wrong type)", name);
-            }
-            return result;
+        if (p_type == Properties::Type::Object) {
+            ref<Object> object = find_object(name);
+            if (!object->clazz()->derives_from(APR_CLASS(Texture)))
+                Throw("The property \"{}\" has the wrong type (expected "
+                      " <spectrum> or <texture>).", name);
+            return (Texture *) object.get();
         } else if (p_type == Properties::Type::Float) {
             Properties props("srgb");
             props.set_color("color", Color3(get_float(name)));
-            return ComponentManager::instance()->create_instance<Texture>(
-                props);
+            return nullptr;//TODO
         } else {
-            Throw("The property \"{}\" has the wrong type.", name);
+            Throw("The property \"{}\" has the wrong type (expected "
+                  " <spectrum> or <texture>).", name);
         }
     }
 
@@ -123,16 +123,17 @@ public:
         if (!has_property(name)) {
             Properties props("srgb");
             props.set_color("color", Color3(def_val));
-            return ComponentManager::instance()->create_instance<Texture>(props);
+            return nullptr; //TODO
         }
         return texture<Texture>(name);
     }
 
 private:
-    std::shared_ptr<Component> find_component(const std::string &name) const;
+    ref<Object> find_object(const std::string &name) const;
+
     struct Entry {
         std::variant<bool, int, Float, std::string, Vector3, Transform4, Color3,
-                     NamedReference, std::shared_ptr<Component>, const void *>
+                     NamedReference, ref<Object>, const void *>
             data;
     };
     struct PropertiesPrivate {
