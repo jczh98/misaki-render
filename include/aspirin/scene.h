@@ -10,54 +10,52 @@ namespace aspirin {
 template <typename Float, typename Spectrum>
 class APR_EXPORT Scene : public Object {
 public:
-    using SceneInteraction = SceneInteraction<Float, Spectrum>;
-    using DirectSample     = DirectSample<Float, Spectrum>;
-    using Sensor           = Sensor<Float, Spectrum>;
-    using Integrator       = Integrator<Float, Spectrum>;
-    using Emitter          = Emitter<Float, Spectrum>;
-    using Shape            = Shape<Float, Spectrum>;
-
-    Scene(const Properties &props);
-    ~Scene();
+    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
+    using DirectionSample    = DirectionSample<Float, Spectrum>;
+    using Sensor             = Sensor<Float, Spectrum>;
+    using Integrator         = Integrator<Float, Spectrum>;
+    using Emitter            = Emitter<Float, Spectrum>;
+    using Shape              = Shape<Float, Spectrum>;
 
     bool ray_test(const Ray &ray) const;
-    SceneInteraction ray_intersect(const Ray &ray) const;
+    SurfaceInteraction ray_intersect(const Ray &ray) const;
     void accel_init(const Properties &props);
     void accel_release();
 
-    std::pair<DirectSample, Color3>
-    sample_direct_light(const PointGeometry &geom, const Vector2 &sample,
-                        bool test_visibility = true) const;
-    Float pdf_direct_light(const PointGeometry &geom_ref,
-                           const DirectSample &ds, const Light *light) const;
+    std::pair<DirectionSample, Spectrum>
+    sample_emitter_direction(const Interaction &ref, const Vector2 &sample,
+                             bool test_visibility = true) const;
+    Float pdf_emitter_direction(const Interaction &ref,
+                                const DirectionSample &ds) const;
 
-    const Camera *camera() const { return m_camera.get(); }
-    Camera *camera() { return m_camera.get(); }
+    const Sensor *sensor() const { return m_sensor; }
+    Sensor *sensor() { return m_sensor; }
 
-    const Integrator *integrator() const { return m_integrator.get(); }
-    Integrator *integrator() { return m_integrator.get(); }
+    const Integrator *integrator() const { return m_integrator; }
+    Integrator *integrator() { return m_integrator; }
 
-    const Light *environment() const { return m_environment.get(); }
-    const std::vector<std::shared_ptr<Light>> &lights() const {
-        return m_lights;
-    }
-    std::vector<std::shared_ptr<Light>> &lights() { return m_lights; }
+    const Emitter *environment() const { return m_environment; }
 
-    const std::vector<std::shared_ptr<Shape>> &shapes() const {
-        return m_shapes;
-    }
-    std::vector<std::shared_ptr<Shape>> &shapes() { return m_shapes; }
+    const std::vector<ref<Emitter>> &emitters() const { return m_emitters; }
+    std::vector<ref<Emitter>> &emitters() { return m_emitters; }
+
+    const std::vector<ref<Shape>> &shapes() const { return m_shapes; }
+    std::vector<ref<Shape>> &shapes() { return m_shapes; }
 
     const BoundingBox3 &bbox() const { return m_bbox; }
 
     APR_DECLARE_CLASS()
 protected:
+    Scene(const Properties &props);
+    ~Scene();
+
+protected:
     void *m_accel = nullptr;
-    std::shared_ptr<Integrator> m_integrator;
-    std::shared_ptr<Camera> m_camera;
-    std::vector<std::shared_ptr<Shape>> m_shapes;
-    std::vector<std::shared_ptr<Light>> m_lights;
-    std::shared_ptr<Light> m_environment;
+    ref<Integrator> m_integrator;
+    ref<Sensor> m_sensor;
+    std::vector<ref<Shape>> m_shapes;
+    std::vector<ref<Emitter>> m_emitters;
+    ref<Emitter> m_environment;
     BoundingBox3 m_bbox;
 };
 
