@@ -1,22 +1,30 @@
 #pragma once
 
-#include "component.h"
-#include "fwd.h"
+#include "wd.h"
+#include "object.h"
 
-#define MSK_FILTER_RESOLUTION 32
+#define APR_FILTER_RESOLUTION 32
 
 namespace aspirin {
 
-template <typename Spectrum>
-class APR_EXPORT ReconstructionFilter : public Component {
- public:
-  ReconstructionFilter(const Properties &props);
-  virtual Float eval(Float x) const;
-  Float radius() const { return m_radius; }
+template <typename Float, typename Spectrum>
+class APR_EXPORT ReconstructionFilter : public Object {
+public:
+    APR_IMPORT_CORE_TYPES(Float)
 
- protected:
-  std::vector<Float> m_values;
-  Float m_radius;
+    virtual Float eval(Float x) const;
+    Float radius() const { return m_radius; }
+
+protected:
+    ReconstructionFilter(const Properties &props);
+    virtual ~ReconstructionFilter();
+    APR_DECLARE_CLASS()
+
+protected:
+    std::vector<Float> m_values;
+    Float m_radius;
 };
 
-}  // namespace aspirin
+APR_EXTERN_CLASS(ReconstructionFilter)
+
+} // namespace aspirin

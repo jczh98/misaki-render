@@ -2,20 +2,20 @@
 
 #include <optional>
 
-#include "component.h"
 #include "fwd.h"
-#include "ray.h"
+#include "object.h"
 
 namespace aspirin {
 
-template <typename Spectrum> class APR_EXPORT Scene : public Component {
+template <typename Float, typename Spectrum>
+class APR_EXPORT Scene : public Object {
 public:
-    using SceneInteraction = SceneInteraction<Spectrum>;
-    using DirectSample     = DirectSample<Spectrum>;
-    using Camera           = Camera<Spectrum>;
-    using Integrator       = Integrator<Spectrum>;
-    using Light            = Light<Spectrum>;
-    using Shape            = Shape<Spectrum>;
+    using SceneInteraction = SceneInteraction<Float, Spectrum>;
+    using DirectSample     = DirectSample<Float, Spectrum>;
+    using Sensor           = Sensor<Float, Spectrum>;
+    using Integrator       = Integrator<Float, Spectrum>;
+    using Emitter          = Emitter<Float, Spectrum>;
+    using Shape            = Shape<Float, Spectrum>;
 
     Scene(const Properties &props);
     ~Scene();
@@ -50,6 +50,7 @@ public:
 
     const BoundingBox3 &bbox() const { return m_bbox; }
 
+    APR_DECLARE_CLASS()
 protected:
     void *m_accel = nullptr;
     std::shared_ptr<Integrator> m_integrator;
@@ -59,5 +60,7 @@ protected:
     std::shared_ptr<Light> m_environment;
     BoundingBox3 m_bbox;
 };
+
+APR_EXTERN_CLASS(Scene)
 
 } // namespace aspirin

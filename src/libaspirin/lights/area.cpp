@@ -1,4 +1,4 @@
-#include <aspirin/light.h>
+#include <aspirin/emitter.h>
 #include <aspirin/mesh.h>
 #include <aspirin/properties.h>
 #include <aspirin/records.h>

@@ -1,6 +1,6 @@
-#include <aspirin/camera.h>
 #include <aspirin/logger.h>
 #include <aspirin/properties.h>
+#include <aspirin/sensor.h>
 
 namespace aspirin {
 

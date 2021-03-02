@@ -1,4 +1,4 @@
-#include <aspirin/light.h>
+#include <aspirin/emitter.h>
 #include <aspirin/properties.h>
 
 namespace aspirin {

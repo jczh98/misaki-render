@@ -4,31 +4,45 @@
 
 namespace aspirin {
 
-template <typename Spectrum> struct PositionSample {
-    using PointGeometry = PointGeometry<Spectrum>;
+template <typename Float_, typename Spectrum_> struct PositionSample {
+    APR_IMPORT_CORE_TYPES(Float_)
+    using Spectrum = Spectrum_;
 
-    PointGeometry geom;
+    Vecto3 p;
+    Vector3 n;
+    Vector2 uv;
+    Float pdf; // Probability density at the sample
+    bool delta;
+
+    st Object *object = nullptr;
+
+    PositionSample(const SurfaceInteraction &si)
+        : p(si.p), n(si.sh_frame.n), uv(si.uv), delta(false) {}
 };
 
-template <typename Spectrum> struct DirectSample {
-    using PointGeometry    = PointGeometry<Spectrum>;
-    using SceneInteraction = SceneInteraction<Spectrum>;
+template <typename Float_, typename Spectrum_>
+struct DirectionSample : public PositionSample<Float_, Spectrum_> {
+    using typename PositionSample::Float;
+    using typename PositionSample::Spectrum;
+    using typename PositionSample::Vector2;
+    using typename PositionSample::Vector3;
+    using Interaction        = Interaction<Float, Spectrum>;
+    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
-    PointGeometry geom;
-    Float pdf{ 0.f };
-    Vector3 d{ 0.f };
-    Float dist{ 0.f };
-    static DirectSample make_with_interactions(const SceneInteraction &sampled,
-                                               const SceneInteraction &ref) {
-        DirectSample ds;
-        ds.geom = sampled.geom;
-        ds.d    = sampled.geom.p - ref.geom.p;
-        ds.dist = ds.d.norm();
-        ds.d /= ds.dist;
-        if (!sampled.is_valid())
-            ds.d = -sampled.wi;
-        return ds;
+    Vector3 d;
+    Float dist;
+
+    DirectionSample(const SurfaceInteraction &it, const Interaction &ref)
+        : PositionSample<Float, Spectrum>(it) {
+        d    = it.p - ref.p;
+        dist = d.norm();
+        d /= dist;
+        if (!it.is_valid())
+            d = -it.wi;
     }
+
+    DirectionSample(const PositionSample<Float, Spectrum> &base)
+        : PositionSample<Float, Spectrum>(base) {}
 };
 
 } // namespace aspirin

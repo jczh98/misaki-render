@@ -1,12 +1,12 @@
-#include <aspirin/camera.h>
+#include <aspirin/emitter.h>
 #include <aspirin/integrator.h>
 #include <aspirin/interaction.h>
-#include <aspirin/light.h>
 #include <aspirin/logger.h>
 #include <aspirin/properties.h>
 #include <aspirin/ray.h>
 #include <aspirin/records.h>
 #include <aspirin/scene.h>
+#include <aspirin/sensor.h>
 #include <aspirin/shape.h>
 
 namespace aspirin {

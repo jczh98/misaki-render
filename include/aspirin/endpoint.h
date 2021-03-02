@@ -2,50 +2,45 @@
 
 #include <optional>
 
-#include "component.h"
+#include "fwd.h"
 #include "interaction.h"
+#include "object.h"
 
 namespace aspirin {
 
-template <typename Spectrum> class APR_EXPORT Endpoint : public Component {
+template <typename Float, typename Spectrum>
+class APR_EXPORT Endpoint : public Object {
 public:
-    using Ray           = Ray<Spectrum>;
-    using Shape         = Shape<Spectrum>;
-    using Scene         = Scene<Spectrum>;
-    using DirectSample  = DirectSample<Spectrum>;
-    using PointGeometry = PointGeometry<Spectrum>;
-
-    Endpoint(const Properties &props);
+    APR_IMPORT_CORE_TYPES(Float)
+    using Ray                = Ray<Float, Spectrum>;
+    using Shape              = Shape<Float, Spectrum>;
+    using Scene              = Scene<Float, Spectrum>;
+    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
+    using Interaction        = Interaction<Float, Spectrum>;
+    using DirectionSample    = DirectionSample<Float, Spectrum>;
 
     // Returns Sampled ray with structred RaySample
-    virtual std::pair<Ray, Vector3> sample_ray(const Vector2 &pos_sample) const;
+    virtual std::pair<Ray, Spectum> sample_ray(const Vector2 &pos_sample) const;
 
     // Returns direction, weight
-    virtual std::pair<Vector3, Vector3>
-    sample_direction(const Vector2 &sample, const PointGeometry &geom) const;
-    virtual Float pdf_direction(const PointGeometry &geom,
-                                const Vector3 &wo) const;
+    virtual std::pair<DirectionSample, Spectrum>
+    sample_direction(const Interaction &ref, const Vector2 &sample) const;
+    virtual Float pdf_direction(const Interaction &ref,
+                                const DirectionSample &ds) const;
 
-    // Returns sampled point geometry, weight
-    virtual std::pair<PointGeometry, Vector3>
-    sample_position(const Vector2 &sample) const;
-    virtual Float pdf_position(const PointGeometry &geom) const;
-
-    // Returns sampled point geometry, direction, radiance, pdf
-    virtual std::pair<DirectSample, Color3>
-    sample_direct(const PointGeometry &geom_ref,
-                  const Vector2 &position_sample) const;
-    // Returns pdf associated with area measure
-    virtual Float pdf_direct(const PointGeometry &geom_ref,
-                             const DirectSample &ds) const;
-
-    virtual Color3 eval(const SceneInteraction &si) const;
+    virtual Spectrum eval(const SurfaceInteraction &si) const;
 
     virtual void set_shape(Shape *shape);
     virtual void set_scene(const Scene *scene);
 
     Shape *shape() { return m_shape; }
     const Shape *shape() const { return m_shape; }
+
+    APR_DECLARE_CLASS()
+protected:
+    Endpoint(const Properties &props);
+
+    virtual ~Endpoint();
 
 protected:
     Transform4 m_world_transform;

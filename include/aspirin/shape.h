@@ -1,25 +1,31 @@
 #pragma once
 
-#include "component.h"
+#include "fwd.h"
+#include "object.h"
 #if defined(MSK_ENABLE_EMBREE)
 #include <embree3/rtcore.h>
 #endif
 
 namespace aspirin {
 
-template <typename Spectrum> class APR_EXPORT Shape : public Component {
+template <typename Float, typename Spectrum>
+class APR_EXPORT Shape : public Object {
 public:
-    using PointGeometry = PointGeometry<Spectrum>;
-    using DirectSample  = DirectSample<Spectrum>;
-    using BSDF          = BSDF<Spectrum>;
-    using Light         = Light<Spectrum>;
+    APR_IMPORT_CORE_TYPES(Float)
+    using Sensor             = Sensor<Float, Spectrum>;
+    using BSDF               = BSDF<Float, Spectrum>;
+    using Emitter            = Emitter<Float, Spectrum>;
+    using PositionSample     = PositionSample<Float, Spectrum>;
+    using DirectionSample    = DirectionSample<Float, Spectrum>;
+    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
-    Shape(const Properties &props);
+    virtual PositionSample sample_position(const Vector2 &sample) const;
+    virtual Float pdf_position(const PositionSample &ps) const;
 
-    // Returns sampled point geometry and associated pdf
-    virtual std::pair<PointGeometry, Float>
-    sample_position(const Vector2 &sample) const;
-    virtual Float pdf_position(const PointGeometry &geom) const;
+    virtual DirectionSample sample_direction(const Interaction &it,
+                                             const Vector2 &sample) const;
+    virtual Float pdf_direction(const Interaction &it,
+                                const DirectionSample &ds) const;
 
     // Returns position, geometry normal, shading normal, texcoords
     virtual std::tuple<Vector3, Vector3, Vector3, Vector2>
@@ -27,12 +33,12 @@ public:
 
     bool is_mesh() const { return m_mesh; }
 
-    const BSDF *bsdf() const { return m_bsdf.get(); }
-    BSDF *bsdf() { return m_bsdf.get(); }
+    const BSDF *bsdf() const { return m_bsdf; }
+    BSDF *bsdf() { return m_bsdf; }
 
-    bool is_light() const { return (bool) m_light; }
-    const Light *light() const { return m_light.get(); }
-    Light *light() { return m_light.get(); }
+    bool is_emitter() const { return (bool) m_emitter; }
+    const Emitter *emitter() const { return m_emitter; }
+    Emitter *emitter() { return m_emitter.get(); }
 
     virtual BoundingBox3 bbox() const;
     virtual BoundingBox3 bbox(uint32_t index) const;
@@ -42,9 +48,13 @@ public:
     virtual RTCGeometry embree_geometry(RTCDevice device) const;
 #endif
 
+    APR_DECLARE_CLASS()
 protected:
-    std::shared_ptr<Light> m_light;
-    std::shared_ptr<BSDF> m_bsdf;
+    Shape(const Properties &props);
+
+protected:
+    ref<Emitter> m_emitter;
+    ref<BSDF> m_bsdf;
     Transform4 m_world_transform;
     bool m_mesh = false;
     std::string m_id;

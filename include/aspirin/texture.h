@@ -1,18 +1,24 @@
 #pragma once
 
-#include "component.h"
+#include "bject.h"
 #include "fwd.h"
 
 namespace aspirin {
 
-template <typename Spectrum> class APR_EXPORT Texture : public Component {
+template <typename Float, typename Spectrum>
+class APR_EXPORT Texture : public Object {
 public:
-    using PointGeometry = PointGeometry<Spectrum>;
+    APR_IMPORT_CORE_TYPES(Float)
+    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
-    Texture(const Properties &props);
-    virtual Float eval_1(const PointGeometry &geom) const;
-    virtual Color3 eval_3(const PointGeometry &geom) const;
+    virtual Float eval_1(const SurfaceInteraction &si) cnst;
+    virtual Color3 eval_3(const SurfaceInteraction &si) const;
     virtual Float mean() const;
+
+    APR_DECLARE_CLASS()
+protected:
+    Texture(const Properties &props);
+    virtual ~Texture();
 
 protected:
     std::string m_id;

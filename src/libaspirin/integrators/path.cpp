@@ -1,14 +1,14 @@
 #include <aspirin/bsdf.h>
-#include <aspirin/camera.h>
+#include <aspirin/emitter.h>
 #include <aspirin/film.h>
 #include <aspirin/integrator.h>
 #include <aspirin/interaction.h>
-#include <aspirin/light.h>
 #include <aspirin/logger.h>
 #include <aspirin/mesh.h>
 #include <aspirin/properties.h>
 #include <aspirin/records.h>
 #include <aspirin/scene.h>
+#include <aspirin/sensor.h>
 #include <tbb/parallel_for.h>
 
 #include <fstream>

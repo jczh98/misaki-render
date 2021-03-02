@@ -1,5 +1,5 @@
+#include <aspirin/emitter.h>
 #include <aspirin/interaction.h>
-#include <aspirin/light.h>
 #include <aspirin/logger.h>
 #include <aspirin/mesh.h>
 #include <aspirin/properties.h>

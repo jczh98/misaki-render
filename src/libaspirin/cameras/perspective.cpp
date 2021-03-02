@@ -1,5 +1,5 @@
-#include <aspirin/camera.h>
 #include <aspirin/properties.h>
+#include <aspirin/sensor.h>
 
 namespace aspirin {
 

@@ -1,5 +1,5 @@
+#include <aspirin/emitter.h>
 #include <aspirin/imageio.h>
-#include <aspirin/light.h>
 #include <aspirin/properties.h>
 #include <aspirin/records.h>
 #include <aspirin/scene.h>

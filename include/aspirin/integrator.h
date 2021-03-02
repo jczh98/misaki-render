@@ -1,18 +1,26 @@
 #pragma once
 
-#include "component.h"
+#include "fwd.h"
+#include "object.h"
 
 namespace aspirin {
 
-template <typename Spectrum> class APR_EXPORT Integrator : public Component {
+template <typename Float, typename Spectrum>
+class APR_EXPORT Integrator : public Object {
 public:
-    using Scene = Scene<Spectrum>;
+    using Scene  = Scene<Float, Spectrum>;
+    using Sensor = Sensor<Float, Spectrum>;
 
+    virtual bool render(Scene *scene, Sensor *sensor);
+
+    APR_DECLARE_CLASS()
+protected:
     Integrator(const Properties &props);
-    virtual bool render(const std::shared_ptr<Scene> &scene);
-
+    virtual ~Integrator();
 protected:
     uint32_t m_block_size;
 };
+
+APR_EXTERN_CLASS(Integrator)
 
 } // namespace aspirin

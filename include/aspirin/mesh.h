@@ -4,10 +4,16 @@
 
 namespace aspirin {
 
-template <typename Spectrum> class APR_EXPORT Mesh : public Shape<Spectrum> {
+template <typename Float, typename Spectrum>
+class APR_EXPORT Mesh : public Shape<Float, Spectrum> {
 public:
-    using PointGeometry = PointGeometry<Spectrum>;
-    Mesh(const Properties &props);
+    APR_IMPORT_CORE_TYPES(FLoat)
+    using Sensor             = Sensor<Float, Spectrum>;
+    using BSDF               = BSDF<Float, Spectrum>;
+    using Emitter            = Emitter<Float, Spectrum>;
+    using PositionSample     = PositionSample<Float, Spectrum>;
+    using DirectionSample    = DirectionSample<Float, Spectrum>;
+    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
     uint32_t vertex_count() const { return m_vertex_count; }
     uint32_t face_count() const { return m_face_count; }
@@ -62,9 +68,8 @@ public:
     bool has_vertex_normals() const { return m_normal_offset != 0; }
     bool has_vertex_texcoords() const { return m_texcoord_offset != 0; }
 
-    std::pair<PointGeometry, Float>
-    sample_position(const Vector2 &sample) const override;
-    Float pdf_position(const PointGeometry &geom) const override;
+    virtual PositionSample sample_position(const Vector2 &sample) const override;
+    virtual Float pdf_position(const PositionSample &ps) const override;
 
     virtual std::tuple<Vector3, Vector3, Vector3, Vector2>
     compute_surface_point(int prim_index, const Vector2 &uv) const override;
@@ -79,6 +84,10 @@ public:
     virtual RTCGeometry embree_geometry(RTCDevice device) const override;
 #endif
 
+protected:
+    Mesh(const Properties &props);
+    virtual ~Mesh();
+    APR_DECLARE_CLASS()
 protected:
     std::unique_ptr<Float[]> m_vertices;
     std::unique_ptr<uint32_t[]> m_faces;

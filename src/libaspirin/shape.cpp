@@ -1,6 +1,6 @@
 #include <aspirin/bsdf.h>
+#include <aspirin/emitter.h>
 #include <aspirin/interaction.h>
-#include <aspirin/light.h>
 #include <aspirin/logger.h>
 #include <aspirin/properties.h>
 #include <aspirin/shape.h>

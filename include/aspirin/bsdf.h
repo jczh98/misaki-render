@@ -1,7 +1,7 @@
 #pragma once
 
-#include "component.h"
 #include "interaction.h"
+#include "object.h"
 
 namespace aspirin {
 
@@ -64,7 +64,9 @@ struct APR_EXPORT BSDFContext {
     }
 };
 
-struct BSDFSample {
+template <typename Float, typename Spectrum> struct BSDFSample {
+    using Vector3 = Eigen::Matrix<Float, 3, 1>;
+
     Vector3 wo;
     Float pdf;
     Float eta;
@@ -78,26 +80,27 @@ struct BSDFSample {
         : wo(wo), pdf(0.f), eta(1.f), sampled_type(0), sampled_component(-1) {}
 };
 
-template <typename Spectrum> class APR_EXPORT BSDF : public Component {
+template <typename Float, typename Spectrum>
+class APR_EXPORT BSDF : public Object {
 public:
-    using SceneInteraction = SceneInteraction<Spectrum>;
+    APR_IMPORT_CORE_TYPES(Float)
 
-    BSDF(const Properties &props);
+    using SceneInteraction = SceneInteraction<Float, Spectrum>;
 
     // Sample BSDF * cos(theta) and returns sampled bsdf information with BSDF *
     // cos(theta) divided by pdf
-    virtual std::pair<BSDFSample, Color3>
+    virtual std::pair<BSDFSample, Spectrum>
     sample(const BSDFContext &ctx, const SceneInteraction &si,
            Float sample1, // For selecting different bsdf lobe
-           const Vector2 &sample) const;
+           const Vector2 &sample) const = 0;
 
     // Returns evaluated BSDF * cos(theta)
-    virtual Color3 eval(const BSDFContext &ctx, const SceneInteraction &si,
-                        const Vector3 &wo) const;
+    virtual Spectrum eval(const BSDFContext &ctx, const SceneInteraction &si,
+                        const Vector3 &wo) const = 0;
 
     // Returns pdf of BSDF * cos(theta)
     virtual Float pdf(const BSDFContext &ctx, const SceneInteraction &si,
-                      const Vector3 &wo) const;
+                      const Vector3 &wo) const = 0;
 
     uint32_t flags() const { return m_flags; }
 
@@ -108,10 +111,21 @@ public:
 
     size_t component_count() const { return m_components.size(); }
 
+    std::string id() const override;
+
+    std::string to_string() const override = 0;
+
+    APR_DECLARE_CLASS()
+protected:
+
+    BSDF(const Properties &props);
+    virtual ~BSDF();
+
 protected:
     uint32_t m_flags;
     std::vector<uint32_t> m_components;
     std::string m_id;
 };
 
+APR_EXTERN_CLASS(BSDF)
 } // namespace aspirin
