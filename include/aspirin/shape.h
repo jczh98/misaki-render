@@ -15,6 +15,7 @@ public:
     using Sensor             = Sensor<Float, Spectrum>;
     using BSDF               = BSDF<Float, Spectrum>;
     using Emitter            = Emitter<Float, Spectrum>;
+    using Interaction        = Interaction<Float, Spectrum>;
     using PositionSample     = PositionSample<Float, Spectrum>;
     using DirectionSample    = DirectionSample<Float, Spectrum>;
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
@@ -31,7 +32,9 @@ public:
     virtual std::tuple<Vector3, Vector3, Vector3, Vector2>
     compute_surface_point(int prim_index, const Vector2 &uv) const;
 
-    bool is_mesh() const { return m_mesh; }
+    bool is_mesh() const {
+        return clazz()->derives_from(Mesh<Float, Spectrum>::m_class);
+    }
 
     const BSDF *bsdf() const { return m_bsdf; }
     BSDF *bsdf() { return m_bsdf; }
@@ -51,12 +54,12 @@ public:
     APR_DECLARE_CLASS()
 protected:
     Shape(const Properties &props);
+    void set_children();
 
 protected:
     ref<Emitter> m_emitter;
     ref<BSDF> m_bsdf;
     Transform4 m_world_transform;
-    bool m_mesh = false;
     std::string m_id;
 };
 

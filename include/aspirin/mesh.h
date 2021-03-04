@@ -7,13 +7,14 @@ namespace aspirin {
 template <typename Float, typename Spectrum>
 class APR_EXPORT Mesh : public Shape<Float, Spectrum> {
 public:
-    APR_IMPORT_CORE_TYPES(FLoat)
+    APR_IMPORT_CORE_TYPES(Float)
     using Sensor             = Sensor<Float, Spectrum>;
     using BSDF               = BSDF<Float, Spectrum>;
     using Emitter            = Emitter<Float, Spectrum>;
     using PositionSample     = PositionSample<Float, Spectrum>;
     using DirectionSample    = DirectionSample<Float, Spectrum>;
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
+    using Shape<Float, Spectrum>::set_children;
 
     uint32_t vertex_count() const { return m_vertex_count; }
     uint32_t face_count() const { return m_face_count; }
@@ -68,7 +69,8 @@ public:
     bool has_vertex_normals() const { return m_normal_offset != 0; }
     bool has_vertex_texcoords() const { return m_texcoord_offset != 0; }
 
-    virtual PositionSample sample_position(const Vector2 &sample) const override;
+    virtual PositionSample
+    sample_position(const Vector2 &sample) const override;
     virtual Float pdf_position(const PositionSample &ps) const override;
 
     virtual std::tuple<Vector3, Vector3, Vector3, Vector2>

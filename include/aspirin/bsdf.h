@@ -85,21 +85,22 @@ class APR_EXPORT BSDF : public Object {
 public:
     APR_IMPORT_CORE_TYPES(Float)
 
-    using SceneInteraction = SceneInteraction<Float, Spectrum>;
+    using BSDFSample         = BSDFSample<Float, Spectrum>;
+    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
     // Sample BSDF * cos(theta) and returns sampled bsdf information with BSDF *
     // cos(theta) divided by pdf
     virtual std::pair<BSDFSample, Spectrum>
-    sample(const BSDFContext &ctx, const SceneInteraction &si,
+    sample(const BSDFContext &ctx, const SurfaceInteraction &si,
            Float sample1, // For selecting different bsdf lobe
            const Vector2 &sample) const = 0;
 
     // Returns evaluated BSDF * cos(theta)
-    virtual Spectrum eval(const BSDFContext &ctx, const SceneInteraction &si,
-                        const Vector3 &wo) const = 0;
+    virtual Spectrum eval(const BSDFContext &ctx, const SurfaceInteraction &si,
+                          const Vector3 &wo) const = 0;
 
     // Returns pdf of BSDF * cos(theta)
-    virtual Float pdf(const BSDFContext &ctx, const SceneInteraction &si,
+    virtual Float pdf(const BSDFContext &ctx, const SurfaceInteraction &si,
                       const Vector3 &wo) const = 0;
 
     uint32_t flags() const { return m_flags; }
@@ -117,7 +118,6 @@ public:
 
     APR_DECLARE_CLASS()
 protected:
-
     BSDF(const Properties &props);
     virtual ~BSDF();
 

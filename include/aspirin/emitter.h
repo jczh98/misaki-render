@@ -5,35 +5,53 @@
 
 namespace aspirin {
 
-enum class LightFlags : uint32_t {
-  None = 0x00000,
-  DeltaPosition = 0x00001,
-  DeltaDirection = 0x00002,
-  Infinite = 0x00004,
-  Surface = 0x00008,
-  Delta = DeltaPosition | DeltaDirection,
+enum class EmitterFlags : uint32_t {
+    None           = 0x00000,
+    DeltaPosition  = 0x00001,
+    DeltaDirection = 0x00002,
+    Infinite       = 0x00004,
+    Surface        = 0x00008,
+    Delta          = DeltaPosition | DeltaDirection,
 };
 
-constexpr uint32_t operator|(LightFlags f1, LightFlags f2) { return (uint32_t)f1 | (uint32_t)f2; }
-constexpr uint32_t operator|(uint32_t f1, LightFlags f2) { return f1 | (uint32_t)f2; }
-constexpr uint32_t operator&(LightFlags f1, LightFlags f2) { return (uint32_t)f1 & (uint32_t)f2; }
-constexpr uint32_t operator&(uint32_t f1, LightFlags f2) { return f1 & (uint32_t)f2; }
-constexpr uint32_t operator~(LightFlags f1) { return ~(uint32_t)f1; }
-constexpr uint32_t operator+(LightFlags e) { return (uint32_t)e; }
+constexpr uint32_t operator|(EmitterFlags f1, EmitterFlags f2) {
+    return (uint32_t) f1 | (uint32_t) f2;
+}
+constexpr uint32_t operator|(uint32_t f1, EmitterFlags f2) {
+    return f1 | (uint32_t) f2;
+}
+constexpr uint32_t operator&(EmitterFlags f1, EmitterFlags f2) {
+    return (uint32_t) f1 & (uint32_t) f2;
+}
+constexpr uint32_t operator&(uint32_t f1, EmitterFlags f2) {
+    return f1 & (uint32_t) f2;
+}
+constexpr uint32_t operator~(EmitterFlags f1) { return ~(uint32_t) f1; }
+constexpr uint32_t operator+(EmitterFlags e) { return (uint32_t) e; }
 template <typename UInt32>
-constexpr auto has_flag(UInt32 flags, LightFlags f) { return (flags & (uint32_t)f) != 0u; }
+constexpr auto has_flag(UInt32 flags, EmitterFlags f) {
+    return (flags & (uint32_t) f) != 0u;
+}
 
-template <typename Spectrum>
-class APR_EXPORT Light : public Endpoint<Spectrum> {
- public:
-  Light(const Properties &props);
-  bool is_environment() const {
-    return has_flag(m_flags, LightFlags::Infinite) && !has_flag(m_flags, LightFlags::Delta);
-  }
-  uint32_t flags() const { return m_flags; }
+template <typename Float, typename Spectrum>
+class APR_EXPORT Emitter : public Endpoint<Float, Spectrum> {
+public:
+    APR_IMPORT_CORE_TYPES(Float)
 
- protected:
-  uint32_t m_flags;
+    bool is_environment() const {
+        return has_flag(m_flags, EmitterFlags::Infinite) &&
+               !has_flag(m_flags, EmitterFlags::Delta);
+    }
+    uint32_t flags() const { return m_flags; }
+
+    APR_DECLARE_CLASS()
+protected:
+    Emitter(const Properties &props);
+    virtual ~Emitter();
+
+protected:
+    uint32_t m_flags;
 };
 
-}  // namespace aspirin
+APR_EXTERN_CLASS(Emitter)
+} // namespace aspirin

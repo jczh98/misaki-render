@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wd.h"
+#include "fwd.h"
 #include "object.h"
 
 #define APR_FILTER_RESOLUTION 32

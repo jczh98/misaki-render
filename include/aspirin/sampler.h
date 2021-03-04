@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wd.h"
+#include "fwd.h"
 #include "object.h"
 
 namespace aspirin {
