@@ -1,52 +1,58 @@
+#include <aspirin/plugin.h>
 #include <aspirin/properties.h>
 #include <aspirin/sampler.h>
 
 namespace aspirin {
 
-class IndependentSampler final : public Sampler {
- public:
-  IndependentSampler(const Properties &props = Properties()) : Sampler(props) {
-    seed(PCG32_DEFAULT_STATE);
-  }
+template <typename Float, typename Spectrum>
+class IndependentSampler final : public Sampler<Float, Spectrum> {
+public:
+    APR_IMPORT_CORE_TYPES(Float)
+    using Sampler<Float, Spectrum>::m_sample_count;
+    using Sampler<Float, Spectrum>::m_base_seed;
 
-  std::unique_ptr<Sampler> clone() {
-    IndependentSampler *sampler = new IndependentSampler();
-    sampler->m_sample_count = m_sample_count;
-    return std::unique_ptr<Sampler>(sampler);
-  }
+    IndependentSampler(const Properties &props = Properties())
+        : Sampler<Float, Spectrum>(props) {
+        seed(PCG32_DEFAULT_STATE);
+    }
 
-  void seed(uint64_t seed_value) {
-    if (!m_rng)
-      m_rng = std::make_unique<math::PCG32>();
+    ref<Sampler<Float, Spectrum>> clone() override {
+        IndependentSampler *sampler = new IndependentSampler();
+        sampler->m_sample_count     = m_sample_count;
+        return sampler;
+    }
 
-    seed_value += m_base_seed;
-    m_rng->seed(seed_value, PCG32_DEFAULT_STREAM);
-  }
+    void seed(uint64_t seed_value) {
+        if (!m_rng)
+            m_rng = std::make_unique<math::PCG32>();
 
-  Float next1d() {
-    if constexpr (std::is_same_v<Float, float>)
-      return m_rng->next_float32();
-    else
-      return m_rng->next_float64();
-  }
+        seed_value += m_base_seed;
+        m_rng->seed(seed_value, PCG32_DEFAULT_STREAM);
+    }
 
-  Vector2 next2d() {
-    return {next1d(), next1d()};
-  }
+    Float next1d() {
+        if constexpr (std::is_same_v<Float, float>)
+            return m_rng->next_float32();
+        else
+            return m_rng->next_float64();
+    }
 
-  std::string to_string() const override {
-    std::ostringstream oss;
-    oss << "IndependentSampler[" << std::endl
-        << "  sample_count = " << m_sample_count << std::endl
-        << "]";
-    return oss.str();
-  }
+    Vector2 next2d() { return { next1d(), next1d() }; }
 
-  MSK_DECL_COMP(Sampler)
- private:
-  std::unique_ptr<math::PCG32> m_rng;
+    std::string to_string() const override {
+        std::ostringstream oss;
+        oss << "IndependentSampler[" << std::endl
+            << "  sample_count = " << m_sample_count << std::endl
+            << "]";
+        return oss.str();
+    }
+
+    APR_DECLARE_CLASS()
+private:
+    std::unique_ptr<math::PCG32> m_rng;
 };
 
-MSK_EXPORT_PLUGIN(IndependentSampler)
+APR_IMPLEMENT_CLASS_VARIANT(IndependentSampler, Sampler)
+APR_INTERNAL_PLUGIN(IndependentSampler, "independent")
 
-}  // namespace aspirin
+} // namespace aspirin

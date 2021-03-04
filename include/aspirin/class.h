@@ -74,6 +74,14 @@ public:                                                                        \
         return m_class;                                                        \
     }
 
+#define APR_INTERNAL_PLUGIN(Class, PluginName)                                 \
+    APR_EXPORT struct Plugin_##Class {                                         \
+        Plugin_##Class() {                                                     \
+            detail::register_internal_plugin(#Class, PluginName);              \
+        }                                                                      \
+    } plugin_##Class;                                                          \
+    APR_INSTANTIATE_CLASS(Class)
+
 namespace detail {
 template <typename, typename Arg, typename = void>
 struct is_constructiblee : std::false_type {};

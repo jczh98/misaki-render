@@ -19,7 +19,7 @@ template <typename Float> struct Frame {
     }
 
     Vector3 to_local(const Vector3 &v) const {
-        return { dot(v, s), dot(v, t), dot(v, n) };
+        return { v.dot(s), v.dot(t), v.dot(n) };
     }
 
     Vector3 to_world(const Vector3 &v) const {

@@ -11,6 +11,7 @@ template <typename Float, typename Spectrum>
 Mesh<Float, Spectrum>::Mesh(const Properties &props)
     : Shape<Float, Spectrum>(props) {
     m_to_world = props.transform("to_world", Transform4());
+    m_is_mesh = true;
     set_children();
 }
 
@@ -117,8 +118,9 @@ Float Mesh<Float, Spectrum>::pdf_position(const PositionSample &ps) const {
     return 1.f / m_surface_area;
 }
 
-#if defined(MSK_ENABLE_EMBREE)
-RTCGeometry Mesh::embree_geometry(RTCDevice device) const {
+#if defined(APR_ENABLE_EMBREE)
+template <typename Float, typename Spectrum>
+RTCGeometry Mesh<Float, Spectrum>::embree_geometry(RTCDevice device) const {
     RTCGeometry geom = rtcNewGeometry(device, RTC_GEOMETRY_TYPE_TRIANGLE);
     rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0,
                                RTC_FORMAT_FLOAT3, m_vertices.get(), 0,

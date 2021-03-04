@@ -18,6 +18,8 @@ template <typename Float_, typename Spectrum_> struct PositionSample {
 
     const Object *object = nullptr;
 
+    PositionSample() {}
+    
     PositionSample(const SurfaceInteraction &si)
         : p(si.p), n(si.sh_frame.n), uv(si.uv), delta(false) {}
 };
@@ -34,6 +36,8 @@ struct DirectionSample : public PositionSample<Float_, Spectrum_> {
 
     Vector3 d;
     Float dist;
+
+    DirectionSample() : PositionSample<Float, Spectrum>() {}
 
     DirectionSample(const SurfaceInteraction &it, const Interaction &ref)
         : PositionSample<Float, Spectrum>(it) {

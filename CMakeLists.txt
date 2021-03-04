@@ -13,6 +13,10 @@ find_package(embree 3 REQUIRED)
 
 option(APR_ENABLE_EMBREE  "Use Embree for ray tracing intersection" ON)
 
+if (APR_ENABLE_EMBREE)
+    add_compile_options(-DAPR_ENABLE_EMBREE)
+endif ()
+
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(include)
 

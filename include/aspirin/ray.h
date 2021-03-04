@@ -27,7 +27,7 @@ template <typename Float, typename Spectrum> struct Ray {
 
     Vector3 operator()(Float t) const { return o + d * t; }
 
-    void update() { d_rcp = 1.0 / d; }
+    void update() { d_rcp = d.cwiseInverse(); }
 
     std::string to_string() const {
         std::ostringstream oss;

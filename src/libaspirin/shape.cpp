@@ -5,6 +5,7 @@
 #include <aspirin/plugin.h>
 #include <aspirin/properties.h>
 #include <aspirin/shape.h>
+#include <aspirin/records.h>
 
 namespace aspirin {
 
@@ -103,10 +104,16 @@ Shape<Float, Spectrum>::compute_surface_point(int prim_index,
     APR_NOT_IMPLEMENTED("compute_surface_point");
 }
 
-#if defined(MSK_ENABLE_EMBREE)
-RTCGeometry Shape::embree_geometry(RTCDevice device) const {
-    ARP_NOT_IMPLEMENTED("embree_geometry");
+#if defined(APR_ENABLE_EMBREE)
+template <typename Float, typename Spectrum>
+RTCGeometry Shape<Float, Spectrum>::embree_geometry(RTCDevice device) const {
+    APR_NOT_IMPLEMENTED("embree_geometry");
 }
 #endif
+
+APR_IMPLEMENT_CLASS_VARIANT(Shape, Object, "shape")
+APR_INSTANTIATE_STRUCT(PositionSample)
+APR_INSTANTIATE_STRUCT(DirectionSample)
+APR_INSTANTIATE_CLASS(Shape)
 
 } // namespace aspirin

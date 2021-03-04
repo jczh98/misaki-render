@@ -2,7 +2,7 @@
 
 #include "fwd.h"
 #include "object.h"
-#if defined(MSK_ENABLE_EMBREE)
+#if defined(APR_ENABLE_EMBREE)
 #include <embree3/rtcore.h>
 #endif
 
@@ -33,7 +33,7 @@ public:
     compute_surface_point(int prim_index, const Vector2 &uv) const;
 
     bool is_mesh() const {
-        return clazz()->derives_from(Mesh<Float, Spectrum>::m_class);
+        return m_is_mesh;
     }
 
     const BSDF *bsdf() const { return m_bsdf; }
@@ -47,7 +47,7 @@ public:
     virtual BoundingBox3 bbox(uint32_t index) const;
     virtual Float surface_area() const;
 
-#if defined(MSK_ENABLE_EMBREE)
+#if defined(APR_ENABLE_EMBREE)
     virtual RTCGeometry embree_geometry(RTCDevice device) const;
 #endif
 
@@ -61,6 +61,8 @@ protected:
     ref<BSDF> m_bsdf;
     Transform4 m_world_transform;
     std::string m_id;
+
+    bool m_is_mesh = false;
 };
 
 } // namespace aspirin

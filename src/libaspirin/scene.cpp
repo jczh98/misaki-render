@@ -20,8 +20,8 @@ Scene<Float, Spectrum>::Scene(const Properties &props) {
         auto *integrator = dynamic_cast<Integrator *>(obj.get());
         auto *emitter    = dynamic_cast<Emitter *>(obj.get());
         if (shape) {
-            if (shape->is_light())
-                m_emitters.emplace_back(shape->light());
+            if (shape->is_emitter())
+                m_emitters.emplace_back(shape->emitter());
             m_bbox.expand(shape->bbox());
             m_shapes.push_back(shape);
         } else if (emitter) {
@@ -87,10 +87,10 @@ Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
                         (1.f + ref.p.cwiseAbs().maxCoeff()),
                     ds.dist * (1.f - math::ShadowEpsilon<Float>), 0);
             if (ray_test(ray))
-                emitted = 0.f;
+                emitted = Spectrum();
         }
     } else {
-        emitted = 0.f;
+        emitted = Spectrum();
     }
     return { ds, emitted };
 }
@@ -99,7 +99,7 @@ template <typename Float, typename Spectrum>
 Float Scene<Float, Spectrum>::pdf_emitter_direction(
     const Interaction &ref, const DirectionSample &ds) const {
     if (m_emitters.size() == 1) {
-        return m_emitters[0]->pdf_direct(ref, ds);
+        return m_emitters[0]->pdf_direction(ref, ds);
     } else {
         return reinterpret_cast<const Emitter *>(ds.object)->pdf_direction(ref,
                                                                            ds) *
@@ -109,26 +109,29 @@ Float Scene<Float, Spectrum>::pdf_emitter_direction(
 
 /*------------------------Embree
  * specification---------------------------------*/
-#if defined(MSK_ENABLE_EMBREE)
+#if defined(APR_ENABLE_EMBREE)
 #include <embree3/rtcore.h>
 static RTCDevice __embree_device = nullptr;
 
-void Scene::accel_init(const Properties &props) {
+template <typename Float, typename Spectrum>
+void Scene<Float, Spectrum>::accel_init(const Properties &props) {
     if (!__embree_device)
         __embree_device = rtcNewDevice("");
-    util::Timer timer;
+    //util::Timer timer;
     RTCScene embree_scene = rtcNewScene(__embree_device);
     m_accel               = embree_scene;
     for (auto &shape : m_shapes)
         rtcAttachGeometry(embree_scene,
                           shape->embree_geometry(__embree_device));
     rtcCommitScene(embree_scene);
-    Log(Info, "Embree ready.  (took {})", util::time_string(timer.value()));
+    //Log(Info, "Embree ready.  (took {})", util::time_string(timer.value()));
 }
 
-void Scene::accel_release() { rtcReleaseScene((RTCScene) m_accel); }
+template <typename Float, typename Spectrum>
+void Scene<Float, Spectrum>::accel_release() { rtcReleaseScene((RTCScene) m_accel); }
 
-SceneInteraction Scene::ray_intersect(const Ray &ray) const {
+template <typename Float, typename Spectrum>
+typename  Scene<Float, Spectrum>::SurfaceInteraction Scene<Float, Spectrum>::ray_intersect(const Ray &ray) const {
     RTCIntersectContext context;
     rtcInitIntersectContext(&context);
     RTCRayHit rh;
@@ -145,20 +148,27 @@ SceneInteraction Scene::ray_intersect(const Ray &ray) const {
     rh.ray.id    = 0;
     rh.ray.flags = 0;
     rtcIntersect1((RTCScene) m_accel, &context, &rh);
+    SurfaceInteraction si;
     if (rh.ray.tfar != ray.maxt) {
         uint32_t shape_index = rh.hit.geomID;
         uint32_t prim_index  = rh.hit.primID;
         auto [p, ng, ns, uv] = m_shapes[shape_index]->compute_surface_point(
             prim_index, { rh.hit.u, rh.hit.v });
-        return SceneInteraction::make_surface_interaction(
-            PointGeometry::make_on_surface(p, ng, ns, uv), -ray.d,
-            m_shapes[shape_index].get());
+        si.p = p;
+        si.n = ng;
+        si.sh_frame = Frame3(ns);
+        si.uv = uv;
+        si.wi = si.to_local(-ray.d);
+        si.shape = m_shapes[shape_index].get();
+        return si;
     } else {
-        return SceneInteraction::make_none(-ray.d);
+        si.wi = -ray.d;
+        return si;
     }
 }
 
-bool Scene::ray_test(const Ray &ray) const {
+template <typename Float, typename Spectrum>
+bool Scene<Float, Spectrum>::ray_test(const Ray &ray) const {
     RTCIntersectContext context;
     rtcInitIntersectContext(&context);
     RTCRay ray2;
@@ -179,5 +189,8 @@ bool Scene::ray_test(const Ray &ray) const {
 }
 
 #endif
+
+APR_IMPLEMENT_CLASS_VARIANT(Scene, Object, "scene")
+APR_INSTANTIATE_CLASS(Scene)
 
 } // namespace aspirin

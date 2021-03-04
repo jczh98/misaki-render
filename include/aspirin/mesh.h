@@ -14,6 +14,7 @@ public:
     using PositionSample     = PositionSample<Float, Spectrum>;
     using DirectionSample    = DirectionSample<Float, Spectrum>;
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
+    using Shape<Float, Spectrum>::m_is_mesh;
     using Shape<Float, Spectrum>::set_children;
 
     uint32_t vertex_count() const { return m_vertex_count; }
@@ -82,7 +83,7 @@ public:
     BoundingBox3 bbox(uint32_t index) const override;
     Float surface_area() const override;
 
-#if defined(MSK_ENABLE_EMBREE)
+#if defined(APR_ENABLE_EMBREE)
     virtual RTCGeometry embree_geometry(RTCDevice device) const override;
 #endif
 
