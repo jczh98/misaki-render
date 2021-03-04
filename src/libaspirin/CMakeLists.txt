@@ -13,9 +13,14 @@ add_library(aspirin-render SHARED
         endpoint.cpp
         sensor.cpp
         emitter.cpp
+        rfilter.cpp
+        film.cpp
         bsdf.cpp
         shape.cpp
         mesh.cpp
+        sampler.cpp
+        integrator.cpp
+        scene.cpp
 #        imageio.cpp
 #        imageblock.cpp
 #        xml.cpp

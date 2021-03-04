@@ -10,6 +10,9 @@ namespace aspirin {
 template <typename Float, typename Spectrum>
 class APR_EXPORT Scene : public Object {
 public:
+    APR_IMPORT_CORE_TYPES(Float)
+    using Ray                = Ray<Float, Spectrum>;
+    using Interaction        = Interaction<Float, Spectrum>;
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
     using DirectionSample    = DirectionSample<Float, Spectrum>;
     using Sensor             = Sensor<Float, Spectrum>;

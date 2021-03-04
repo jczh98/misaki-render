@@ -15,10 +15,10 @@ public:
     virtual Float eval(Float x) const;
     Float radius() const { return m_radius; }
 
+    APR_DECLARE_CLASS()
 protected:
     ReconstructionFilter(const Properties &props);
     virtual ~ReconstructionFilter();
-    APR_DECLARE_CLASS()
 
 protected:
     std::vector<Float> m_values;

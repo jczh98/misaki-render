@@ -5,7 +5,7 @@
 #include "component.h"
 #include "rfilter.h"
 
-#define MSK_BLOCK_SIZE 32
+#define APR_BLOCK_SIZE 32
 
 namespace aspirin {
 

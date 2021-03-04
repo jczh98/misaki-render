@@ -8,6 +8,13 @@ template <typename Float, typename Spectrum>
 BSDF<Float, Spectrum>::BSDF(const Properties &props)
     : m_flags(+BSDFFlags::None), m_id(props.id()) {}
 
+template <typename Float, typename Spectrum> BSDF<Float, Spectrum>::~BSDF() {}
+
+template <typename Float, typename Spectrum>
+std::string BSDF<Float, Spectrum>::id() const {
+    return m_id;
+}
+
 APR_IMPLEMENT_CLASS_VARIANT(BSDF, Object, "bsdf")
 APR_INSTANTIATE_CLASS(BSDF)
 
