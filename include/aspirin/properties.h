@@ -1,8 +1,8 @@
 #pragma once
 
 #include "aspirin.h"
-#include "object.h"
 #include "logger.h"
+#include "object.h"
 #include <map>
 #include <variant>
 
@@ -25,6 +25,7 @@ private:
 
 class APR_EXPORT Properties {
 public:
+    using Float = float;
     APR_IMPORT_CORE_TYPES(float)
     enum class Type {
         Bool,
@@ -53,8 +54,7 @@ public:
     std::vector<std::string> property_names() const;
     std::vector<std::pair<std::string, NamedReference>>
     named_references() const;
-    std::vector<std::pair<std::string, ref<Object>>>
-    objects() const;
+    std::vector<std::pair<std::string, ref<Object>>> objects() const;
 
     bool operator==(const Properties &props) const;
     bool operator!=(const Properties &props) const {
@@ -81,8 +81,7 @@ public:
     DEFINE_PROPERTY_METHODS(Vector3, set_vector3, vector3)
     DEFINE_PROPERTY_METHODS(Color3, set_color, color)
     DEFINE_PROPERTY_METHODS(Transform4, set_transform, transform)
-    DEFINE_PROPERTY_METHODS(ref<Object>, set_object,
-                            object)
+    DEFINE_PROPERTY_METHODS(ref<Object>, set_object, object)
     DEFINE_PROPERTY_METHODS(void *const, set_pointer, pointer)
 #undef DEFINE_PROPERTY_METHODS
 
@@ -97,15 +96,17 @@ public:
             ref<Object> object = find_object(name);
             if (!object->clazz()->derives_from(APR_CLASS(Texture)))
                 Throw("The property \"{}\" has the wrong type (expected "
-                      " <spectrum> or <texture>).", name);
+                      " <spectrum> or <texture>).",
+                      name);
             return (Texture *) object.get();
         } else if (p_type == Properties::Type::Float) {
             Properties props("srgb");
             props.set_color("color", Color3(get_float(name)));
-            return nullptr;//TODO
+            return nullptr; // TODO
         } else {
             Throw("The property \"{}\" has the wrong type (expected "
-                  " <spectrum> or <texture>).", name);
+                  " <spectrum> or <texture>).",
+                  name);
         }
     }
 
@@ -123,7 +124,7 @@ public:
         if (!has_property(name)) {
             Properties props("srgb");
             props.set_color("color", Color3(def_val));
-            return nullptr; //TODO
+            return nullptr; // TODO
         }
         return texture<Texture>(name);
     }

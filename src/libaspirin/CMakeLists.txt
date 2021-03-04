@@ -10,6 +10,7 @@ add_library(aspirin-render SHARED
         properties.cpp
         logger.cpp
         xml.cpp
+        endpoint.cpp
 #        imageio.cpp
 #        imageblock.cpp
 #        xml.cpp

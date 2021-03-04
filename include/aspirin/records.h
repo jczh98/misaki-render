@@ -5,16 +5,18 @@
 namespace aspirin {
 
 template <typename Float_, typename Spectrum_> struct PositionSample {
-    APR_IMPORT_CORE_TYPES(Float_)
+    using Float    = Float_;
     using Spectrum = Spectrum_;
+    APR_IMPORT_CORE_TYPES(Float_)
+    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
-    Vecto3 p;
+    Vector3 p;
     Vector3 n;
     Vector2 uv;
     Float pdf; // Probability density at the sample
     bool delta;
 
-    st Object *object = nullptr;
+    const Object *object = nullptr;
 
     PositionSample(const SurfaceInteraction &si)
         : p(si.p), n(si.sh_frame.n), uv(si.uv), delta(false) {}
@@ -22,10 +24,11 @@ template <typename Float_, typename Spectrum_> struct PositionSample {
 
 template <typename Float_, typename Spectrum_>
 struct DirectionSample : public PositionSample<Float_, Spectrum_> {
-    using typename PositionSample::Float;
-    using typename PositionSample::Spectrum;
-    using typename PositionSample::Vector2;
-    using typename PositionSample::Vector3;
+    using Base = PositionSample<Float_, Spectrum_>;
+    using typename Base::Float;
+    using typename Base::Spectrum;
+    using typename Base::Vector2;
+    using typename Base::Vector3;
     using Interaction        = Interaction<Float, Spectrum>;
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 

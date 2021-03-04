@@ -34,6 +34,7 @@ enum class Tag {
 
 namespace detail {
 
+using Float = float;
 APR_IMPORT_CORE_TYPES(float)
 
 // Throws if non-whitespace characters are found after the given index.

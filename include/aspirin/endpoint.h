@@ -20,7 +20,7 @@ public:
     using DirectionSample    = DirectionSample<Float, Spectrum>;
 
     // Returns Sampled ray with structred RaySample
-    virtual std::pair<Ray, Spectum> sample_ray(const Vector2 &pos_sample) const;
+    virtual std::pair<Ray, Spectrum> sample_ray(const Vector2 &pos_sample) const;
 
     // Returns direction, weight
     virtual std::pair<DirectionSample, Spectrum>

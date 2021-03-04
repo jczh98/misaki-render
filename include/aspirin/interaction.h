@@ -19,8 +19,9 @@ template <typename Float_, typename Spectrum_> struct Interaction {
 
 template <typename Float_, typename Spectrum_>
 struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
+    using Float    = Float_;
+    using Spectrum = Spectrum_;
     APR_IMPORT_CORE_TYPES(Float_)
-    using Spectrum       = Spectrum_;
     using Emitter        = Emitter<Float, Spectrum>;
     using BSDF           = BSDF<Float, Spectrum>;
     using Shape          = Shape<Float, Spectrum>;

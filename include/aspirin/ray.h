@@ -44,7 +44,7 @@ template <typename Float, typename Spectrum> struct Ray {
 
 template <typename Float, typename Spectrum>
 struct RayDifferential : public Ray<Float, Spectrum> {
-    using Ray = Ray<Spectrum>;
+    using Ray = Ray<Float, Spectrum>;
     using Ray::d;
     using Ray::o;
     using Ray::Ray;

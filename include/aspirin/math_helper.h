@@ -66,7 +66,7 @@ template <typename T> inline auto safe_acos(const T &a) {
 template <typename Predicate>
 uint32_t binary_search(uint32_t begin, uint32_t end, const Predicate &pred) {
     while (begin < end) {
-        uint32_t middle = begin + (end - begin) >> 1;
+        uint32_t middle = begin + ((end - begin) >> 1);
         if (pred(middle)) {
             begin = middle + 1;
         } else
