@@ -16,6 +16,8 @@ template <typename Float_, typename Spectrum_> struct Interaction {
 
     Interaction() {}
 
+    Interaction(Float t, const Vector3 &p) : t(t), p(p) {}
+
     bool is_valid() const { return t != math::Infinity<Float>; }
 };
 
@@ -40,9 +42,12 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
     Vector3 wi;
     uint32_t prim_index;
 
-    SurfaceInteraction() : Interaction<Float, Spectrum>(), sh_frame(Frame3(Vector3(0))) {}
+    SurfaceInteraction()
+        : Interaction<Float, Spectrum>(), sh_frame(Frame3(Vector3(0))) {}
 
-    explicit SurfaceInteraction(const PositionSample &ps);
+    explicit SurfaceInteraction(const PositionSample &ps)
+        : Interaction<Float, Spectrum>(0.f, ps.p), uv(ps.uv), n(ps.n),
+          sh_frame(Frame3(ps.n)) {}
 
     Vector3 to_world(const Vector3 &v) const { return sh_frame.to_world(v); }
 

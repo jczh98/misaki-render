@@ -39,7 +39,10 @@ Spectrum Endpoint<Float, Spectrum>::eval(const SurfaceInteraction &si) const {
 
 template <typename Float, typename Spectrum>
 void Endpoint<Float, Spectrum>::set_shape(Shape *shape) {
-    APR_NOT_IMPLEMENTED("set_shape");
+    if (m_shape)
+        Throw("An endpoint can be only be attached to a single shape.");
+
+    m_shape = shape;
 }
 
 template <typename Float, typename Spectrum>

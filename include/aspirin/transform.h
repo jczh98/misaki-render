@@ -45,8 +45,7 @@ template <typename Float, int Size> struct Transform {
   }
 
   Vector apply_vector(const Vector &v) const {
-    return m_matrix.template topLeftCorner<Size - 1, Size - 1>() *
-           Vector::Base(v);
+    return m_matrix.template topLeftCorner<Size - 1, Size - 1>() * v;
   }
 
   Vector apply_point(const Vector &p) const {

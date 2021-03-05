@@ -19,7 +19,6 @@ add_library(aspirin-render SHARED
         shape.cpp
         mesh.cpp
         sampler.cpp
-        interaction.cpp
         integrator.cpp
         scene.cpp
         texture.cpp
@@ -28,6 +27,11 @@ add_library(aspirin-render SHARED
         bsdfs/diffuse.cpp
         textures/srgb.cpp
         shapes/obj.cpp
+        emitters/area.cpp
+        sensors/perspective.cpp
+        filters/gaussian.cpp
+        films/rgbfilm.cpp
+        integrators/debug.cpp
         )
 
 target_link_libraries(aspirin-render PUBLIC
