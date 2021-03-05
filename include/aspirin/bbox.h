@@ -29,7 +29,7 @@ template <typename Value, int Size> struct BoundingBox {
     pmax = pmax.cwiseMin(bbox.pmax);
   }
 
-  template <typename T> void expand(const VectorType &p) {
+  void expand(const VectorType &p) {
     pmin = pmin.cwiseMin(p);
     pmax = pmax.cwiseMax(p);
   }

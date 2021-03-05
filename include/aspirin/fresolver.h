@@ -9,7 +9,7 @@ namespace aspirin {
 
 namespace fs = std::filesystem;
 
-class FileResolver {
+class APR_EXPORT FileResolver {
 public:
     using iterator       = std::vector<fs::path>::iterator;
     using const_iterator = std::vector<fs::path>::const_iterator;

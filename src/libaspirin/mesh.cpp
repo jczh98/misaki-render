@@ -11,9 +11,11 @@ template <typename Float, typename Spectrum>
 Mesh<Float, Spectrum>::Mesh(const Properties &props)
     : Shape<Float, Spectrum>(props) {
     m_to_world = props.transform("to_world", Transform4());
-    m_is_mesh = true;
+    m_is_mesh  = true;
     set_children();
 }
+
+template <typename Float, typename Spectrum> Mesh<Float, Spectrum>::~Mesh() {}
 
 template <typename Float, typename Spectrum>
 typename Mesh<Float, Spectrum>::BoundingBox3
@@ -105,9 +107,10 @@ Mesh<Float, Spectrum>::sample_position(const Vector2 &sample_) const {
     if (has_vertex_normals()) {
         auto n0 = vertex_normal(fi[0]), n1 = vertex_normal(fi[1]),
              n2 = vertex_normal(fi[2]);
-        ns = (n0 * (1.f - b.x() - b.y()) + n1 * b.x() + n2 * b.y()).normalized();
+        ns =
+            (n0 * (1.f - b.x() - b.y()) + n1 * b.x() + n2 * b.y()).normalized();
     }
-    ps.pdf   = m_area_distr.normalization();
+    ps.pdf   = 1.f / m_surface_area;
     ps.delta = false;
     ps.uv    = uv;
     return ps;
@@ -132,5 +135,8 @@ RTCGeometry Mesh<Float, Spectrum>::embree_geometry(RTCDevice device) const {
     return geom;
 }
 #endif
+
+APR_IMPLEMENT_CLASS_VARIANT(Mesh, Shape)
+APR_INSTANTIATE_CLASS(Mesh)
 
 } // namespace aspirin

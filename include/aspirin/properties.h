@@ -3,6 +3,7 @@
 #include "aspirin.h"
 #include "logger.h"
 #include "object.h"
+#include "plugin.h"
 #include <map>
 #include <variant>
 
@@ -101,8 +102,8 @@ public:
             return (Texture *) object.get();
         } else if (p_type == Properties::Type::Float) {
             Properties props("srgb");
-            props.set_color("color", Color3(get_float(name)));
-            return nullptr; // TODO
+            props.set_color("color", Color3::Constant(get_float(name)));
+            return (Texture *) PluginManager::instance()->create_object<Texture>(props).get();
         } else {
             Throw("The property \"{}\" has the wrong type (expected "
                   " <spectrum> or <texture>).",
@@ -111,7 +112,7 @@ public:
     }
 
     template <typename Texture>
-    std::shared_ptr<Texture> texture(const std::string &name,
+    ref<Texture> texture(const std::string &name,
                                      std::shared_ptr<Texture> &def_val) const {
         if (!has_property(name))
             return def_val;
@@ -119,12 +120,12 @@ public:
     }
 
     template <typename Texture>
-    std::shared_ptr<Texture> texture(const std::string &name,
+    ref<Texture> texture(const std::string &name,
                                      Float def_val) const {
         if (!has_property(name)) {
             Properties props("srgb");
-            props.set_color("color", Color3(def_val));
-            return nullptr; // TODO
+            props.set_color("color", Color3::Constant(def_val));
+            return (Texture *) PluginManager::instance()->create_object<Texture>(props).get();
         }
         return texture<Texture>(name);
     }

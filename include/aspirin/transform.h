@@ -54,14 +54,13 @@ template <typename Float, int Size> struct Transform {
     for (int i = 0; i < Size - 1; i++)
       result.coeffRef(i) = p.coeff(i);
     result.coeffRef(Size - 1) = 1.f;
-    result = m_matrix * Eigen::Matrix<Float, Size, 1>::Base(result);
+    result = m_matrix * result;
     return result.template head<Size - 1>() / result.coeff(Size - 1);
   }
 
   Vector apply_normal(const Vector &n) const {
     return m_inverse_matrix.template topLeftCorner<Size - 1, Size - 1>()
-               .transpose() *
-           Vector::Base(n);
+               .transpose() * n;
   }
 
   Transform<Float, Size - 1> extract() const {

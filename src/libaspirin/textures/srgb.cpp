@@ -3,28 +3,35 @@
 
 namespace aspirin {
 
-class SRGBTexture final : public Texture {
- public:
-  SRGBTexture(const Properties &props) : Texture(props) {
-    m_value = props.color("color");
-  }
+template <typename Float, typename Spectrum>
+class SRGBTexture final : public Texture<Float, Spectrum> {
+public:
+    APR_IMPORT_CORE_TYPES(Float)
+    using Base = Texture<Float, Spectrum>;
+    using typename Base::SurfaceInteraction;
 
-  Float eval_1(const PointGeometry &geom) const override {
-    return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
-  }
+    SRGBTexture(const Properties &props) : Base(props) {
+        m_value = props.color("color");
+    }
 
-  Color3 eval_3(const PointGeometry &geom) const override {
-    return m_value;
-  }
+    Float eval_1(const SurfaceInteraction &si) const override {
+        return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
+    }
 
-  Float mean() const override {
-    return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
-  }
+    Color3 eval_3(const SurfaceInteraction &si) const override {
+        return m_value;
+    }
 
-  MSK_DECL_COMP(Texture)
- private:
-  Color3 m_value;
+    Float mean() const override {
+        return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
+    }
+
+    APR_DECLARE_CLASS()
+private:
+    Color3 m_value;
 };
 
-MSK_EXPORT_PLUGIN(SRGBTexture)
-}  // namespace aspirin
+APR_IMPLEMENT_CLASS_VARIANT(SRGBTexture, Texture)
+APR_INTERNAL_PLUGIN(SRGBTexture, "srgb")
+
+} // namespace aspirin

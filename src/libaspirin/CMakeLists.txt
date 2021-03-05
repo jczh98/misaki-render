@@ -8,6 +8,7 @@ add_library(aspirin-render SHARED
         plugin.cpp
         properties.cpp
         logger.cpp
+        fresolver.cpp
         xml.cpp
         endpoint.cpp
         sensor.cpp
@@ -24,6 +25,9 @@ add_library(aspirin-render SHARED
         texture.cpp
 
         samplers/independent.cpp
+        bsdfs/diffuse.cpp
+        textures/srgb.cpp
+        shapes/obj.cpp
         )
 
 target_link_libraries(aspirin-render PUBLIC

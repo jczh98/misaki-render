@@ -9,6 +9,7 @@
 #include "platform.h"
 #include "spectrum.h"
 #include "transform.h"
+#include "fresolver.h"
 #include <Eigen/Dense>
 #include <filesystem>
 #include <mutex>
@@ -44,7 +45,7 @@ template <typename Float_> struct CoreAliases {
     using BoundingBox3    = BoundingBox<Float, 3>;
     using BoundingSphere3 = BoundingSphere<Float, 3>;
     using Frame3          = Frame<Float>;
-    using Distribution1D  = math::DiscreteDistribution<Float>;
+    using Distribution1D  = math::Distribution1D<Float>;
     using Color3          = Color<Float, 3>;
 };
 
@@ -107,5 +108,8 @@ template <typename Float, typename Spectrum> struct PhaseFunctionContext;
     using Integrator = aspirin::Integrator<Float, Spectrum>;                   \
     using BSDF       = aspirin::BSDF<Float, Spectrum>;                         \
     using Emitter    = aspirin::Emitter<Float, Spectrum>;
+
+
+extern APR_EXPORT FileResolver *get_file_resolver();
 
 } // namespace aspirin

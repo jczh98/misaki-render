@@ -75,7 +75,7 @@ template <typename Float, typename Spectrum> struct BSDFSample {
 
     BSDFSample()
         : wo(Vector3(0)), pdf(0.f), eta(1.f), sampled_type(0),
-          sampled_component(-1) {}
+          sampled_component(-1u) {}
     BSDFSample(const Vector3 &wo)
         : wo(wo), pdf(0.f), eta(1.f), sampled_type(0), sampled_component(-1) {}
 };

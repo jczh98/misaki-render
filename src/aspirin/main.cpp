@@ -6,11 +6,14 @@
 
 using namespace aspirin;
 
-int main() {
+int main(int argc, char** argv) {
     Class::static_initialization();
     library_nop();
+    fs::path path = "../../../assets/bunny/scene.xml";
+    get_file_resolver()->append(fs::path(argv[0]).parent_path());
+    get_file_resolver()->append(path.parent_path());
     try {
-        auto scene = xml::load_file("../../../assets/bunny/scene.xml", "scalar_rgb");
+        auto scene = xml::load_file(get_file_resolver()->resolve(path), "scalar_rgb");
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
     }

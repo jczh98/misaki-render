@@ -12,6 +12,11 @@
 
 namespace aspirin {
 
+FileResolver *get_file_resolver() {
+    static FileResolver file_resolver;
+    return &file_resolver;
+}
+
 void library_nop() {}
 
 template <typename Float, typename Spectrum>
