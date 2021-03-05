@@ -91,7 +91,7 @@ void Class::initialize_once(Class *class_) {
 ref<Object> Class::construct(const Properties &props) const {
     if (!m_construct)
         Throw("RTTI error: Attempted to construct a "
-              "non-constructible class (%s)!", name());
+              "non-constructible class ({})!", name());
     return m_construct(props);
 }
 

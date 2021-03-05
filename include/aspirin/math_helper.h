@@ -129,6 +129,20 @@ struct PCG32 {
 
 } // namespace math
 
+namespace math {
+
+template <typename T, int D>
+Eigen::Matrix<int, D, 1> ceil2int(const Eigen::Matrix<T, D, 1> &vec) {
+    return vec.array().ceil().matrix().template cast<int>();
+}
+
+template <typename T, int D>
+Eigen::Matrix<int, D, 1> floor2int(const Eigen::Matrix<T, D, 1> &vec) {
+    return vec.array().floor().matrix().template cast<int>();
+}
+
+}
+
 template <typename Float>
 std::pair<Eigen::Matrix<Float, 3, 1>, Eigen::Matrix<Float, 3, 1>>
 coordinate_system(const Eigen::Matrix<Float, 3, 1> &n) {

@@ -43,7 +43,7 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
     uint32_t prim_index;
 
     SurfaceInteraction()
-        : Interaction<Float, Spectrum>(), sh_frame(Frame3(Vector3(0))) {}
+        : Interaction<Float, Spectrum>(), sh_frame(Frame3(Vector3::Zero())) {}
 
     explicit SurfaceInteraction(const PositionSample &ps)
         : Interaction<Float, Spectrum>(0.f, ps.p), uv(ps.uv), n(ps.n),

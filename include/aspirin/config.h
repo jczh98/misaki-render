@@ -15,6 +15,15 @@ namespace detail {
 #define APR_INSTANTIATE_STRUCT(Name)                                           \
     template struct APR_EXPORT Name<float, Color<float, 3>>;
 
+#define APR_INVOKE_VARIANT(variant, func, ...)                                 \
+    [&]() {                                                                    \
+        if (variant == "scalar_rgb") {                                         \
+            return func<float, Color<float, 3>>(__VA_ARGS__);                  \
+        } else {                                                               \
+            Throw("Unsupported variant: %s", variant);                         \
+        }                                                                      \
+    }()
+
 template <typename Float_, typename Spectrum_>
 constexpr const char *get_variant() {
     if constexpr (std::is_same_v<Float_, float> &&

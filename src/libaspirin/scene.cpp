@@ -164,6 +164,7 @@ Scene<Float, Spectrum>::ray_intersect(const Ray &ray) const {
         uint32_t prim_index  = rh.hit.primID;
         auto [p, ng, ns, uv] = m_shapes[shape_index]->compute_surface_point(
             prim_index, { rh.hit.u, rh.hit.v });
+        si.t        = rh.ray.tfar;
         si.p        = p;
         si.n        = ng;
         si.sh_frame = Frame3(ns);

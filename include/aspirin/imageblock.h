@@ -18,24 +18,32 @@ public:
 
     ImageBlock(const Vector2i &size,
                const ReconstructionFilter *filter = nullptr);
-    ~ImageBlock();
+
+    virtual ~ImageBlock();
+
     void put(const ImageBlock *b);
-    //bool put(const Vector2 &pos, const Color4 &val);
+
+    bool put(const Vector2 &pos, const Spectrum &val);
+
     void clear();
+
     std::string to_string() const override;
 
     void set_offset(const Vector2i &offset) { m_offset = offset; }
+
     void set_size(const Vector2i &size);
 
     const Vector2i &offset() const { return m_offset; }
     const Vector2i &size() const { return m_size; }
     int border_size() const { return m_border_size; }
-//    Array<Color4, 2> &data() { return m_buffer; }
-//    const math::Tensor<Color4, 2> &data() const { return m_buffer; }
+
+    Array<Color4, 2> &data() { return m_buffer; }
+    const Array<Color4, 2> &data() const { return m_buffer; }
 
     APR_DECLARE_CLASS()
+
 protected:
-    //math::Tensor<Color4, 2> m_buffer;
+    Array<Color4, 2> m_buffer;
     const ReconstructionFilter *m_filter;
     Vector2i m_offset, m_size;
     int m_border_size       = 0;

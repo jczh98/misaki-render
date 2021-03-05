@@ -78,7 +78,7 @@ protected:
     ref<Texture> m_reflectance;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(SmoothDiffuse, Sampler)
+APR_IMPLEMENT_CLASS_VARIANT(SmoothDiffuse, BSDF)
 APR_INTERNAL_PLUGIN(SmoothDiffuse, "diffuse")
 
 } // namespace aspirin

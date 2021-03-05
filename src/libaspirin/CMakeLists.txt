@@ -8,6 +8,8 @@ add_library(aspirin-render SHARED
         plugin.cpp
         properties.cpp
         logger.cpp
+        imageblock.cpp
+        imageio.cpp
         fresolver.cpp
         xml.cpp
         endpoint.cpp

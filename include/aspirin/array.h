@@ -10,9 +10,9 @@ public:
     using Index = Eigen::Matrix<int, Dimension, 1>;
     using Self  = Array<Value, Dimension>;
 
-    Array() : m_data(nullptr), m_shape(0), m_data_size(0) {}
+    Array() : m_data(nullptr), m_shape(Index::Zero()), m_data_size(0) {}
     Array(const Index &index)
-        : m_data(nullptr), m_shape(index), m_data_size(hprod(index)) {
+        : m_data(nullptr), m_shape(index), m_data_size(index.prod()) {
         m_data = std::unique_ptr<Value[]>(new Value[m_data_size]);
     }
     Array(const Self &copy_from) : Array() {
@@ -65,7 +65,7 @@ public:
         return *this;
     }
     ~Array() {
-        m_shape     = Index(0);
+        m_shape     = Index::Zero();
         m_data_size = 0;
     }
 

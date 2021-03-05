@@ -21,6 +21,8 @@ public:
     using Emitter            = Emitter<Float, Spectrum>;
     using Shape              = Shape<Float, Spectrum>;
 
+    Scene(const Properties &props);
+
     bool ray_test(const Ray &ray) const;
     SurfaceInteraction ray_intersect(const Ray &ray) const;
     void accel_init(const Properties &props);
@@ -50,7 +52,6 @@ public:
 
     APR_DECLARE_CLASS()
 protected:
-    Scene(const Properties &props);
     ~Scene();
 
 protected:

@@ -1,6 +1,6 @@
 <scene>
-	<integrator type='path'/>
-	<emitter type='perspective'>
+	<integrator type='debug'/>
+	<sensor type='perspective'>
 		<float name="fov" value="16"/>
 		<film type="rgbfilm">
 			<integer name="width" value="768"/>
@@ -12,7 +12,7 @@
 		<sampler type="independent">
 			<integer name="sample_count" value="1"/>
 		</sampler>
-	</emitter>
+	</sensor>
 	<shape type="obj">
 		<string name="filename" value="bunny.obj"/>
 	</shape>

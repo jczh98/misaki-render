@@ -1,5 +1,6 @@
 #include <aspirin/film.h>
 #include <aspirin/imageblock.h>
+#include <aspirin/imageio.h>
 #include <aspirin/properties.h>
 
 #include <fstream>
@@ -25,17 +26,25 @@ public:
     }
 
     void develop() override {
-        //        auto bitmap = Array<Color3, 2>::from_linear_indexed(
-        //            m_storage->data().shape(), [&](int i) {
-        //                return m_storage->data()
-        //                    .raw_data()[i]
-        //                    .divide_by_filter_weight()
-        //                    .to_srgb();
-        //            });
-        //        auto another = m_dest_file;
-        //        image::write_rgb_image(another.replace_extension("jpg").string(),
-        //                               bitmap);
-        //        write_float_rgb_image(m_dest_file.string(), bitmap);
+        auto to_srgb = [&](Float value) {
+            if (value <= 0.0031308f)
+                return 12.92f * value;
+            else
+                return (1.0f + 0.055f) * std::pow(value, 1.0f / 2.4f) - 0.055f;
+        };
+        auto bitmap = Array<Color3, 2>::from_linear_indexed(
+            m_storage->data().shape(), [&](int i) {
+                Color4 rgba = m_storage->data().raw_data()[i];
+                Color3 rgb;
+                if (rgba.w() != 0)
+                    rgb = rgba.template head<3>() / rgba.w();
+                else
+                    rgb = Color3::Zero();
+                return Color3(to_srgb(rgb.x()), to_srgb(rgb.y()),
+                              to_srgb(rgb.z()));
+            });
+        auto another = m_dest_file;
+        write_float_rgb_image(m_dest_file.string(), bitmap);
     }
 
     void set_destination_file(const fs::path &filename) override {

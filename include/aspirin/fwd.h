@@ -5,11 +5,11 @@
 #include "diagnostic.h"
 #include "distribution.h"
 #include "frame.h"
+#include "fresolver.h"
 #include "math_helper.h"
 #include "platform.h"
 #include "spectrum.h"
 #include "transform.h"
-#include "fresolver.h"
 #include <Eigen/Dense>
 #include <filesystem>
 #include <mutex>
@@ -47,6 +47,7 @@ template <typename Float_> struct CoreAliases {
     using Frame3          = Frame<Float>;
     using Distribution1D  = math::Distribution1D<Float>;
     using Color3          = Color<Float, 3>;
+    using Color4          = Color<Float, 4>;
 };
 
 #define APR_IMPORT_CORE_TYPES(Float_)                                          \
@@ -68,7 +69,8 @@ template <typename Float_> struct CoreAliases {
     using BoundingSphere3 = typename CoreAliases::BoundingSphere3;             \
     using Frame3          = typename CoreAliases::Frame3;                      \
     using Distribution1D  = typename CoreAliases::Distribution1D;              \
-    using Color3          = typename CoreAliases::Color3;
+    using Color3          = typename CoreAliases::Color3;                      \
+    using Color4          = typename CoreAliases::Color4;
 
 namespace fs = std::filesystem;
 
@@ -108,7 +110,6 @@ template <typename Float, typename Spectrum> struct PhaseFunctionContext;
     using Integrator = aspirin::Integrator<Float, Spectrum>;                   \
     using BSDF       = aspirin::BSDF<Float, Spectrum>;                         \
     using Emitter    = aspirin::Emitter<Float, Spectrum>;
-
 
 extern APR_EXPORT FileResolver *get_file_resolver();
 
