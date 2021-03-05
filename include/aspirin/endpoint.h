@@ -3,7 +3,7 @@
 #include <optional>
 
 #include "fwd.h"
-#include "interaction.h"
+#include "records.h"
 #include "object.h"
 
 namespace aspirin {
@@ -48,4 +48,5 @@ protected:
     std::string m_id;
 };
 
+APR_EXTERN_CLASS(Endpoint)
 } // namespace aspirin

@@ -90,7 +90,7 @@ Mesh<Float, Spectrum>::sample_position(const Vector2 &sample_) const {
     auto fi                        = face_indices(face_idx);
     Vector3 p0 = vertex_position(fi[0]), p1 = vertex_position(fi[1]),
             p2 = vertex_position(fi[2]);
-    auto e0 = p1 - p0, e1 = p2 - p0;
+    Vector3 e0 = p1 - p0, e1 = p2 - p0;
     auto b = warp::square_to_uniform_triangle(sample);
 
     PositionSample ps;
@@ -101,11 +101,11 @@ Mesh<Float, Spectrum>::sample_position(const Vector2 &sample_) const {
              uv2 = vertex_texcoord(fi[2]);
         uv       = uv0 * (1.f - b.x() - b.y()) + uv1 * b.x() + uv2 * b.y();
     }
-    auto ng = normalize(cross(e0, e1)), ns = ng;
+    auto ng = e0.cross(e1).normalized(), ns = ng;
     if (has_vertex_normals()) {
         auto n0 = vertex_normal(fi[0]), n1 = vertex_normal(fi[1]),
              n2 = vertex_normal(fi[2]);
-        ns = normalize(n0 * (1.f - b.x() - b.y()) + n1 * b.x() + n2 * b.y());
+        ns = (n0 * (1.f - b.x() - b.y()) + n1 * b.x() + n2 * b.y()).normalized();
     }
     ps.pdf   = m_area_distr.normalization();
     ps.delta = false;

@@ -112,8 +112,6 @@ RTCGeometry Shape<Float, Spectrum>::embree_geometry(RTCDevice device) const {
 #endif
 
 APR_IMPLEMENT_CLASS_VARIANT(Shape, Object, "shape")
-APR_INSTANTIATE_STRUCT(PositionSample)
-APR_INSTANTIATE_STRUCT(DirectionSample)
 APR_INSTANTIATE_CLASS(Shape)
 
 } // namespace aspirin

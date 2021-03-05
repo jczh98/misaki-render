@@ -44,7 +44,7 @@ private:
     std::string m_name, m_parent_name, m_variant, m_alias;
     Class *m_parent;
     ConstructFunctor m_construct;
-    static bool m_is_initialized;
+    inline static bool m_is_initialized = false;
 };
 
 #define APR_CLASS(x) x::m_class

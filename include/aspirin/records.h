@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "interaction.h"
 
 namespace aspirin {
@@ -31,8 +32,8 @@ struct DirectionSample : public PositionSample<Float_, Spectrum_> {
     using typename Base::Spectrum;
     using typename Base::Vector2;
     using typename Base::Vector3;
+    using typename Base::SurfaceInteraction;
     using Interaction        = Interaction<Float, Spectrum>;
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
     Vector3 d;
     Float dist;

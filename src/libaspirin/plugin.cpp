@@ -19,7 +19,6 @@ inline std::string class_key(const std::string &name,
 
 void register_internal_plugin(const std::string &name,
                               const std::string &plugin_name) {
-    std::cout << "fuck" << std::endl;
     if (!_plugins) {
         _plugins = new std::unordered_map<std::string, std::string>();
     }
@@ -43,6 +42,10 @@ ref<Object> PluginManager::create_object(const Properties &props,
         (it != detail::_plugins->end())
             ? Class::for_name(it->second, class_->variant())
             : nullptr;
+    if (plugin_class == nullptr) {
+        // Now we do not have a plugin instance
+        throw std::runtime_error("Error while loading internal plugin");
+    }
     assert(plugin_class != nullptr);
     auto object = plugin_class->construct(props);
     if (!object->clazz()->derives_from(class_)) {

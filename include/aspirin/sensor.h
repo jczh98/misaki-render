@@ -13,7 +13,8 @@ template <typename Float, typename Spectrum>
 class APR_EXPORT Sensor : public Endpoint<Float, Spectrum> {
 public:
     APR_IMPORT_CORE_TYPES(Float)
-    using Ray     = Ray<Float, Spectrum>;
+    using Base = Endpoint<Float, Spectrum>;
+    using typename Base::Ray;
     using Film    = Film<Float, Spectrum>;
     using Sampler = Sampler<Float, Spectrum>;
 

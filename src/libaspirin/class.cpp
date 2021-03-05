@@ -12,7 +12,6 @@ void cleanup();
 }
 
 static std::map<std::string, Class *> *__classes;
-bool Class::m_is_initialized = false;
 const Class *m_class = nullptr;
 
 // Construct a key for use in the __classes hash table

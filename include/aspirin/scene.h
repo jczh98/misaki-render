@@ -4,6 +4,7 @@
 
 #include "fwd.h"
 #include "object.h"
+#include "ray.h"
 
 namespace aspirin {
 
@@ -61,6 +62,8 @@ protected:
     ref<Emitter> m_environment;
     BoundingBox3 m_bbox;
 };
+
+extern APR_EXPORT void library_nop();
 
 APR_EXTERN_CLASS(Scene)
 

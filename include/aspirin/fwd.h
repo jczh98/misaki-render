@@ -2,6 +2,7 @@
 
 #include "array.h"
 #include "bbox.h"
+#include "diagnostic.h"
 #include "distribution.h"
 #include "frame.h"
 #include "math_helper.h"
@@ -43,7 +44,7 @@ template <typename Float_> struct CoreAliases {
     using BoundingBox3    = BoundingBox<Float, 3>;
     using BoundingSphere3 = BoundingSphere<Float, 3>;
     using Frame3          = Frame<Float>;
-    using Distribution1D  = math::Distribution1D<Float>;
+    using Distribution1D  = math::DiscreteDistribution<Float>;
     using Color3          = Color<Float, 3>;
 };
 
@@ -65,7 +66,7 @@ template <typename Float_> struct CoreAliases {
     using BoundingBox3    = typename CoreAliases::BoundingBox3;                \
     using BoundingSphere3 = typename CoreAliases::BoundingSphere3;             \
     using Frame3          = typename CoreAliases::Frame3;                      \
-    using Distribution1D  = typename CoreAliases::Distribution1D;       \
+    using Distribution1D  = typename CoreAliases::Distribution1D;              \
     using Color3          = typename CoreAliases::Color3;
 
 namespace fs = std::filesystem;

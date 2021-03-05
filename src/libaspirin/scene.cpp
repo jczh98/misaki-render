@@ -12,6 +12,8 @@
 
 namespace aspirin {
 
+void library_nop() {}
+
 template <typename Float, typename Spectrum>
 Scene<Float, Spectrum>::Scene(const Properties &props) {
     for (auto &[name, obj] : props.objects()) {
@@ -117,21 +119,24 @@ template <typename Float, typename Spectrum>
 void Scene<Float, Spectrum>::accel_init(const Properties &props) {
     if (!__embree_device)
         __embree_device = rtcNewDevice("");
-    //util::Timer timer;
+    // util::Timer timer;
     RTCScene embree_scene = rtcNewScene(__embree_device);
     m_accel               = embree_scene;
     for (auto &shape : m_shapes)
         rtcAttachGeometry(embree_scene,
                           shape->embree_geometry(__embree_device));
     rtcCommitScene(embree_scene);
-    //Log(Info, "Embree ready.  (took {})", util::time_string(timer.value()));
+    // Log(Info, "Embree ready.  (took {})", util::time_string(timer.value()));
 }
 
 template <typename Float, typename Spectrum>
-void Scene<Float, Spectrum>::accel_release() { rtcReleaseScene((RTCScene) m_accel); }
+void Scene<Float, Spectrum>::accel_release() {
+    rtcReleaseScene((RTCScene) m_accel);
+}
 
 template <typename Float, typename Spectrum>
-typename  Scene<Float, Spectrum>::SurfaceInteraction Scene<Float, Spectrum>::ray_intersect(const Ray &ray) const {
+typename Scene<Float, Spectrum>::SurfaceInteraction
+Scene<Float, Spectrum>::ray_intersect(const Ray &ray) const {
     RTCIntersectContext context;
     rtcInitIntersectContext(&context);
     RTCRayHit rh;
@@ -154,12 +159,12 @@ typename  Scene<Float, Spectrum>::SurfaceInteraction Scene<Float, Spectrum>::ray
         uint32_t prim_index  = rh.hit.primID;
         auto [p, ng, ns, uv] = m_shapes[shape_index]->compute_surface_point(
             prim_index, { rh.hit.u, rh.hit.v });
-        si.p = p;
-        si.n = ng;
+        si.p        = p;
+        si.n        = ng;
         si.sh_frame = Frame3(ns);
-        si.uv = uv;
-        si.wi = si.to_local(-ray.d);
-        si.shape = m_shapes[shape_index].get();
+        si.uv       = uv;
+        si.wi       = si.to_local(-ray.d);
+        si.shape    = m_shapes[shape_index].get();
         return si;
     } else {
         si.wi = -ray.d;

@@ -65,4 +65,5 @@ protected:
     bool m_is_mesh = false;
 };
 
+APR_EXTERN_CLASS(Shape)
 } // namespace aspirin
