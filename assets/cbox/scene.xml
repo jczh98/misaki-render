@@ -1,7 +1,7 @@
 <scene>
     <integrator type="path">
     </integrator>
-    <camera type="perspective">
+    <sensor type="perspective">
         <float name="near_clip" value="10"/>
         <float name="far_clip" value="2800"/>
         <float name="fov" value="49.3077"/>
@@ -16,7 +16,7 @@
             <integer name="width" value="800"/>
             <integer name="height" value="600"/>
         </film>
-    </camera>
+    </sensor>
     <!-- <light type="point">
         <vector name="position" x="278" y="548" z="279"/>
         <rgb name="intensity" value="100000, 100000, 100000"/>
@@ -29,9 +29,9 @@
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.936461, 0.740433, 0.705267"/>
         </bsdf>
-        <light type="area">
+        <emitter type="area">
             <rgb name="radiance" value="40, 40, 40"/>
-        </light>
+        </emitter>
     </shape>
     <shape type="obj">
         <string name="filename" value="meshes/cbox_floor.obj"/>
@@ -71,11 +71,11 @@
     </shape>
     <shape type="obj">
         <string name="filename" value="meshes/cbox_largebox.obj"/>
-        <!-- <bsdf type="diffuse">
+        <bsdf type="diffuse">
             <rgb name="reflectance" value="0.45, 0.30, 0.90"/>
-        </bsdf> -->
-        <bsdf type="disney_brdf">
         </bsdf>
+<!--        <bsdf type="disney_brdf">-->
+<!--        </bsdf>-->
         <!-- <bsdf type="roughconductor">
             <float name="alpha" value="0.25" />
             <string name="distribution" value="beckmann" />

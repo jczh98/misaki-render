@@ -70,11 +70,11 @@ Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
                                                  const Vector2 &sample_,
                                                  bool test_visibility) const {
     DirectionSample ds;
-    Spectrum emitted;
+    Spectrum spec;
     Vector2 sample(sample_);
     if (!m_emitters.empty()) {
         if (m_emitters.size() == 1) {
-            std::tie(ds, emitted) =
+            std::tie(ds, spec) =
                 m_emitters[0]->sample_direction(ref, sample);
         } else {
             auto light_sel_pdf = 1.f / m_emitters.size();
@@ -83,10 +83,10 @@ Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
                          (uint32_t) m_emitters.size() - 1);
             sample.x() =
                 (sample.x() - index * light_sel_pdf) * m_emitters.size();
-            std::tie(ds, emitted) =
+            std::tie(ds, spec) =
                 m_emitters[index]->sample_direction(ref, sample);
             ds.pdf *= light_sel_pdf;
-            emitted *= m_emitters.size();
+            spec *= m_emitters.size();
         }
         if (test_visibility && ds.pdf != 0.f) {
             Ray ray(ref.p, ds.d,
@@ -94,12 +94,12 @@ Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
                         (1.f + ref.p.cwiseAbs().maxCoeff()),
                     ds.dist * (1.f - math::ShadowEpsilon<Float>), 0);
             if (ray_test(ray))
-                emitted = Spectrum();
+                spec = Spectrum::Zero();
         }
     } else {
-        emitted = Spectrum();
+        spec = Spectrum::Zero();
     }
-    return { ds, emitted };
+    return { ds, spec };
 }
 
 template <typename Float, typename Spectrum>

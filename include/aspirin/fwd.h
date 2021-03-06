@@ -1,6 +1,5 @@
 #pragma once
 
-#include "array.h"
 #include "bbox.h"
 #include "diagnostic.h"
 #include "distribution.h"
@@ -10,7 +9,7 @@
 #include "platform.h"
 #include "spectrum.h"
 #include "transform.h"
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <filesystem>
 #include <mutex>
 #include <set>

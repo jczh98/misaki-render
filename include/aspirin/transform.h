@@ -1,7 +1,8 @@
 #pragma once
 
 #include "math_helper.h"
-#include <Eigen/Dense>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <sstream>
 
 namespace aspirin {

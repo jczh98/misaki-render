@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <numeric>
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include "math_helper.h"
 
 namespace aspirin::math {

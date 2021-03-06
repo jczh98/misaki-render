@@ -89,27 +89,28 @@ Mesh<Float, Spectrum>::sample_position(const Vector2 &sample_) const {
     Vector2 sample = sample_;
     uint32_t face_idx;
     std::tie(face_idx, sample.y()) = m_area_distr.sample_reuse(sample.y());
-    auto fi                        = face_indices(face_idx);
+    Vector3 fi                     = face_indices(face_idx);
     Vector3 p0 = vertex_position(fi[0]), p1 = vertex_position(fi[1]),
             p2 = vertex_position(fi[2]);
     Vector3 e0 = p1 - p0, e1 = p2 - p0;
-    auto b = warp::square_to_uniform_triangle(sample);
+    Vector2 b = warp::square_to_uniform_triangle(sample);
 
     PositionSample ps;
-    ps.p    = p0 + e0 * b.x() + e1 * b.y();
-    auto uv = b;
+    ps.p       = p0 + e0 * b.x() + e1 * b.y();
+    Vector2 uv = b;
     if (has_vertex_texcoords()) {
         auto uv0 = vertex_texcoord(fi[0]), uv1 = vertex_texcoord(fi[1]),
              uv2 = vertex_texcoord(fi[2]);
         uv       = uv0 * (1.f - b.x() - b.y()) + uv1 * b.x() + uv2 * b.y();
     }
-    auto ng = e0.cross(e1).normalized(), ns = ng;
+    Vector3 ng = e0.cross(e1).normalized(), ns = ng;
     if (has_vertex_normals()) {
         auto n0 = vertex_normal(fi[0]), n1 = vertex_normal(fi[1]),
              n2 = vertex_normal(fi[2]);
         ns =
             (n0 * (1.f - b.x() - b.y()) + n1 * b.x() + n2 * b.y()).normalized();
     }
+    ps.n = ns;
     ps.pdf   = 1.f / m_surface_area;
     ps.delta = false;
     ps.uv    = uv;

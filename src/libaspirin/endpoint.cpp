@@ -46,9 +46,7 @@ void Endpoint<Float, Spectrum>::set_shape(Shape *shape) {
 }
 
 template <typename Float, typename Spectrum>
-void Endpoint<Float, Spectrum>::set_scene(const Scene *scene) {
-    APR_NOT_IMPLEMENTED("set_scene");
-}
+void Endpoint<Float, Spectrum>::set_scene(const Scene *scene) {}
 
 APR_IMPLEMENT_CLASS_VARIANT(Endpoint, Object)
 APR_INSTANTIATE_CLASS(Endpoint)

@@ -4,7 +4,7 @@
 
 #include "math_helper.h"
 #include "string.h"
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 namespace aspirin {
 

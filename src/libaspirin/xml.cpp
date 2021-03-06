@@ -5,9 +5,9 @@
 #include <aspirin/xml.h>
 
 #include <fstream>
+#include <iostream>
 #include <pugixml.hpp>
 #include <sstream>
-#include <iostream>
 
 namespace aspirin::xml {
 
@@ -475,9 +475,9 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                 }
                 Properties props2("srgb");
                 props2.set_color("color", color);
-                // auto obj =
-                // ComponentManager::instance()->create_instance(props2);
-                // props.set_component(node.attribute("name").value(), obj);
+                auto obj = PluginManager::instance()->create_object(
+                    props2, Class::for_name("Texture", ctx.variant));
+                props.set_object(node.attribute("name").value(), obj);
             } break;
             case Tag::Transform: {
                 check_attributes(src, node, { "name" });

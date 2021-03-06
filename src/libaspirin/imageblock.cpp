@@ -1,22 +1,22 @@
 #include <aspirin/imageblock.h>
-#include <tbb/spin_mutex.h>
-
+#include <aspirin/logger.h>
 #include <iostream>
 #include <sstream>
+#include <tbb/spin_mutex.h>
 
 namespace aspirin {
 
 template <typename Float, typename Spectrum>
 ImageBlock<Float, Spectrum>::ImageBlock(const Vector2i &size,
                                         const ReconstructionFilter *filter)
-    : m_offset(Vector2i::Zero()), m_filter(filter) {
+    : m_offset(Vector2i::Zero()), m_filter(filter), m_size(size) {
     if (filter) {
         m_filter_radius  = filter->radius();
         m_border_size    = (int) std::ceil(m_filter_radius - 0.5f);
         m_filter_weights = new Float[APR_FILTER_RESOLUTION + 1];
         for (int i = 0; i < APR_FILTER_RESOLUTION; ++i) {
-            m_filter_weights[i] =
-                filter->eval((m_filter_radius * i) / APR_FILTER_RESOLUTION);
+            m_filter_weights[i] = filter->eval(Float(m_filter_radius * i) /
+                                               APR_FILTER_RESOLUTION);
         }
         m_filter_weights[APR_FILTER_RESOLUTION] = 0.f;
         m_lookup_factor = APR_FILTER_RESOLUTION / m_filter_radius;
@@ -26,7 +26,7 @@ ImageBlock<Float, Spectrum>::ImageBlock(const Vector2i &size,
         memset(m_weight_x, 0, sizeof(Float) * weight_size);
         memset(m_weight_y, 0, sizeof(Float) * weight_size);
     }
-    set_size(size);
+    m_buffer.resize(size.y() + 2 * m_border_size, size.x() + 2 * m_border_size);
 }
 
 template <typename Float, typename Spectrum>
@@ -38,28 +38,12 @@ ImageBlock<Float, Spectrum>::~ImageBlock() {
 
 template <typename Float, typename Spectrum>
 void ImageBlock<Float, Spectrum>::put(const ImageBlock *b) {
-    Vector2i source_size = b->size() + Vector2i::Constant(2 * b->border_size()),
-             target_size = m_size + Vector2i::Constant(2 * border_size());
-
-    Vector2i source_offset = b->offset() - Vector2i::Constant(b->border_size()),
-             target_offset = m_offset - Vector2i::Constant(border_size());
-    target_offset          = source_offset - target_offset;
-    source_offset          = Vector2i::Zero();
+    Vector2i offset = b->offset() - m_offset +
+                      Vector2i::Constant(m_border_size - b->border_size());
     Vector2i size = b->size() + Vector2i::Constant(2 * b->border_size());
-    Vector2i shift =
-        (-source_offset).cwiseMax(-target_offset).cwiseMax(Vector2i::Zero());
-    source_offset += shift;
-    target_offset += shift;
-    size -= (source_offset + size - source_size).cwiseMax(Vector2i::Zero());
-    size -= (target_offset + size - target_size).cwiseMax(Vector2i::Zero());
-
-    std::lock_guard<tbb::spin_mutex> lock(m_mutex);
-    for (int y = 0; y < size.y(); ++y)
-        for (int x = 0; x < size.x(); ++x) {
-            auto dst_x = target_offset.x() + x, dst_y = target_offset.y() + y;
-            auto src_x = source_offset.x() + x, src_y = source_offset.y() + y;
-            m_buffer.at({ dst_y, dst_x }) += b->data().at({ src_y, src_x });
-        }
+    tbb::spin_mutex::scoped_lock lock(m_mutex);
+    m_buffer.block(offset.y(), offset.x(), size.y(), size.x()) +=
+        b->data().topLeftCorner(size.y(), size.x());
 }
 
 template <typename Float, typename Spectrum>
@@ -77,10 +61,6 @@ bool ImageBlock<Float, Spectrum>::put(const Vector2 &pos_,
                       .cwiseMin(m_size +
                                 Vector2i::Constant(2 * m_border_size - 1))
                       .template cast<uint32_t>();
-    //  Vector2u lo = Vector2u(math::cwise_max(math::ceil2int(pos -
-    //  m_filter_radius), 0)),
-    //           hi = Vector2u(math::cwise_min(math::floor2int(pos +
-    //           m_filter_radius), m_size + 2 * m_border_size - 1));
     for (int x = lo.x(), idx = 0; x <= hi.x(); ++x)
         m_weight_x[idx++] =
             m_filter_weights[(int) (std::abs(x - pos.x()) * m_lookup_factor)];
@@ -89,27 +69,20 @@ bool ImageBlock<Float, Spectrum>::put(const Vector2 &pos_,
             m_filter_weights[(int) (std::abs(y - pos.y()) * m_lookup_factor)];
     for (int y = lo.y(), yr = 0; y <= hi.y(); ++y, ++yr)
         for (int x = lo.x(), xr = 0; x <= hi.x(); ++x, ++xr) {
-            m_buffer.at({ y, x }) += Color4(val.r(), val.g(), val.b(), 1.f) *
-                                     m_weight_x[xr] * m_weight_y[yr];
+            m_buffer.coeffRef(y, x) += Color4(val.r(), val.g(), val.b(), 1.f) *
+                                       m_weight_x[xr] * m_weight_y[yr];
         }
     return true;
 }
 
 template <typename Float, typename Spectrum>
 void ImageBlock<Float, Spectrum>::set_size(const Vector2i &size) {
-    if (m_size == size)
-        return;
-    m_size               = size;
-    Vector2i actual_size = m_size + Vector2i::Constant(2 * m_border_size);
-    m_buffer             = Array<Color4, 2>::from_linear_indexed(
-        Vector2i(actual_size.y(), actual_size.x()),
-        [&](int) { return Color4::Zero(); });
+    m_size = size;
 }
 
 template <typename Float, typename Spectrum>
 void ImageBlock<Float, Spectrum>::clear() {
-    m_buffer = Array<Color4, 2>::from_linear_indexed(
-        m_buffer.shape(), [&](int) { return Color4(); });
+    m_buffer.setConstant(Color4::Zero());
 }
 
 template <typename Float, typename Spectrum>
@@ -127,68 +100,53 @@ std::string ImageBlock<Float, Spectrum>::to_string() const {
 
 // Image Block Generator in sprial
 BlockGenerator::BlockGenerator(const Vector2i &size, int block_size)
-    : m_block_size(block_size), m_size(size), m_offset(Vector2i::Zero()) {
-    m_blocks = math::ceil2int(Vector2(Float(m_size.x()) / m_block_size,
-                                      Float(m_size.y()) / m_block_size));
-    m_block_count = m_blocks.prod();
-    reset();
-}
-
-void BlockGenerator::reset() {
-    m_block_counter     = 0;
-    m_current_direction = Direction::Right;
-    m_position          = m_blocks / 2;
-    m_steps_left        = 1;
-    m_steps             = 1;
+    : m_block_size(block_size), m_size(size) {
+    m_num_blocks  = Vector2i((int) std::ceil(size.x() / (float) block_size),
+                            (int) std::ceil(size.y() / (float) block_size));
+    m_blocks_left = m_num_blocks.x() * m_num_blocks.y();
+    m_direction   = Direction::Right;
+    m_block       = m_num_blocks / 2;
+    m_steps_left  = 1;
+    m_num_steps   = 1;
 }
 
 std::tuple<BlockGenerator::Vector2i, BlockGenerator::Vector2i>
 BlockGenerator::next_block() {
     std::lock_guard<tbb::spin_mutex> lock(m_mutex);
 
-    if (m_block_count == m_block_counter) {
+    if (m_blocks_left == 0)
         return { Vector2i::Zero(), Vector2i::Zero() };
-    }
+    Vector2i pos    = m_block * m_block_size;
+    Vector2i offset = pos;
+    Vector2i size   = (m_size - pos).cwiseMin(Vector2i::Constant(m_block_size));
 
-    // Calculate a unique identifer per block
+    if (--m_blocks_left == 0)
+        return { Vector2i::Zero(), Vector2i::Zero() };
 
-    Vector2i offset(m_position * (int) m_block_size);
-    Vector2i size = (m_size - offset)
-                        .cwiseMin(Vector2i::Constant(m_block_size));
-    offset += m_offset;
+    do {
+        switch (m_direction) {
+            case Direction::Right:
+                ++m_block.x();
+                break;
+            case Direction::Down:
+                ++m_block.y();
+                break;
+            case Direction::Left:
+                --m_block.x();
+                break;
+            case Direction::Up:
+                --m_block.y();
+                break;
+        }
 
-    ++m_block_counter;
-
-    if (m_block_counter != m_block_count) {
-        // Prepare the next block's position along the spiral.
-        do {
-            switch (m_current_direction) {
-                case Direction::Right:
-                    ++m_position.x();
-                    break;
-                case Direction::Down:
-                    ++m_position.y();
-                    break;
-                case Direction::Left:
-                    --m_position.x();
-                    break;
-                case Direction::Up:
-                    --m_position.y();
-                    break;
-            }
-
-            if (--m_steps_left == 0) {
-                m_current_direction =
-                    Direction(((int) m_current_direction + 1) % 4);
-                if (m_current_direction == Direction::Left ||
-                    m_current_direction == Direction::Right)
-                    ++m_steps;
-                m_steps_left = m_steps;
-            }
-        } while (
-            (m_position.array() < 0 || m_position.array() >= m_blocks.array())
-                .any());
-    }
+        if (--m_steps_left == 0) {
+            m_direction = (m_direction + 1) % 4;
+            if (m_direction == Left || m_direction == Right)
+                ++m_num_steps;
+            m_steps_left = m_num_steps;
+        }
+    } while ((m_block.array() < 0).any() ||
+             (m_block.array() >= m_num_blocks.array()).any());
 
     return { offset, size };
 }

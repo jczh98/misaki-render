@@ -6,6 +6,7 @@
 #include <aspirin/xml.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <tbb/task_scheduler_init.h>
 
 using namespace aspirin;
 
@@ -15,8 +16,8 @@ bool render(Object *scene_, fs::path filename) {
     if (!scene) {
         Throw("Root element of the input file must be a <scene> tag!");
     }
-    auto sensor     = scene->sensor();
-    auto film       = sensor->film();
+    auto sensor = scene->sensor();
+    auto film   = sensor->film();
     filename.replace_extension("png");
     film->set_destination_file(filename);
     auto integrator = scene->integrator();
@@ -34,7 +35,8 @@ bool render(Object *scene_, fs::path filename) {
 int main(int argc, char **argv) {
     Class::static_initialization();
     library_nop();
-    fs::path path = "../../../assets/bunny/scene.xml";
+    tbb::task_scheduler_init init(1);
+    fs::path path = "../../assets/cbox/scene.xml";
     get_file_resolver()->append(fs::path(argv[0]).parent_path());
     get_file_resolver()->append(path.parent_path());
     try {

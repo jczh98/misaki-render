@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bitmap.h"
 #include "imageblock.h"
 #include "object.h"
 #include "rfilter.h"
@@ -12,10 +13,11 @@ public:
     APR_IMPORT_CORE_TYPES(Float)
     using ReconstructionFilter = ReconstructionFilter<Float, Spectrum>;
     using ImageBlock           = ImageBlock<Float, Spectrum>;
-    
+
     virtual void put(const ImageBlock *block);
     virtual void set_destination_file(const fs::path &filename);
     virtual void develop();
+    virtual std::shared_ptr<Bitmap> bitmap() = 0;
     const Vector2i &size() const { return m_size; }
     const ReconstructionFilter *filter() const { return m_filter; }
 

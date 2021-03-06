@@ -74,7 +74,7 @@ template <typename Float, typename Spectrum> struct BSDFSample {
     uint32_t sampled_component;
 
     BSDFSample()
-        : wo(Vector3(0)), pdf(0.f), eta(1.f), sampled_type(0),
+        : wo(Vector3::Zero()), pdf(0.f), eta(1.f), sampled_type(0),
           sampled_component(-1u) {}
     BSDFSample(const Vector3 &wo)
         : wo(wo), pdf(0.f), eta(1.f), sampled_type(0), sampled_component(-1) {}
@@ -126,6 +126,15 @@ protected:
     std::vector<uint32_t> m_components;
     std::string m_id;
 };
+
+template <typename Float, typename Spectrum>
+typename SurfaceInteraction<Float, Spectrum>::BSDFPtr
+SurfaceInteraction<Float, Spectrum>::bsdf(
+    const typename SurfaceInteraction<Float, Spectrum>::Ray &ray) {
+    const BSDFPtr bsdf = shape->bsdf();
+
+    return bsdf;
+}
 
 APR_EXTERN_CLASS(BSDF)
 } // namespace aspirin

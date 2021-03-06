@@ -6,6 +6,7 @@
 #include <aspirin/properties.h>
 #include <aspirin/shape.h>
 #include <aspirin/records.h>
+#include <iostream>
 
 namespace aspirin {
 

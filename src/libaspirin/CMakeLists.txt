@@ -9,7 +9,7 @@ add_library(aspirin-render SHARED
         properties.cpp
         logger.cpp
         imageblock.cpp
-        imageio.cpp
+        bitmap.cpp
         fresolver.cpp
         xml.cpp
         endpoint.cpp
@@ -24,6 +24,7 @@ add_library(aspirin-render SHARED
         integrator.cpp
         scene.cpp
         texture.cpp
+        utils.cpp
 
         samplers/independent.cpp
         bsdfs/diffuse.cpp
@@ -33,7 +34,7 @@ add_library(aspirin-render SHARED
         sensors/perspective.cpp
         filters/gaussian.cpp
         films/rgbfilm.cpp
-        integrators/debug.cpp
+        integrators/debug.cpp integrators/path.cpp
         )
 
 target_link_libraries(aspirin-render PUBLIC
@@ -43,6 +44,7 @@ target_link_libraries(aspirin-render PUBLIC
         TBB::tbb
         OpenImageIO::OpenImageIO OpenImageIO::OpenImageIO_Util
         embree
+        ${STB_INCLUDE_DIRS}
         )
 
 set_output_dir(aspirin-render)

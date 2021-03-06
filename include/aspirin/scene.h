@@ -2,9 +2,11 @@
 
 #include <optional>
 
+#include "emitter.h"
 #include "fwd.h"
 #include "object.h"
 #include "ray.h"
+#include "sensor.h"
 
 namespace aspirin {
 
@@ -63,6 +65,16 @@ protected:
     ref<Emitter> m_environment;
     BoundingBox3 m_bbox;
 };
+
+// See interaction.h
+template <typename Float, typename Spectrum>
+typename SurfaceInteraction<Float, Spectrum>::EmitterPtr
+SurfaceInteraction<Float, Spectrum>::emitter(const Scene *scene) const {
+    if (is_valid())
+        return shape->emitter();
+    else
+        return scene->environment();
+}
 
 extern APR_EXPORT void library_nop();
 

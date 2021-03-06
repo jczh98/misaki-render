@@ -15,6 +15,8 @@ public:
     APR_IMPORT_CORE_TYPES(Float)
 
     using ReconstructionFilter = ReconstructionFilter<Float, Spectrum>;
+    using DynamicBuffer =
+        Eigen::Array<Color4, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
     ImageBlock(const Vector2i &size,
                const ReconstructionFilter *filter = nullptr);
@@ -37,13 +39,13 @@ public:
     const Vector2i &size() const { return m_size; }
     int border_size() const { return m_border_size; }
 
-    Array<Color4, 2> &data() { return m_buffer; }
-    const Array<Color4, 2> &data() const { return m_buffer; }
+    DynamicBuffer &data() { return m_buffer; }
+    const DynamicBuffer &data() const { return m_buffer; }
 
     APR_DECLARE_CLASS()
 
 protected:
-    Array<Color4, 2> m_buffer;
+    DynamicBuffer m_buffer;
     const ReconstructionFilter *m_filter;
     Vector2i m_offset, m_size;
     int m_border_size       = 0;
@@ -51,7 +53,7 @@ protected:
     Float m_filter_radius   = 0;
     Float *m_weight_x = nullptr, *m_weight_y = nullptr;
     Float m_lookup_factor = 0;
-    tbb::spin_mutex m_mutex;
+    mutable tbb::spin_mutex m_mutex;
 };
 
 class APR_EXPORT BlockGenerator : public Object {
@@ -61,19 +63,16 @@ public:
 
     BlockGenerator(const Vector2i &size, int block_size);
     size_t max_block_size() const { return m_block_size; }
-    size_t block_count() const { return m_block_count; }
-    void reset();
+    size_t block_count() const { return m_blocks_left; }
     // Return the `offset` and `size`
     std::tuple<Vector2i, Vector2i> next_block();
 
     APR_DECLARE_CLASS()
 protected:
-    enum class Direction { Right = 0, Down, Left, Up };
-    size_t m_block_counter, m_block_count, m_block_size;
-    Vector2i m_size, m_offset, m_blocks;
-    Vector2i m_position; // Relative position of current block
-    Direction m_current_direction;
-    int m_steps_left, m_steps;
+    enum Direction { Right = 0, Down, Left, Up };
+    Vector2i m_block, m_size, m_num_blocks;
+    int m_block_size, m_num_steps, m_blocks_left, m_steps_left;
+    int m_direction;
     tbb::spin_mutex m_mutex;
 };
 

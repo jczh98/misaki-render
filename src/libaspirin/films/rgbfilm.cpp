@@ -1,6 +1,5 @@
 #include <aspirin/film.h>
 #include <aspirin/imageblock.h>
-#include <aspirin/imageio.h>
 #include <aspirin/properties.h>
 
 #include <fstream>
@@ -12,39 +11,41 @@ class RGBFilm final : public Film<Float, Spectrum> {
 public:
     APR_IMPORT_CORE_TYPES(Float)
     using Base = Film<Float, Spectrum>;
+    using Base::filter;
     using Base::m_size;
     using typename Base::ImageBlock;
 
     RGBFilm(const Properties &props) : Base(props) {
-        m_storage = std::make_unique<ImageBlock>(m_size);
+        m_storage = new ImageBlock(m_size, filter());
         m_storage->clear();
     }
 
     void put(const ImageBlock *block) override {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        tbb::spin_mutex::scoped_lock lock(m_mutex);
         m_storage->put(block);
     }
 
-    void develop() override {
-        auto to_srgb = [&](Float value) {
-            if (value <= 0.0031308f)
-                return 12.92f * value;
+    std::shared_ptr<Bitmap> bitmap() override {
+        auto divide_by_filter_weight = [&](Color4 v) {
+            Color3 rgb;
+            if (v.w() != 0)
+                rgb = v.template head<3>() / v.w();
             else
-                return (1.0f + 0.055f) * std::pow(value, 1.0f / 2.4f) - 0.055f;
+                rgb = Color3::Zero();
+            return rgb;
         };
-        auto bitmap = Array<Color3, 2>::from_linear_indexed(
-            m_storage->data().shape(), [&](int i) {
-                Color4 rgba = m_storage->data().raw_data()[i];
-                Color3 rgb;
-                if (rgba.w() != 0)
-                    rgb = rgba.template head<3>() / rgba.w();
-                else
-                    rgb = Color3::Zero();
-                return Color3(to_srgb(rgb.x()), to_srgb(rgb.y()),
-                              to_srgb(rgb.z()));
-            });
-        auto another = m_dest_file;
-        write_float_rgb_image(m_dest_file.string(), bitmap);
+        auto result = std::make_shared<Bitmap>(m_size);
+        for (int y = 0; y < m_size.y(); ++y)
+            for (int x = 0; x < m_size.x(); ++x)
+                result->coeffRef(y, x) = divide_by_filter_weight(
+                    m_storage->data().coeff(y + m_storage->border_size(),
+                                            x + m_storage->border_size()));
+        return result;
+    }
+
+    void develop() override {
+        fs::path filename = m_dest_file;
+        bitmap()->write(filename.string());
     }
 
     void set_destination_file(const fs::path &filename) override {
@@ -53,9 +54,9 @@ public:
 
     APR_DECLARE_CLASS()
 private:
-    std::unique_ptr<ImageBlock> m_storage;
+    ref<ImageBlock> m_storage;
     fs::path m_dest_file;
-    std::mutex m_mutex;
+    tbb::spin_mutex m_mutex;
 };
 
 APR_IMPLEMENT_CLASS_VARIANT(RGBFilm, Film)
