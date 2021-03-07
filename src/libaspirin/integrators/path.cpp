@@ -23,6 +23,7 @@ public:
     using typename Base::Scene;
     using typename Base::Sensor;
     using Ray                = Ray<Float, Spectrum>;
+    using RayDifferential    = RayDifferential<Float, Spectrum>;
     using ImageBlock         = ImageBlock<Float, Spectrum>;
     using Sampler            = Sampler<Float, Spectrum>;
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
@@ -43,30 +44,14 @@ public:
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, total_blocks, 1),
             [&](const tbb::blocked_range<size_t> &range) {
-                auto sampler = sensor->sampler()->clone();
-                ref<ImageBlock> block   = new ImageBlock(
+                auto sampler          = sensor->sampler()->clone();
+                ref<ImageBlock> block = new ImageBlock(
                     Vector2i::Constant(m_block_size), film->filter());
                 for (auto i = range.begin(); i != range.end(); ++i) {
                     auto [offset, size] = gen.next_block();
                     block->set_offset(offset);
                     block->set_size(size);
-                    block->clear();
-                    for (int y = 0; y < size.y(); ++y) {
-                        for (int x = 0; x < size.x(); ++x) {
-                            Vector2 pos = Vector2(x, y);
-                            if (pos.x() >= size.x() || pos.y() >= size.y())
-                                continue;
-                            pos = pos + offset.template cast<Float>();
-                            for (int s = 0; s < total_spp; ++s) {
-                                auto position_sample = pos + sampler->next2d();
-                                auto [ray, ray_weight] =
-                                    sensor->sample_ray(position_sample);
-                                auto result = sample(scene, sampler.get(), ray);
-                                if (result)
-                                    block->put(position_sample, *result);
-                            }
-                        }
-                    }
+                    render_block(scene, sensor, sampler, block, total_spp);
                     film->put(block);
                     pbar.update();
                 }
@@ -77,9 +62,42 @@ public:
         return true;
     }
 
+    void render_block(const Scene *scene, const Sensor *sensor,
+                      Sampler *sampler, ImageBlock *block,
+                      size_t sample_count) const {
+        block->clear();
+        auto &size              = block->size();
+        auto &offset            = block->offset();
+        Float diff_scale_factor = Float(1) / std::sqrt(sample_count);
+        for (int y = 0; y < size.y(); ++y) {
+            for (int x = 0; x < size.x(); ++x) {
+                Vector2 pos = Vector2(x, y);
+                if (pos.x() >= size.x() || pos.y() >= size.y())
+                    continue;
+                pos = pos + offset.template cast<Float>();
+                for (int s = 0; s < sample_count; ++s) {
+                    render_sample(scene, sensor, sampler, block, pos,
+                                  diff_scale_factor);
+                }
+            }
+        }
+    }
+
+    void render_sample(const Scene *scene, const Sensor *sensor,
+                       Sampler *sampler, ImageBlock *block, const Vector2 &pos,
+                       Float diff_scale_factor) const {
+        auto position_sample = pos + sampler->next2d();
+        auto [ray, ray_weight] =
+            sensor->sample_ray_differential(position_sample);
+        ray.scale_differential(diff_scale_factor);
+        auto result = sample(scene, sampler, ray);
+        if (result)
+            block->put(position_sample, *result);
+    }
+
     std::optional<Color3> sample(const Scene *scene, Sampler *sampler,
-                                 const Ray &ray_) const {
-        auto ray          = ray_;
+                                 const RayDifferential &ray_) const {
+        RayDifferential ray = ray_;
         Color3 throughput = Spectrum::Constant(1.f), result = Spectrum::Zero();
         Float emission_weight = 1.f, eta = 1.f;
         SurfaceInteraction si = scene->ray_intersect(ray);

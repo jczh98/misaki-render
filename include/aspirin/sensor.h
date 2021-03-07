@@ -14,11 +14,14 @@ class APR_EXPORT Sensor : public Endpoint<Float, Spectrum> {
 public:
     APR_IMPORT_CORE_TYPES(Float)
     using Base = Endpoint<Float, Spectrum>;
+    using Base::sample_ray;
     using typename Base::Ray;
-    using Film    = Film<Float, Spectrum>;
-    using Sampler = Sampler<Float, Spectrum>;
+    using RayDifferential = RayDifferential<Float, Spectrum>;
+    using Film            = Film<Float, Spectrum>;
+    using Sampler         = Sampler<Float, Spectrum>;
 
-    Sensor(const Properties &);
+    virtual std::pair<RayDifferential, Spectrum>
+    sample_ray_differential(const Vector2 &sample2) const;
 
     Film *film() { return m_film; }
     const Film *film() const { return m_film; }
@@ -26,6 +29,11 @@ public:
     const Sampler *sampler() const { return m_sampler; }
 
     APR_DECLARE_CLASS()
+protected:
+    Sensor(const Properties &);
+
+    virtual ~Sensor();
+
 protected:
     ref<Film> m_film;
     ref<Sampler> m_sampler;
@@ -38,12 +46,16 @@ class APR_EXPORT ProjectiveCamera : public Sensor<Float, Spectrum> {
 public:
     APR_IMPORT_CORE_TYPES(Float)
 
-    ProjectiveCamera(const Properties &props);
     Float near_clip() const { return m_near_clip; }
     Float far_clip() const { return m_far_clip; }
     Float focus_distance() const { return m_focus_distance; }
 
     APR_DECLARE_CLASS()
+protected:
+    ProjectiveCamera(const Properties &props);
+
+    virtual ~ProjectiveCamera();
+
 protected:
     Float m_near_clip, m_far_clip, m_focus_distance;
 };

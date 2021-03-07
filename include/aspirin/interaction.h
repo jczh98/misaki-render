@@ -34,12 +34,14 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
     APR_IMPORT_CORE_TYPES(Float_)
     using Base = Interaction<Float, Spectrum>;
     using Base::is_valid;
+    using Base::p;
     using typename Base::Ray;
-    using Emitter        = Emitter<Float, Spectrum>;
-    using BSDF           = BSDF<Float, Spectrum>;
-    using Shape          = Shape<Float, Spectrum>;
-    using PositionSample = PositionSample<Float, Spectrum>;
-    using Scene          = Scene<Float, Spectrum>;
+    using Emitter         = Emitter<Float, Spectrum>;
+    using BSDF            = BSDF<Float, Spectrum>;
+    using Shape           = Shape<Float, Spectrum>;
+    using PositionSample  = PositionSample<Float, Spectrum>;
+    using Scene           = Scene<Float, Spectrum>;
+    using RayDifferential = RayDifferential<Float, Spectrum>;
 
     using ShapePtr   = const Shape *;
     using EmitterPtr = const Emitter *;
@@ -84,9 +86,43 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
         sh_frame.t           = sh_frame.n.cross(sh_frame.s);
     }
 
+    void compute_uv_partials(const RayDifferential &ray) {
+        if (!ray.has_differentials)
+            return;
+        Float d = n.dot(p), t_x = (d - n.dot(ray.o_x)) / n.dot(ray.d_x),
+              t_y = (d - n.dot(ray.o_y)) / n.dot(ray.d_y);
+
+        Vector3 dp_dx = ray.d_x * t_x + ray.o_x - p,
+                dp_dy = ray.d_y * t_y + ray.o_y - p;
+
+        Float a00 = dp_du.dot(dp_du), a01 = dp_du.dot(dp_dv),
+              a11     = dp_dv.dot(dp_dv),
+              inv_det = Float(1) / (a00 * a11 - a01 * a01);
+
+        Float b0x = dp_du.dot(dp_dx), b1x = dp_dv.dot(dp_dx),
+              b0y = dp_du.dot(dp_dy), b1y = dp_dv.dot(dp_dy);
+
+        inv_det = std::isfinite(inv_det) ? inv_det : 0.f;
+
+        duv_dx =
+            Vector2(a11 * b0x - a01 * b1x, a00 * b1x - a01 * b0x) * inv_det;
+        duv_dy =
+            Vector2(a11 * b0y - a01 * b1y, a00 * b1y - a01 * b0y) * inv_det;
+    }
+
+    /// Check whether uv partials exists
+    bool has_uv_partials() const {
+        return (duv_dx.array() != 0.f || duv_dy.array() != 0.f).any();
+    }
+
+    /// Check whether normal partials exists
+    bool has_n_partials() const {
+        return (dn_du.array() != 0.f || dn_dv.array() != 0.f).any();
+    }
+
     EmitterPtr emitter(const Scene *scene) const;
 
-    BSDFPtr bsdf(const Ray &ray);
+    BSDFPtr bsdf(const RayDifferential &ray);
     BSDFPtr bsdf() const { return shape->bsdf(); }
 };
 

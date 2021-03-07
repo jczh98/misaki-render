@@ -20,6 +20,7 @@ enum class BSDFFlags : uint32_t {
     GlossyTransmission  = 0x0010,
     DeltaReflection     = 0x0020,
     DeltaTransmission   = 0x00040,
+    NeedsDifferentials  = 0x20000,
     Reflection   = DiffuseReflection | GlossyReflection | DeltaReflection,
     Diffuse      = DiffuseReflection | DiffuseTransmission,
     Transmission = DiffuseTransmission | GlossyTransmission | DeltaTransmission,
@@ -103,6 +104,11 @@ public:
     virtual Float pdf(const BSDFContext &ctx, const SurfaceInteraction &si,
                       const Vector3 &wo) const = 0;
 
+    /// Does the implementation require access to texture-space differentials?
+    bool needs_differentials() const {
+        return has_flag(m_flags, BSDFFlags::NeedsDifferentials);
+    }
+
     uint32_t flags() const { return m_flags; }
 
     uint32_t flags(size_t i) const {
@@ -130,9 +136,12 @@ protected:
 template <typename Float, typename Spectrum>
 typename SurfaceInteraction<Float, Spectrum>::BSDFPtr
 SurfaceInteraction<Float, Spectrum>::bsdf(
-    const typename SurfaceInteraction<Float, Spectrum>::Ray &ray) {
+    const typename SurfaceInteraction<Float, Spectrum>::RayDifferential &ray) {
     const BSDFPtr bsdf = shape->bsdf();
 
+    if (!has_uv_partials() && bsdf->needs_differentials()) {
+        compute_uv_partials(ray);
+    }
     return bsdf;
 }
 
