@@ -15,6 +15,8 @@ public:
     using typename Base::DirectionSample;
     using typename Base::Emitter;
     using typename Base::PositionSample;
+    using typename Base::PreliminaryIntersection;
+    using typename Base::Ray;
     using typename Base::Sensor;
     using typename Base::SurfaceInteraction;
 
@@ -75,8 +77,9 @@ public:
     sample_position(const Vector2 &sample) const override;
     virtual Float pdf_position(const PositionSample &ps) const override;
 
-    virtual std::tuple<Vector3, Vector3, Vector3, Vector2>
-    compute_surface_point(int prim_index, const Vector2 &uv) const override;
+    virtual SurfaceInteraction
+    compute_surface_interaction(const Ray &ray,
+                                PreliminaryIntersection pi) const override;
 
     void area_distr_build();
 

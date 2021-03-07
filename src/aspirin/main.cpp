@@ -35,7 +35,6 @@ bool render(Object *scene_, fs::path filename) {
 int main(int argc, char **argv) {
     Class::static_initialization();
     library_nop();
-    tbb::task_scheduler_init init(1);
     fs::path path = "../../assets/cbox/scene.xml";
     get_file_resolver()->append(fs::path(argv[0]).parent_path());
     get_file_resolver()->append(path.parent_path());

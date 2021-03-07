@@ -48,9 +48,23 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
     ShapePtr shape = nullptr;
     Vector2 uv;
     Vector3 n;
+
+    /// Local shading frame
     Frame3 sh_frame;
+
+    /// Incident direction in local shading frame
     Vector3 wi;
+
     uint32_t prim_index;
+
+    /// Position partials wrt. the UV parameterization
+    Vector3 dp_du, dp_dv;
+
+    /// Normal partials wrt. the UV parameterization
+    Vector3 dn_du, dn_dv;
+
+    /// UV partials wrt. screen displacement
+    Vector2 duv_dx, duv_dy;
 
     SurfaceInteraction()
         : Interaction<Float, Spectrum>(), sh_frame(Frame3(Vector3::Zero())) {}
@@ -63,10 +77,52 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
 
     Vector3 to_local(const Vector3 &v) const { return sh_frame.to_local(v); }
 
+    /// Initialize local shading frame using Gram-schmidt orthogonalization
+    void initialize_sh_frame() {
+        Vector3 face_forward = -sh_frame.n * sh_frame.n.dot(dp_du) + dp_du;
+        sh_frame.s           = face_forward.normalized();
+        sh_frame.t           = sh_frame.n.cross(sh_frame.s);
+    }
+
     EmitterPtr emitter(const Scene *scene) const;
 
     BSDFPtr bsdf(const Ray &ray);
     BSDFPtr bsdf() const { return shape->bsdf(); }
+};
+
+template <typename Float_, typename Spectrum_> struct PreliminaryIntersection {
+    using Float    = Float_;
+    using Spectrum = Spectrum_;
+    APR_IMPORT_CORE_TYPES(Float_)
+    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
+    using Ray                = Ray<Float, Spectrum>;
+    using ShapePtr           = const Shape<Float, Spectrum> *;
+
+    Float t = math::Infinity<Float>;
+
+    Vector2 prim_uv;
+
+    uint32_t prim_index;
+
+    uint32_t shape_index;
+
+    ShapePtr shape = nullptr;
+
+    bool is_valid() const { return t != math::Infinity<Float>; }
+
+    SurfaceInteraction compute_surface_interaction(const Ray &ray) {
+        SurfaceInteraction si = shape->compute_surface_interaction(ray, *this);
+        if (si.is_valid()) {
+            si.prim_index = prim_index;
+            si.shape      = shape;
+            si.wi         = si.to_local(-ray.d);
+            si.initialize_sh_frame();
+        } else {
+            si.t  = math::Infinity<Float>;
+            si.wi = -ray.d;
+        }
+        return si;
+    }
 };
 
 } // namespace aspirin

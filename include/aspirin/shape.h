@@ -2,6 +2,7 @@
 
 #include "fwd.h"
 #include "object.h"
+#include "records.h"
 #if defined(APR_ENABLE_EMBREE)
 #include <embree3/rtcore.h>
 #endif
@@ -12,13 +13,15 @@ template <typename Float, typename Spectrum>
 class APR_EXPORT Shape : public Object {
 public:
     APR_IMPORT_CORE_TYPES(Float)
-    using Sensor             = Sensor<Float, Spectrum>;
-    using BSDF               = BSDF<Float, Spectrum>;
-    using Emitter            = Emitter<Float, Spectrum>;
-    using Interaction        = Interaction<Float, Spectrum>;
-    using PositionSample     = PositionSample<Float, Spectrum>;
-    using DirectionSample    = DirectionSample<Float, Spectrum>;
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
+    using Ray                     = Ray<Float, Spectrum>;
+    using Sensor                  = Sensor<Float, Spectrum>;
+    using BSDF                    = BSDF<Float, Spectrum>;
+    using Emitter                 = Emitter<Float, Spectrum>;
+    using Interaction             = Interaction<Float, Spectrum>;
+    using PositionSample          = PositionSample<Float, Spectrum>;
+    using DirectionSample         = DirectionSample<Float, Spectrum>;
+    using SurfaceInteraction      = SurfaceInteraction<Float, Spectrum>;
+    using PreliminaryIntersection = PreliminaryIntersection<Float, Spectrum>;
 
     virtual PositionSample sample_position(const Vector2 &sample) const;
     virtual Float pdf_position(const PositionSample &ps) const;
@@ -28,13 +31,11 @@ public:
     virtual Float pdf_direction(const Interaction &it,
                                 const DirectionSample &ds) const;
 
-    // Returns position, geometry normal, shading normal, texcoords
-    virtual std::tuple<Vector3, Vector3, Vector3, Vector2>
-    compute_surface_point(int prim_index, const Vector2 &uv) const;
+    virtual SurfaceInteraction
+    compute_surface_interaction(const Ray &ray,
+                                PreliminaryIntersection pi) const;
 
-    bool is_mesh() const {
-        return m_is_mesh;
-    }
+    bool is_mesh() const { return m_is_mesh; }
 
     const BSDF *bsdf() const { return m_bsdf; }
     BSDF *bsdf() { return m_bsdf; }

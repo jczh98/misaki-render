@@ -4,8 +4,8 @@
 #include <aspirin/logger.h>
 #include <aspirin/plugin.h>
 #include <aspirin/properties.h>
-#include <aspirin/shape.h>
 #include <aspirin/records.h>
+#include <aspirin/shape.h>
 #include <iostream>
 
 namespace aspirin {
@@ -96,12 +96,9 @@ Float Shape<Float, Spectrum>::surface_area() const {
 }
 
 template <typename Float, typename Spectrum>
-std::tuple<typename Shape<Float, Spectrum>::Vector3,
-           typename Shape<Float, Spectrum>::Vector3,
-           typename Shape<Float, Spectrum>::Vector3,
-           typename Shape<Float, Spectrum>::Vector2>
-Shape<Float, Spectrum>::compute_surface_point(int prim_index,
-                                              const Vector2 &uv) const {
+typename Shape<Float, Spectrum>::SurfaceInteraction
+Shape<Float, Spectrum>::compute_surface_interaction(
+    const Ray &ray, PreliminaryIntersection pi) const {
     APR_NOT_IMPLEMENTED("compute_surface_point");
 }
 

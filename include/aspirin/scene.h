@@ -14,14 +14,15 @@ template <typename Float, typename Spectrum>
 class APR_EXPORT Scene : public Object {
 public:
     APR_IMPORT_CORE_TYPES(Float)
-    using Ray                = Ray<Float, Spectrum>;
-    using Interaction        = Interaction<Float, Spectrum>;
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
-    using DirectionSample    = DirectionSample<Float, Spectrum>;
-    using Sensor             = Sensor<Float, Spectrum>;
-    using Integrator         = Integrator<Float, Spectrum>;
-    using Emitter            = Emitter<Float, Spectrum>;
-    using Shape              = Shape<Float, Spectrum>;
+    using Ray                     = Ray<Float, Spectrum>;
+    using Interaction             = Interaction<Float, Spectrum>;
+    using PreliminaryIntersection = PreliminaryIntersection<Float, Spectrum>;
+    using SurfaceInteraction      = SurfaceInteraction<Float, Spectrum>;
+    using DirectionSample         = DirectionSample<Float, Spectrum>;
+    using Sensor                  = Sensor<Float, Spectrum>;
+    using Integrator              = Integrator<Float, Spectrum>;
+    using Emitter                 = Emitter<Float, Spectrum>;
+    using Shape                   = Shape<Float, Spectrum>;
 
     Scene(const Properties &props);
 

@@ -95,6 +95,7 @@ template <typename Float, typename Spectrum> class Volume;
 template <typename Float, typename Spectrum> struct DirectionSample;
 template <typename Float, typename Spectrum> struct PositionSample;
 template <typename Float, typename Spectrum> struct Interaction;
+template <typename Float, typename Spectrum> struct PreliminaryIntersection;
 template <typename Float, typename Spectrum> struct SurfaceInteraction;
 template <typename Float, typename Spectrum> struct MediumInteraction;
 template <typename Float, typename Spectrum> struct BSDFSample;

@@ -4,6 +4,7 @@
 #include <aspirin/mesh.h>
 #include <aspirin/properties.h>
 #include <aspirin/warp.h>
+#include <iostream>
 
 namespace aspirin {
 
@@ -52,35 +53,57 @@ void Mesh<Float, Spectrum>::area_distr_build() {
 }
 
 template <typename Float, typename Spectrum>
-std::tuple<typename Mesh<Float, Spectrum>::Vector3,
-           typename Mesh<Float, Spectrum>::Vector3,
-           typename Mesh<Float, Spectrum>::Vector3,
-           typename Mesh<Float, Spectrum>::Vector2>
-Mesh<Float, Spectrum>::compute_surface_point(int prim_index,
-                                             const Vector2 &bary) const {
-    Float b1 = bary.x(), b2 = bary.y(), b0 = 1.f - b1 - b2;
-    auto fi    = face_indices(prim_index);
+typename Mesh<Float, Spectrum>::SurfaceInteraction
+Mesh<Float, Spectrum>::compute_surface_interaction(
+    const Ray &ray, PreliminaryIntersection pi) const {
+    Float b1 = pi.prim_uv.x(), b2 = pi.prim_uv.y(), b0 = 1.f - b1 - b2;
+    auto fi    = face_indices(pi.prim_index);
     Vector3 p0 = vertex_position(fi[0]), p1 = vertex_position(fi[1]),
-            p2 = vertex_position(fi[2]);
+            p2  = vertex_position(fi[2]);
+    Vector3 dp0 = p1 - p0, dp1 = p2 - p0;
 
-    Vector3 p  = p0 * b0 + p1 * b1 + p2 * b2;
-    auto n     = (p1 - p0).cross(p2 - p0).normalized();
-    Vector3 ng = n;
-    Vector3 ns = n;
-    Vector2 uv = bary;
+    SurfaceInteraction si;
+    if (!pi.is_valid()) {
+        si.t = math::Infinity<Float>;
+        return si;
+    }
+    si.t                         = pi.t;
+    si.p                         = p0 * b0 + p1 * b1 + p2 * b2;
+    si.n                         = dp0.cross(dp1).normalized();
+    si.uv                        = pi.prim_uv;
+    std::tie(si.dp_du, si.dp_dv) = coordinate_system(si.n);
     if (has_vertex_texcoords()) {
         Vector2 uv0 = vertex_texcoord(fi[0]), uv1 = vertex_texcoord(fi[1]),
-                uv2         = vertex_texcoord(fi[2]);
-        auto intepolated_uv = uv0 * b0 + uv1 * b1 + uv2 * b2;
-        uv                  = intepolated_uv;
+                uv2 = vertex_texcoord(fi[2]);
+        si.uv       = uv0 * b0 + uv1 * b1 + uv2 * b2;
+        // Compute position partials wrt. the UV parameterization
+        Vector2 duv0 = uv1 - uv0, duv1 = uv2 - uv0;
+        Float det     = duv0.x() * duv1.y() - duv0.y() * duv1.x(),
+              inv_det = 1.f / det;
+        if (det != 0.f) {
+            si.dp_du = (duv1.y() * dp0 - duv0.y() * dp1) * inv_det;
+            si.dp_dv = (-duv1.x() * dp0 + duv0.x() * dp1) * inv_det;
+        }
     }
     if (has_vertex_normals()) {
         Vector3 n0 = vertex_normal(fi[0]), n1 = vertex_normal(fi[1]),
-                n2 = vertex_normal(fi[2]);
-        auto ns_   = (n0 * b0 + n1 * b1 + n2 * b2).normalized();
-        ns         = ns_;
+                n2    = vertex_normal(fi[2]);
+        si.sh_frame.n = (n0 * b0 + n1 * b1 + n2 * b2).normalized();
+        si.dn_du = si.dn_dv = Vector3::Zero();
+        // Compute the normal partials wrt. [u, v] in local tangent space
+        Vector3 N = b0 * n1 + b1 * n2 + b2 * n0;
+        Float il  = Float(1) / std::sqrt(N.squaredNorm());
+        N *= il;
+
+        si.dn_du = (n1 - n0) * il;
+        si.dn_dv = (n2 - n0) * il;
+
+        si.dn_du = -N * N.dot(si.dn_du) + si.dn_du;
+        si.dn_dv = -N * N.dot(si.dn_dv) + si.dn_dv;
+    } else {
+        si.sh_frame.n = si.n;
     }
-    return { p, ng, ns, uv };
+    return si;
 }
 
 template <typename Float, typename Spectrum>
@@ -110,7 +133,7 @@ Mesh<Float, Spectrum>::sample_position(const Vector2 &sample_) const {
         ns =
             (n0 * (1.f - b.x() - b.y()) + n1 * b.x() + n2 * b.y()).normalized();
     }
-    ps.n = ns;
+    ps.n     = ns;
     ps.pdf   = 1.f / m_surface_area;
     ps.delta = false;
     ps.uv    = uv;

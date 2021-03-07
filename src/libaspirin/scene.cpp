@@ -9,6 +9,7 @@
 #include <aspirin/scene.h>
 #include <aspirin/sensor.h>
 #include <aspirin/shape.h>
+#include <iostream>
 
 namespace aspirin {
 
@@ -74,8 +75,7 @@ Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
     Vector2 sample(sample_);
     if (!m_emitters.empty()) {
         if (m_emitters.size() == 1) {
-            std::tie(ds, spec) =
-                m_emitters[0]->sample_direction(ref, sample);
+            std::tie(ds, spec) = m_emitters[0]->sample_direction(ref, sample);
         } else {
             auto light_sel_pdf = 1.f / m_emitters.size();
             auto index =
@@ -162,20 +162,21 @@ Scene<Float, Spectrum>::ray_intersect(const Ray &ray) const {
     if (rh.ray.tfar != ray.maxt) {
         uint32_t shape_index = rh.hit.geomID;
         uint32_t prim_index  = rh.hit.primID;
-        auto [p, ng, ns, uv] = m_shapes[shape_index]->compute_surface_point(
-            prim_index, { rh.hit.u, rh.hit.v });
-        si.t        = rh.ray.tfar;
-        si.p        = p;
-        si.n        = ng;
-        si.sh_frame = Frame3(ns);
-        si.uv       = uv;
-        si.wi       = si.to_local(-ray.d);
-        si.shape    = m_shapes[shape_index].get();
-        return si;
+
+        PreliminaryIntersection pi;
+        pi.shape_index = shape_index;
+        pi.shape       = m_shapes[shape_index];
+
+        pi.t          = rh.ray.tfar;
+        pi.prim_index = prim_index;
+        pi.prim_uv    = Vector2(rh.hit.u, rh.hit.v);
+
+        si = pi.compute_surface_interaction(ray);
     } else {
         si.wi = -ray.d;
-        return si;
+        si.t  = math::Infinity<Float>;
     }
+    return si;
 }
 
 template <typename Float, typename Spectrum>
