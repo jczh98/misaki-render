@@ -103,7 +103,9 @@ public:
         } else if (p_type == Properties::Type::Float) {
             Properties props("srgb");
             props.set_color("color", Color3::Constant(get_float(name)));
-            return (Texture *) PluginManager::instance()->create_object<Texture>(props).get();
+            return (Texture *) PluginManager::instance()
+                ->create_object<Texture>(props)
+                .get();
         } else {
             Throw("The property \"{}\" has the wrong type (expected "
                   " <spectrum> or <texture>).",
@@ -113,21 +115,80 @@ public:
 
     template <typename Texture>
     ref<Texture> texture(const std::string &name,
-                                     std::shared_ptr<Texture> &def_val) const {
+                         std::shared_ptr<Texture> &def_val) const {
         if (!has_property(name))
             return def_val;
         return texture<Texture>(name);
     }
 
     template <typename Texture>
-    ref<Texture> texture(const std::string &name,
-                                     Float def_val) const {
+    ref<Texture> texture(const std::string &name, Float def_val) const {
         if (!has_property(name)) {
             Properties props("srgb");
             props.set_color("color", Color3::Constant(def_val));
-            return (Texture *) PluginManager::instance()->create_object<Texture>(props).get();
+            return (Texture *) PluginManager::instance()
+                ->create_object<Texture>(props)
+                .get();
         }
         return texture<Texture>(name);
+    }
+
+    /// Retrieve a 3D texture
+    template <typename Volume>
+    ref<Volume> volume(const std::string &name) const {
+
+        if (!has_property(name))
+            Throw("Property \"%s\" has not been specified!", name);
+
+        auto p_type = type(name);
+        if (p_type == Properties::Type::Object) {
+            ref<Object> object = find_object(name);
+            if (!object->clazz()->derives_from(APR_CLASS(Volume::Texture)) &&
+                !object->clazz()->derives_from(APR_CLASS(Volume)))
+                Throw("The property \"{}\" has the wrong type (expected "
+                      " <spectrum>, <texture>. or <volume>).",
+                      name);
+
+            if (object->clazz()->derives_from(APR_CLASS(Volume))) {
+                return (Volume *) object.get();
+            } else {
+                Properties props("constvolume");
+                props.set_object("color", object);
+                return (Volume *) PluginManager::instance()
+                    ->create_object<Volume>(props)
+                    .get();
+            }
+        } else if (p_type == Properties::Type::Float) {
+            Properties props("constvolume");
+            props.set_float("color", get_float(name));
+            return (Volume *) PluginManager::instance()
+                ->create_object<Volume>(props)
+                .get();
+        } else {
+            Throw("The property \"{}\" has the wrong type (expected "
+                  " <spectrum>, <texture> or <volume>).",
+                  name);
+        }
+    }
+
+    /// Retrieve a 3D texture (use the provided texture if no entry exists)
+    template <typename Volume>
+    ref<Volume> volume(const std::string &name, ref<Volume> def_val) const {
+        if (!has_property(name))
+            return def_val;
+        return volume<Volume>(name);
+    }
+
+    template <typename Volume>
+    ref<Volume> volume(const std::string &name, Float def_val) const {
+        if (!has_property(name)) {
+            Properties props("constvolume");
+            props.set_float("color", def_val);
+            return (Volume *) PluginManager::instance()
+                ->create_object<Volume>(props)
+                .get();
+        }
+        return volume<Volume>(name);
     }
 
 private:

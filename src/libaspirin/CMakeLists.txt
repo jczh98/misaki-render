@@ -25,6 +25,9 @@ add_library(aspirin-render SHARED
         scene.cpp
         texture.cpp
         utils.cpp
+        phase.cpp
+        volume.cpp
+        medium.cpp
 
         samplers/independent.cpp
         bsdfs/diffuse.cpp
@@ -35,6 +38,9 @@ add_library(aspirin-render SHARED
         filters/gaussian.cpp
         films/rgbfilm.cpp
         integrators/debug.cpp integrators/path.cpp
+        phase/isotropic.cpp
+        volume/constant3d.cpp
+        media/homogeneous.cpp
         )
 
 target_link_libraries(aspirin-render PUBLIC

@@ -126,6 +126,39 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
     BSDFPtr bsdf() const { return shape->bsdf(); }
 };
 
+template <typename Float_, typename Spectrum_>
+struct MediumInteraction : Interaction<Float_, Spectrum_> {
+    using Float    = Float_;
+    using Spectrum = Spectrum_;
+    APR_IMPORT_CORE_TYPES(Float_)
+    using Base = Interaction<Float, Spectrum>;
+    using Base::is_valid;
+    using Base::p;
+    using Base::t;
+
+    using MediumPtr = const Medium<Float, Spectrum> *;
+
+    MediumPtr medium = nullptr;
+    Frame3 sh_frame;
+    Vector3 wi;
+    /// Scattering coefficient
+    Spectrum sigma_s;
+    /// Null-collision coefficient for delta tracking
+    Spectrum sigma_n;
+    /// Extinction coefficient
+    Spectrum sigma_t;
+    Spectrum combined_extinction;
+    Float mint;
+
+    MediumInteraction()
+        : Interaction<Float, Spectrum>(), sh_frame(Frame3(Vector3::Zero())),
+          wi(Vector3::Zero()), mint(0) {}
+
+    Vector3 to_world(const Vector3 &v) const { return sh_frame.to_world(v); }
+
+    Vector3 to_local(const Vector3 &v) const { return sh_frame.to_local(v); }
+};
+
 template <typename Float_, typename Spectrum_> struct PreliminaryIntersection {
     using Float    = Float_;
     using Spectrum = Spectrum_;
