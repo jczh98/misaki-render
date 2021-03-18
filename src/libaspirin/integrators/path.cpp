@@ -104,8 +104,7 @@ public:
         auto emitter          = si.emitter(scene);
         for (int depth = 1;; ++depth) {
             if (emitter != nullptr) {
-                result += emitter->eval(si).cwiseProduct(throughput) *
-                          emission_weight;
+                result += emitter->eval(si) * throughput * emission_weight;
             }
             if (depth >= m_rr_depth) {
                 Float q = std::min(throughput.maxCoeff() * eta * eta, 0.95f);
@@ -126,16 +125,14 @@ public:
                     Spectrum bsdf_val = bsdf->eval(ctx, si, wo);
                     auto bsdf_pdf     = bsdf->pdf(ctx, si, wo);
                     Float mis = ds.delta ? 1.f : mis_weight(ds.pdf, bsdf_pdf);
-                    result += throughput.cwiseProduct(bsdf_val).cwiseProduct(
-                                  emitter_val) *
-                              mis;
+                    result += throughput * bsdf_val * emitter_val * mis;
                 }
             }
             // --------------------- BSDF Sampling ------------------------
             // Sample BSDF * cos(theta)
             auto [bs, bsdf_val] =
                 bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
-            throughput = throughput.cwiseProduct(bsdf_val);
+            throughput = throughput * bsdf_val;
             eta *= bs.eta;
             ray                        = si.spawn_ray(si.to_world(bs.wo));
             SurfaceInteraction si_bsdf = scene->ray_intersect(ray);

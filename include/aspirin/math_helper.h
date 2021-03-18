@@ -15,10 +15,8 @@ constexpr auto Infinity = std::numeric_limits<T>::infinity();
 template <typename T>
 constexpr auto Epsilon = std::numeric_limits<T>::epsilon() / 2;
 
-template <typename T>
-constexpr auto RayEpsilon = Epsilon<T> * 1500;
-template <typename T>
-constexpr auto ShadowEpsilon = RayEpsilon<T> * 10;
+template <typename T> constexpr auto RayEpsilon    = Epsilon<T> * 1500;
+template <typename T> constexpr auto ShadowEpsilon = RayEpsilon<T> * 10;
 
 template <typename T> inline auto deg_to_rag(const T &v) {
     return v * T(Pi<T> / 180);
@@ -81,20 +79,22 @@ uint32_t binary_search(uint32_t begin, uint32_t end, const Predicate &pred) {
 
 struct PCG32 {
     PCG32() : state(PCG32_DEFAULT_STATE), inc(PCG32_DEFAULT_STREAM) {}
-    PCG32(uint64_t initstate, uint64_t initseq = 1u) { seed(initstate, initseq); }
+    PCG32(uint64_t initstate, uint64_t initseq = 1u) {
+        seed(initstate, initseq);
+    }
 
     void seed(uint64_t initstate, uint64_t initseq = 1) {
         state = 0U;
-        inc = (initseq << 1u) | 1u;
+        inc   = (initseq << 1u) | 1u;
         next_uint32();
         state += initstate;
         next_uint32();
     }
     uint32_t next_uint32() {
-        uint64_t oldstate = state;
-        state = oldstate * PCG32_MULT + inc;
+        uint64_t oldstate   = state;
+        state               = oldstate * PCG32_MULT + inc;
         uint32_t xorshifted = (uint32_t)(((oldstate >> 18u) ^ oldstate) >> 27u);
-        uint32_t rot = (uint32_t)(oldstate >> 59u);
+        uint32_t rot        = (uint32_t)(oldstate >> 59u);
         return (xorshifted >> rot) | (xorshifted << ((~rot + 1u) & 31));
     }
 
@@ -116,15 +116,20 @@ struct PCG32 {
             uint64_t u;
             double d;
         } x;
-        x.u = ((uint64_t)next_uint32() << 20) | 0x3ff0000000000000ULL;
+        x.u = ((uint64_t) next_uint32() << 20) | 0x3ff0000000000000ULL;
         return x.d - 1.0;
     }
 
-    bool operator==(const PCG32 &other) const { return state == other.state && inc == other.inc; }
-    bool operator!=(const PCG32 &other) const { return state != other.state || inc != other.inc; }
+    bool operator==(const PCG32 &other) const {
+        return state == other.state && inc == other.inc;
+    }
+    bool operator!=(const PCG32 &other) const {
+        return state != other.state || inc != other.inc;
+    }
 
-    uint64_t state;  // RNG state.  All values are possible.
-    uint64_t inc;    // Controls which RNG sequence (stream) is selected. Must *always* be odd.
+    uint64_t state; // RNG state.  All values are possible.
+    uint64_t inc;   // Controls which RNG sequence (stream) is selected. Must
+                    // *always* be odd.
 };
 
 } // namespace math
@@ -141,7 +146,7 @@ Eigen::Matrix<int, D, 1> floor2int(const Eigen::Matrix<T, D, 1> &vec) {
     return vec.array().floor().matrix().template cast<int>();
 }
 
-}
+} // namespace math
 
 template <typename Float>
 std::pair<Eigen::Matrix<Float, 3, 1>, Eigen::Matrix<Float, 3, 1>>
@@ -151,6 +156,24 @@ coordinate_system(const Eigen::Matrix<Float, 3, 1> &n) {
     const Float b = n.x() * n.y() * a;
     return { { 1.f + sign * n.x() * n.x() * a, sign * b, -sign * n.x() },
              { b, sign + n.y() * n.y() * a, -n.y() } };
+}
+
+
+template <typename T, int D>
+std::ostream &operator<<(std::ostream &out, const Eigen::Matrix<T, D, 1> &vec) {
+    std::string result;
+    for (size_t i = 0; i < D; ++i) {
+        result += std::to_string(vec.coeff(i));
+        result += i + 1 < D ? ", " : "";
+    }
+    out << "[" + result + "]";
+    return out;
+}
+
+template <typename T, int D>
+std::ostream &operator<<(std::ostream &os, const Eigen::Matrix<T, D, D> &m) {
+    os << m.format(Eigen::IOFormat(4, 0, ", ", "\n", "", "", "[", "]"));
+    return os;
 }
 
 } // namespace aspirin

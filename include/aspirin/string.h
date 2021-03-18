@@ -40,6 +40,14 @@ extern std::vector<std::string> tokenize(const std::string &string,
 
 extern std::string indent(const std::string &string, size_t amount = 2);
 
+template <typename T>
+inline std::string indent(const T &value, size_t amount = 2) {
+    std::ostringstream oss;
+    oss << value;
+    std::string string = oss.str();
+    return string::indent(string, amount);
+}
+
 inline void replace_inplace(std::string &str, const std::string &source,
                             const std::string &target) {
   size_t pos = 0;

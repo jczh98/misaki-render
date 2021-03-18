@@ -127,6 +127,8 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
     BSDFPtr bsdf(const RayDifferential &ray);
     BSDFPtr bsdf() const { return shape->bsdf(); }
 
+    bool is_medium_transition() const { return shape->is_medium_transition(); }
+
     MediumPtr target_medium(const Vector3 &d) const {
         return target_medium(d.dot(n));
     }

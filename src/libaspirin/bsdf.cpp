@@ -11,6 +11,12 @@ BSDF<Float, Spectrum>::BSDF(const Properties &props)
 template <typename Float, typename Spectrum> BSDF<Float, Spectrum>::~BSDF() {}
 
 template <typename Float, typename Spectrum>
+Spectrum BSDF<Float, Spectrum>::eval_null_transmission(
+    const SurfaceInteraction &) const {
+    return Spectrum::Zero();
+}
+
+template <typename Float, typename Spectrum>
 std::string BSDF<Float, Spectrum>::id() const {
     return m_id;
 }

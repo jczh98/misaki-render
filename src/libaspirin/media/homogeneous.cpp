@@ -3,7 +3,7 @@
 #include <aspirin/properties.h>
 #include <aspirin/texture.h>
 #include <aspirin/volume.h>
-
+#include <iostream>
 namespace aspirin {
 
 template <typename Float, typename Spectrum>
@@ -25,7 +25,6 @@ public:
         m_is_homogeneous = true;
         m_albedo         = props.volume<Volume>("albedo", 0.75f);
         m_sigmat         = props.volume<Volume>("sigma_t", 1.f);
-
         m_scale = props.get_float("scale", 1.0f);
     }
 
@@ -41,7 +40,7 @@ public:
     std::tuple<Spectrum, Spectrum, Spectrum>
     get_scattering_coefficients(const MediumInteraction &mi) const override {
         Spectrum sigmat = eval_sigmat(mi);
-        Spectrum sigmas = sigmat.cwiseProduct(m_albedo->eval(mi));
+        Spectrum sigmas = sigmat * m_albedo->eval(mi);
         Spectrum sigman = Spectrum::Zero();
         return { sigmas, sigman, sigmat };
     }

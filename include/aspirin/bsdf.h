@@ -100,6 +100,8 @@ public:
     virtual Spectrum eval(const BSDFContext &ctx, const SurfaceInteraction &si,
                           const Vector3 &wo) const = 0;
 
+    virtual Spectrum eval_null_transmission(const SurfaceInteraction &si) const;
+
     // Returns pdf of BSDF * cos(theta)
     virtual Float pdf(const BSDFContext &ctx, const SurfaceInteraction &si,
                       const Vector3 &wo) const = 0;

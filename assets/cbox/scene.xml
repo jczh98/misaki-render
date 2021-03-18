@@ -1,5 +1,5 @@
 <scene>
-    <integrator type="path">
+    <integrator type="volpath">
     </integrator>
     <sensor type="perspective">
         <float name="near_clip" value="10"/>
@@ -7,7 +7,7 @@
         <float name="fov" value="49.3077"/>
         <transform name="to_world">
             <lookat origin="278, 273, -800" target="278, 273, -799"
-                    up    ="  0,   1,    0"/>
+                    up="  0,   1,    0"/>
         </transform>
         <sampler type="independent">
             <integer name="sample_count" value="16"/>
@@ -16,6 +16,12 @@
             <integer name="width" value="800"/>
             <integer name="height" value="600"/>
         </film>
+        <medium type="homogeneous" name="interior">
+            <rgb name="sigmaS" value="0.1, 0.1, 0.1"/>
+            <rgb name="sigmaA" value="0.1, 0.1, 0.1"/>
+            <rgb name="sigma_t" value="0.2, 0.2, 0.2"/>
+            <rgb name="albedo" value="0.5, 0.5, 0.5"/>
+        </medium>
     </sensor>
     <!-- <light type="point">
         <vector name="position" x="278" y="548" z="279"/>
@@ -74,8 +80,8 @@
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.45, 0.30, 0.90"/>
         </bsdf>
-<!--        <bsdf type="disney_brdf">-->
-<!--        </bsdf>-->
+        <!--        <bsdf type="disney_brdf">-->
+        <!--        </bsdf>-->
         <!-- <bsdf type="roughconductor">
             <float name="alpha" value="0.25" />
             <string name="distribution" value="beckmann" />

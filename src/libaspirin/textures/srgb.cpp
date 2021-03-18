@@ -26,6 +26,14 @@ public:
         return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
     }
 
+    std::string to_string() const override {
+        std::ostringstream oss;
+        oss << "SRGBTexture[" << std::endl
+            << "  value = " << m_value << std::endl
+            << "]";
+        return oss.str();
+    }
+
     APR_DECLARE_CLASS()
 private:
     Color3 m_value;

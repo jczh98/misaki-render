@@ -5,9 +5,8 @@
 namespace aspirin {
 
 template <typename Value_, size_t Size_ = 3>
-struct Color : Eigen::Matrix<Value_, Size_, 1> {
-    using Base = Eigen::Matrix<Value_, Size_, 1>;
-
+struct Color : public Eigen::Array<Value_, Size_, 1> {
+    using Base = Eigen::Array<Value_, Size_, 1>;
     using Base::Base;
     using Base::operator=;
 
@@ -22,7 +21,22 @@ struct Color : Eigen::Matrix<Value_, Size_, 1> {
 
     decltype(auto) a() const { return Base::w(); }
     decltype(auto) a() { return Base::w(); }
+
+    bool operator!=(const Color<Value_, Size_> &rhs) const {
+        return Base::operator!=(rhs).all();
+    }
 };
+
+template <typename T, int D>
+std::ostream &operator<<(std::ostream &out, const Color<T, D> &c) {
+    std::string result;
+    for (size_t i = 0; i < D; ++i) {
+        result += std::to_string(c.coeff(i));
+        result += i + 1 < D ? ", " : "";
+    }
+    out << "[" + result + "]";
+    return out;
+}
 
 namespace detail {
 
