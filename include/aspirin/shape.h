@@ -17,6 +17,7 @@ public:
     using Sensor                  = Sensor<Float, Spectrum>;
     using BSDF                    = BSDF<Float, Spectrum>;
     using Emitter                 = Emitter<Float, Spectrum>;
+    using Medium                  = Medium<Float, Spectrum>;
     using Interaction             = Interaction<Float, Spectrum>;
     using PositionSample          = PositionSample<Float, Spectrum>;
     using DirectionSample         = DirectionSample<Float, Spectrum>;
@@ -44,6 +45,18 @@ public:
     const Emitter *emitter() const { return m_emitter; }
     Emitter *emitter() { return m_emitter.get(); }
 
+    /// Does the surface of this shape mark a medium transition?
+    bool is_medium_transition() const {
+        return m_interior_medium.get() != nullptr ||
+               m_exterior_medium.get() != nullptr;
+    }
+
+    /// Return the medium that lies on the interior of this shape
+    const Medium *interior_medium() const { return m_interior_medium.get(); }
+
+    /// Return the medium that lies on the exterior of this shape
+    const Medium *exterior_medium() const { return m_exterior_medium.get(); }
+
     virtual BoundingBox3 bbox() const;
     virtual BoundingBox3 bbox(uint32_t index) const;
     virtual Float surface_area() const;
@@ -60,6 +73,8 @@ protected:
 protected:
     ref<Emitter> m_emitter;
     ref<BSDF> m_bsdf;
+    ref<Medium> m_interior_medium;
+    ref<Medium> m_exterior_medium;
     Transform4 m_world_transform;
     std::string m_id;
 

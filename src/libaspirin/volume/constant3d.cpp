@@ -13,8 +13,8 @@ public:
     APR_IMPORT_CORE_TYPES(Float);
     using Base = Volume<Float, Spectrum>;
     using Base::m_world_to_local;
-    using Texture            = Texture<Float, Spectrum>;
-    using Interaction        = Interaction<Float, Spectrum>;
+    using typename Base::Interaction;
+    using typename Base::Texture;
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
     ConstVolume(const Properties &props) : Base(props) {

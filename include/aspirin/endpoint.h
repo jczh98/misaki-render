@@ -3,8 +3,8 @@
 #include <optional>
 
 #include "fwd.h"
-#include "records.h"
 #include "object.h"
+#include "records.h"
 
 namespace aspirin {
 
@@ -15,12 +15,14 @@ public:
     using Ray                = Ray<Float, Spectrum>;
     using Shape              = Shape<Float, Spectrum>;
     using Scene              = Scene<Float, Spectrum>;
+    using Medium             = Medium<Float, Spectrum>;
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
     using Interaction        = Interaction<Float, Spectrum>;
     using DirectionSample    = DirectionSample<Float, Spectrum>;
 
     // Returns Sampled ray with structred RaySample
-    virtual std::pair<Ray, Spectrum> sample_ray(const Vector2 &pos_sample) const;
+    virtual std::pair<Ray, Spectrum>
+    sample_ray(const Vector2 &pos_sample) const;
 
     // Returns direction, weight
     virtual std::pair<DirectionSample, Spectrum>
@@ -32,9 +34,13 @@ public:
 
     virtual void set_shape(Shape *shape);
     virtual void set_scene(const Scene *scene);
+    virtual void set_medium(Medium *medium);
 
     Shape *shape() { return m_shape; }
     const Shape *shape() const { return m_shape; }
+
+    Medium *medium() { return m_medium; }
+    const Medium *medium() const { return m_medium; }
 
     APR_DECLARE_CLASS()
 protected:
@@ -43,6 +49,7 @@ protected:
     virtual ~Endpoint();
 
 protected:
+    ref<Medium> m_medium;
     Transform4 m_world_transform;
     Shape *m_shape = nullptr;
     std::string m_id;

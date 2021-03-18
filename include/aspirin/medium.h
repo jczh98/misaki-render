@@ -6,7 +6,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum> class APR_EXPORT Medium : Object {
+template <typename Float, typename Spectrum>
+class APR_EXPORT Medium : public Object {
 
 public:
     APR_IMPORT_CORE_TYPES(Float)

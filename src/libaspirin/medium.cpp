@@ -76,7 +76,7 @@ Medium<Float, Spectrum>::eval_tr_and_pdf(const MediumInteraction &mi,
 
     Float t      = std::min(mi.t, si.t) - mi.mint;
     Spectrum tr  = (-t * mi.combined_extinction).array().exp();
-    Spectrum pdf = si.t < mi.t ? tr : tr * mi.combined_extinction;
+    Spectrum pdf = si.t < mi.t ? tr : tr.cwiseProduct(mi.combined_extinction);
     return { tr, pdf };
 }
 

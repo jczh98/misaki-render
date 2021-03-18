@@ -1,3 +1,4 @@
+#include <aspirin/interaction.h>
 #include <aspirin/phase.h>
 #include <aspirin/properties.h>
 #include <aspirin/warp.h>
@@ -10,8 +11,8 @@ public:
     APR_IMPORT_CORE_TYPES(Float);
     using Base = PhaseFunction<Float, Spectrum>;
     using Base::m_flags;
-    using PhaseFunctionContext = PhaseFunctionContext<Float, Spectrum>;
-    using MediumInteraction    = MediumInteraction<Float, Spectrum>;
+    using typename Base::MediumInteraction;
+    using typename Base::PhaseFunctionContext;
 
     IsotropicPhaseFunction(const Properties &props) : Base(props) {
         m_flags = +PhaseFunctionFlags::Isotropic;

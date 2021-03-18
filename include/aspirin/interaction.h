@@ -38,6 +38,7 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
     using typename Base::Ray;
     using Emitter         = Emitter<Float, Spectrum>;
     using BSDF            = BSDF<Float, Spectrum>;
+    using Medium          = Medium<Float, Spectrum>;
     using Shape           = Shape<Float, Spectrum>;
     using PositionSample  = PositionSample<Float, Spectrum>;
     using Scene           = Scene<Float, Spectrum>;
@@ -46,6 +47,7 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
     using ShapePtr   = const Shape *;
     using EmitterPtr = const Emitter *;
     using BSDFPtr    = const BSDF *;
+    using MediumPtr  = const Medium *;
 
     ShapePtr shape = nullptr;
     Vector2 uv;
@@ -124,6 +126,15 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
 
     BSDFPtr bsdf(const RayDifferential &ray);
     BSDFPtr bsdf() const { return shape->bsdf(); }
+
+    MediumPtr target_medium(const Vector3 &d) const {
+        return target_medium(d.dot(n));
+    }
+
+    MediumPtr target_medium(const Float &cos_theta) const {
+        return cos_theta > 0 ? shape->exterior_medium()
+                             : shape->interior_medium();
+    }
 };
 
 template <typename Float_, typename Spectrum_>

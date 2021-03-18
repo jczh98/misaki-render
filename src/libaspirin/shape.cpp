@@ -2,6 +2,7 @@
 #include <aspirin/emitter.h>
 #include <aspirin/interaction.h>
 #include <aspirin/logger.h>
+#include <aspirin/medium.h>
 #include <aspirin/plugin.h>
 #include <aspirin/properties.h>
 #include <aspirin/records.h>
@@ -14,8 +15,9 @@ template <typename Float, typename Spectrum>
 Shape<Float, Spectrum>::Shape(const Properties &props) : m_id(props.id()) {
     m_world_transform = props.transform("to_world", Transform4());
     for (auto &[name, obj] : props.objects()) {
-        Emitter *emitter = dynamic_cast<Emitter *>(obj.get());
-        BSDF *bsdf       = dynamic_cast<BSDF *>(obj.get());
+        auto *emitter = dynamic_cast<Emitter *>(obj.get());
+        auto *bsdf    = dynamic_cast<BSDF *>(obj.get());
+        auto *medium  = dynamic_cast<Medium *>(obj.get());
         if (emitter) {
             if (m_emitter)
                 Throw("Only one light can be specified by a shape.");
@@ -24,6 +26,18 @@ Shape<Float, Spectrum>::Shape(const Properties &props) : m_id(props.id()) {
             if (m_bsdf)
                 Throw("Only one bsdf can be specified by a shape.");
             m_bsdf = bsdf;
+        } else if (medium) {
+            if (name == "interior") {
+                if (m_interior_medium)
+                    Throw("Only a single interior medium can be specified per "
+                          "shape.");
+                m_interior_medium = medium;
+            } else if (name == "exterior") {
+                if (m_exterior_medium)
+                    Throw("Only a single exterior medium can be specified per "
+                          "shape.");
+                m_exterior_medium = medium;
+            }
         } else {
             Throw("Tired to add unsuppored object of type \"{}\"",
                   obj->to_string());

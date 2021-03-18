@@ -1,5 +1,6 @@
 #include <aspirin/endpoint.h>
 #include <aspirin/logger.h>
+#include <aspirin/medium.h>
 #include <aspirin/properties.h>
 #include <aspirin/records.h>
 
@@ -8,6 +9,15 @@ namespace aspirin {
 template <typename Float, typename Spectrum>
 Endpoint<Float, Spectrum>::Endpoint(const Properties &props) {
     m_world_transform = props.transform("to_world", Transform4());
+    for (auto &[name, obj] : props.objects()) {
+        auto *medium = dynamic_cast<Medium *>(obj.get());
+        if (medium) {
+            if (m_medium) {
+                Throw("Only a single medium can be specified per endpoint");
+            }
+            m_medium = medium;
+        }
+    }
 }
 
 template <typename Float, typename Spectrum>
@@ -43,6 +53,14 @@ void Endpoint<Float, Spectrum>::set_shape(Shape *shape) {
         Throw("An endpoint can be only be attached to a single shape.");
 
     m_shape = shape;
+}
+
+template <typename Float, typename Spectrum>
+void Endpoint<Float, Spectrum>::set_medium(Medium *medium) {
+    if (m_medium)
+        Throw("An endpoint can be only be attached to a single shape.");
+
+    m_medium = medium;
 }
 
 template <typename Float, typename Spectrum>

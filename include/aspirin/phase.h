@@ -48,7 +48,7 @@ struct APR_EXPORT PhaseFunctionContext {
 };
 
 template <typename Float, typename Spectrum>
-class APR_EXPORT PhaseFunction : Object {
+class APR_EXPORT PhaseFunction : public Object {
 public:
     APR_IMPORT_CORE_TYPES(Float)
     using PhaseFunctionContext = PhaseFunctionContext<Float, Spectrum>;

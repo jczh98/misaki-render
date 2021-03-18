@@ -1,6 +1,7 @@
 #include <aspirin/interaction.h>
 #include <aspirin/medium.h>
 #include <aspirin/properties.h>
+#include <aspirin/texture.h>
 #include <aspirin/volume.h>
 
 namespace aspirin {
@@ -11,13 +12,14 @@ public:
     APR_IMPORT_CORE_TYPES(Float)
     using Base = Medium<Float, Spectrum>;
     using Base::m_is_homogeneous;
-    using Scene             = Scene<Float, Spectrum>;
-    using Sampler           = Sampler<Float, Spectrum>;
-    using Texture           = Texture<Float, Spectrum>;
-    using Volume            = Volume<Float, Spectrum>;
-    using Ray               = Ray<Float, Spectrum>;
-    using Interaction       = Interaction<Float, Spectrum>;
-    using MediumInteraction = MediumInteraction<Float, Spectrum>;
+    using typename Base::MediumInteraction;
+    using typename Base::Ray;
+    using typename Base::Sampler;
+    using typename Base::Scene;
+    using typename Base::SurfaceInteraction;
+    using typename Base::Texture;
+    using Volume      = Volume<Float, Spectrum>;
+    using Interaction = Interaction<Float, Spectrum>;
 
     HomogeneousMedium(const Properties &props) : Base(props) {
         m_is_homogeneous = true;
@@ -38,8 +40,8 @@ public:
 
     std::tuple<Spectrum, Spectrum, Spectrum>
     get_scattering_coefficients(const MediumInteraction &mi) const override {
-        auto sigmat     = eval_sigmat(mi);
-        auto sigmas     = sigmat * m_albedo->eval(mi);
+        Spectrum sigmat = eval_sigmat(mi);
+        Spectrum sigmas = sigmat.cwiseProduct(m_albedo->eval(mi));
         Spectrum sigman = Spectrum::Zero();
         return { sigmas, sigman, sigmat };
     }
