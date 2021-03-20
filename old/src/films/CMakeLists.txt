@@ -1,1 +1,0 @@
-add_plugin(rgbfilm rgbfilm.cpp)
