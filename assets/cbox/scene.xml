@@ -1,5 +1,5 @@
 <scene>
-    <integrator type="volpath">
+    <integrator type="path">
     </integrator>
     <sensor type="perspective">
         <float name="near_clip" value="10"/>

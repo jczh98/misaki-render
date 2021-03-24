@@ -20,17 +20,17 @@ public:
     using Medium                  = Medium<Float, Spectrum>;
     using Interaction             = Interaction<Float, Spectrum>;
     using PositionSample          = PositionSample<Float, Spectrum>;
-    using DirectionSample         = DirectionSample<Float, Spectrum>;
+    using DirectSample         = DirectSample<Float, Spectrum>;
     using SurfaceInteraction      = SurfaceInteraction<Float, Spectrum>;
     using PreliminaryIntersection = PreliminaryIntersection<Float, Spectrum>;
 
     virtual PositionSample sample_position(const Vector2 &sample) const;
     virtual Float pdf_position(const PositionSample &ps) const;
 
-    virtual DirectionSample sample_direction(const Interaction &it,
-                                             const Vector2 &sample) const;
-    virtual Float pdf_direction(const Interaction &it,
-                                const DirectionSample &ds) const;
+    virtual DirectSample sample_direct(const Interaction &it,
+                                          const Vector2 &sample) const;
+    virtual Float pdf_direct(const Interaction &it,
+                             const DirectSample &ds) const;
 
     virtual SurfaceInteraction
     compute_surface_interaction(const Ray &ray,

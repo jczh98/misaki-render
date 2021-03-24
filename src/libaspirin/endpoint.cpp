@@ -30,16 +30,27 @@ Endpoint<Float, Spectrum>::sample_ray(const Vector2 &pos_sample) const {
 }
 
 template <typename Float, typename Spectrum>
-std::pair<typename Endpoint<Float, Spectrum>::DirectionSample, Spectrum>
-Endpoint<Float, Spectrum>::sample_direction(const Interaction &ref,
-                                            const Vector2 &sample) const {
-    APR_NOT_IMPLEMENTED("sample_direction");
+std::pair<typename Endpoint<Float, Spectrum>::PositionSample, Spectrum>
+Endpoint<Float, Spectrum>::sample_position(const Vector2 &sample) const {
+    APR_NOT_IMPLEMENTED("sample_position");
 }
 
 template <typename Float, typename Spectrum>
-Float Endpoint<Float, Spectrum>::pdf_direction(
-    const Interaction &ref, const DirectionSample &ds) const {
-    APR_NOT_IMPLEMENTED("pdf_direction");
+Float Endpoint<Float, Spectrum>::pdf_position(const PositionSample &ps) const {
+    APR_NOT_IMPLEMENTED("pdf_position");
+}
+
+template <typename Float, typename Spectrum>
+std::pair<typename Endpoint<Float, Spectrum>::DirectSample, Spectrum>
+Endpoint<Float, Spectrum>::sample_direct(const Interaction &ref,
+                                         const Vector2 &sample) const {
+    APR_NOT_IMPLEMENTED("sample_direct");
+}
+
+template <typename Float, typename Spectrum>
+Float Endpoint<Float, Spectrum>::pdf_direct(const Interaction &ref,
+                                            const DirectSample &ds) const {
+    APR_NOT_IMPLEMENTED("pdf_direct");
 }
 
 template <typename Float, typename Spectrum>
