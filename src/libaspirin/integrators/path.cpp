@@ -91,61 +91,92 @@ public:
             sensor->sample_ray_differential(position_sample);
         ray.scale_differential(diff_scale_factor);
         auto result = sample(scene, sampler, ray);
-        if (result)
-            block->put(position_sample, *result);
+        block->put(position_sample, result);
     }
 
-    std::optional<Color3> sample(const Scene *scene, Sampler *sampler,
-                                 const RayDifferential &ray_) const {
+    Spectrum sample(const Scene *scene, Sampler *sampler,
+                    const RayDifferential &ray_) const {
         RayDifferential ray = ray_;
-        Color3 throughput = Spectrum::Constant(1.f), result = Spectrum::Zero();
-        Float emission_weight = 1.f, eta = 1.f;
+        Spectrum throughput = Spectrum::Constant(1.f),
+                 result     = Spectrum::Zero();
+        Float eta           = 1.f;
+        bool scattered = false, non_specular = false, emission = true;
         SurfaceInteraction si = scene->ray_intersect(ray);
-        auto emitter          = si.emitter(scene);
-        for (int depth = 1;; ++depth) {
-            if (emitter != nullptr) {
-                result += emitter->eval(si) * throughput * emission_weight;
-            }
-            if (depth >= m_rr_depth) {
-                Float q = std::min(throughput.maxCoeff() * eta * eta, 0.95f);
-                if (sampler->next1d() >= q)
-                    break;
-                throughput *= 1.f / q;
-            }
-            if ((uint32_t) depth >= (uint32_t) m_max_depth || !si.is_valid())
+        for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
+            if (!si.is_valid()) {
+                // If no intersection, compute the environment illumination
                 break;
-            // ------------------ Emitter Sampling --------------------------
-            BSDFContext ctx;
+            }
             auto bsdf = si.bsdf(ray);
+            // Compute emitted radiance
+            auto emitter = si.emitter(scene);
+            if (emitter != nullptr && emission) {
+                result += throughput * emitter->eval(si);
+            }
+            if (depth >= m_max_depth && m_max_depth > 0)
+                break;
+            /*
+             * Direct illumination sampling
+             */
+            BSDFContext ctx;
             if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
                 auto [ds, emitter_val] = scene->sample_emitter_direction(
                     si, sampler->next2d(), true);
                 if (ds.pdf != 0.f) {
                     auto wo           = si.to_local(ds.d);
                     Spectrum bsdf_val = bsdf->eval(ctx, si, wo);
-                    auto bsdf_pdf     = bsdf->pdf(ctx, si, wo);
-                    Float mis = ds.delta ? 1.f : mis_weight(ds.pdf, bsdf_pdf);
-                    result += throughput * bsdf_val * emitter_val * mis;
+                    Float bsdf_pdf    = bsdf->pdf(ctx, si, wo);
+                    Float weight      = mis_weight(ds.pdf, bsdf_pdf);
+                    result += throughput * emitter_val * bsdf_val * weight;
                 }
             }
-            // --------------------- BSDF Sampling ------------------------
-            // Sample BSDF * cos(theta)
+            /*
+             * BSDF Sampling
+             */
             auto [bs, bsdf_val] =
                 bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
-            throughput = throughput * bsdf_val;
-            eta *= bs.eta;
-            ray                        = si.spawn_ray(si.to_world(bs.wo));
+            scattered |= bs.sampled_type != (uint32_t) BSDFFlags::Null;
+            non_specular |= !(bs.sampled_type & BSDFFlags::Delta);
+
+            const auto wo    = si.to_world(bs.wo);
+            bool hit_emitter = false;
+            Spectrum value   = Spectrum::Zero();
+
+            ray                        = si.spawn_ray(wo);
             SurfaceInteraction si_bsdf = scene->ray_intersect(ray);
             emitter                    = si_bsdf.emitter(scene);
-            DirectionSample ds(si_bsdf, si);
-            ds.object = emitter;
-            if (emitter != nullptr) {
+
+            if (si_bsdf.is_valid()) {
+                if (emitter != nullptr) {
+                    value       = emitter->eval(si_bsdf);
+                    hit_emitter = true;
+                }
+            }
+            throughput *= bsdf_val;
+            eta *= bs.eta;
+
+            // If an emitter was hit, estimate the illumination
+            if (hit_emitter) {
+                DirectSample ds(si_bsdf, si);
                 auto emitter_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta)
                                        ? scene->pdf_emitter_direction(si, ds)
                                        : 0.f;
-                emission_weight  = mis_weight(bs.pdf, emitter_pdf);
+                if (non_specular) {
+                    result +=
+                        throughput * value * mis_weight(bs.pdf, emitter_pdf);
+                }
             }
+            // Indirect illumination
+            emission = false;
             si = std::move(si_bsdf);
+            // Russian roulette
+            if (depth + 1 >= m_rr_depth) {
+                Float q =
+                    std::min(throughput.maxCoeff() * eta * eta, Float(0.95));
+                if (sampler->next1d() >= q)
+                    break;
+                throughput /= q;
+            }
         }
         return result;
     }
