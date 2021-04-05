@@ -23,39 +23,46 @@ public:
 
     HomogeneousMedium(const Properties &props) : Base(props) {
         m_is_homogeneous = true;
-        m_albedo         = props.volume<Volume>("albedo", 0.75f);
-        m_sigmat         = props.volume<Volume>("sigma_t", 1.f);
-        m_scale = props.get_float("scale", 1.0f);
+        m_sigma_a        = props.texture<Texture>("albedo", 0.75f);
+        m_sigma_s        = props.texture<Texture>("sigma_t", 1.f);
+        m_sigma_t        = m_sigma_s + m_sigma_a;
+        m_scale          = props.get_float("scale", 1.0f);
     }
 
-    APR_INLINE auto eval_sigmat(const MediumInteraction &mi) const {
-        return m_sigmat->eval(mi) * m_scale;
+    std::pair<MediumInteraction, Float>
+    sample_interaction(const Ray &ray, Float sample,
+                       uint32_t channel) const override {
+        Float maxt = std::min(ray.maxt, std::numeric_limits<Float>::max()),
+              sampled_distance;
+
+        sampled_distance = -std::log((1 - sample) / m_sigma_t[channel]);
+        MediumInteraction mi;
+        Float pdf;
+        if (sampled_distance < ray.maxt - ray.mint) {
+            mi.t       = sampled_distance + ray.mint;
+            mi.p       = ray(mi.t);
+            mi.sigma_a = m_sigma_a;
+            mi.sigma_s = m_sigma_s;
+            pdf = ((m_sigma_t * (-sampled_distance)).exp() * m_sigma_t).mean();
+        } else {
+            sampled_distance = ray.maxt - ray.mint;
+            pdf              = (m_sigma_t * (-sampled_distance)).exp().mean();
+        }
+        mi.transmittance = (m_sigma_t * (-sampled_distance)).exp();
+        mi.medium        = this;
+        return { mi, pdf };
     }
 
-    Spectrum
-    get_combined_extinction(const MediumInteraction &mi) const override {
-        return eval_sigmat(mi);
-    }
-
-    std::tuple<Spectrum, Spectrum, Spectrum>
-    get_scattering_coefficients(const MediumInteraction &mi) const override {
-        Spectrum sigmat = eval_sigmat(mi);
-        Spectrum sigmas = sigmat * m_albedo->eval(mi);
-        Spectrum sigman = Spectrum::Zero();
-        return { sigmas, sigman, sigmat };
-    }
-
-    std::tuple<bool, Float, Float> intersect_aabb(const Ray &) const override {
-        return { true, 0.f, math::Infinity<Float> };
+    Spectrum eval_transmittance(const Ray &ray) const override {
+        Float t = std::min(ray.maxt, std::numeric_limits<float>::max());
+        return (m_sigma_t * (-t)).exp();
     }
 
     std::string to_string() const override {
         std::ostringstream oss;
         oss << "HomogeneousMedium[" << std::endl
-            << "  albedo  = " << string::indent(m_albedo->to_string())
-            << std::endl
-            << "  sigma_t = " << string::indent(m_sigmat->to_string())
-            << std::endl
+            << "  albedo  = " << string::indent(m_sigma_s) << std::endl
+            << "  sigma_t = " << string::indent(m_sigma_a) << std::endl
             << "  scale   = " << m_scale << std::endl
             << "]";
         return oss.str();
@@ -63,8 +70,7 @@ public:
 
     APR_DECLARE_CLASS()
 private:
-    /// Albedo refers to Sigma_s / Sigma_t
-    ref<Volume> m_sigmat, m_albedo;
+    Spectrum m_sigma_s, m_sigma_a, m_sigma_t;
     Float m_scale;
 };
 

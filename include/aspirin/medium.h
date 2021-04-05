@@ -19,26 +19,12 @@ public:
     using MediumInteraction  = MediumInteraction<Float, Spectrum>;
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
-    virtual std::tuple<bool, Float, Float>
-    intersect_aabb(const Ray &ray) const = 0;
-
-    /// Returns the medium's majorant used for delta tracking
-    virtual Spectrum
-    get_combined_extinction(const MediumInteraction &mi) const = 0;
-
-    /// Returns the medium coefficients Sigma_s, Sigma_n and Sigma_t evaluated
-    /// at a given MediumInteraction mi
-    virtual std::tuple<Spectrum, Spectrum, Spectrum>
-    get_scattering_coefficients(const MediumInteraction &mi) const = 0;
-
     /// Sample a free-flight distance in the medium.
-    MediumInteraction sample_interaction(const Ray &ray, Float sample,
-                                         uint32_t channel) const;
+    virtual std::pair<MediumInteraction, Float> sample_interaction(const Ray &ray, Float sample,
+                                                 uint32_t channel) const = 0;
 
     /// Compute the transmittance and PDF
-    std::pair<Spectrum, Spectrum>
-    eval_tr_and_pdf(const MediumInteraction &mi,
-                    const SurfaceInteraction &si) const;
+    virtual Spectrum eval_transmittance(const Ray &ray) const = 0;
 
     const PhaseFunction *phase_function() const {
         return m_phase_function.get();
