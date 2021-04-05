@@ -156,16 +156,12 @@ struct MediumInteraction : Interaction<Float_, Spectrum_> {
     Vector3 wi;
     /// Scattering coefficient
     Spectrum sigma_s;
-    /// Null-collision coefficient for delta tracking
-    Spectrum sigma_n;
-    /// Extinction coefficient
-    Spectrum sigma_t;
-    Spectrum combined_extinction;
-    Float mint;
+    Spectrum sigma_a;
+    Spectrum transmittance;
 
     MediumInteraction()
         : Interaction<Float, Spectrum>(), sh_frame(Frame3(Vector3::Zero())),
-          wi(Vector3::Zero()), mint(0) {}
+          wi(Vector3::Zero()) {}
 
     Vector3 to_world(const Vector3 &v) const { return sh_frame.to_world(v); }
 

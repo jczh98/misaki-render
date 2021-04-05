@@ -27,6 +27,16 @@ struct Color : public Eigen::Array<Value_, Size_, 1> {
     }
 };
 
+template <typename Value_, size_t Size_ = 3>
+bool is_black(const Color<Value_, Size_> &col) {
+    bool result = true;
+    for (size_t i = 0; i < Size_; i++)
+        if (col.coeff(i) == Value_(0.f)) {
+            result = false;
+        }
+    return result;
+}
+
 template <typename T, int D>
 std::ostream &operator<<(std::ostream &out, const Color<T, D> &c) {
     std::string result;

@@ -18,28 +18,25 @@
 namespace aspirin {
 
 template <typename Float, typename Spectrum>
-class VolumetricPathIntegrator  final : public Integrator<Float, Spectrum> {
+class PathTracer final : public Integrator<Float, Spectrum> {
 public:
     APR_IMPORT_CORE_TYPES(Float)
     using Base = Integrator<Float, Spectrum>;
     using typename Base::Scene;
     using typename Base::Sensor;
-    using Emitter              = Emitter<Float, Spectrum>;
     using Ray                  = Ray<Float, Spectrum>;
     using RayDifferential      = RayDifferential<Float, Spectrum>;
     using ImageBlock           = ImageBlock<Float, Spectrum>;
     using Sampler              = Sampler<Float, Spectrum>;
-    using Interaction          = Interaction<Float, Spectrum>;
-    using DirectionSample      = DirectionSample<Float, Spectrum>;
-    using SurfaceInteraction   = SurfaceInteraction<Float, Spectrum>;
     using Medium               = Medium<Float, Spectrum>;
-    using MediumInteraction    = MediumInteraction<Float, Spectrum>;
-    using PhaseFunctionContext = PhaseFunctionContext<Float, Spectrum>;
+    using Interaction          = Interaction<Float, Spectrum>;
+    using SurfaceInteraction   = SurfaceInteraction<Float, Spectrum>;
     using PhaseFunction        = PhaseFunction<Float, Spectrum>;
+    using PhaseFunctionContext = PhaseFunctionContext<Float, Spectrum>;
+    using DirectSample         = DirectSample<Float, Spectrum>;
     using MediumPtr            = const Medium *;
-    using EmitterPtr           = const Emitter *;
 
-    VolumetricPathIntegrator (const Properties &props) : Base(props) {}
+    PathTracer(const Properties &props) : Base(props) {}
 
     bool render(Scene *scene, Sensor *sensor) {
         auto film      = sensor->film();
@@ -101,100 +98,190 @@ public:
         auto [ray, ray_weight] =
             sensor->sample_ray_differential(position_sample);
         ray.scale_differential(diff_scale_factor);
-        const Medium *medium = sensor->medium();
-        auto result          = sample(scene, sampler, ray, medium);
-        if (result)
-            block->put(position_sample, *result);
+        auto result = sample(scene, sampler, ray, sensor->medium());
+        block->put(position_sample, result);
     }
 
-    std::optional<Color3> sample(const Scene *scene, Sampler *sampler,
-                                 const RayDifferential &ray_,
-                                 const Medium *initial_medium) const {
+    Spectrum sample(const Scene *scene, Sampler *sampler,
+                    const RayDifferential &ray_,
+                    const Medium *initial_medium = nullptr) const {
         RayDifferential ray = ray_;
-        Float eta           = 1.f;
         Spectrum throughput = Spectrum::Constant(1.f),
                  result     = Spectrum::Zero();
+        Float eta           = 1.f;
         MediumPtr medium    = initial_medium;
-        MediumInteraction mi;
-        uint32_t depth = 0;
-        auto channel   = std::min((uint32_t) sampler->next1d() * 3, 2u);
-        SurfaceInteraction si;
-        bool needs_intersection = true;
-        for (int bounce = 0;; ++bounce) {
-            // Russian roulette
-            if (depth >= m_rr_depth) {
-                Float q = std::min(throughput.maxCoeff() * eta * eta, 0.95f);
-                if (sampler->next1d() >= q)
-                    break;
-                throughput *= 1.f / q;
-            }
-            if ((uint32_t) depth >= (uint32_t) m_max_depth || !si.is_valid())
-                break;
-        }
-        return Spectrum::Zero();
-    }
-
-    /// Samples an emitter in the scene and evaluates its attenuated
-    /// contribution
-    std::tuple<Spectrum, DirectionSample>
-    sample_emitter(const Interaction &ref_interaction,
-                   bool is_medium_interaction, const Scene *scene,
-                   Sampler *sampler, MediumPtr medium, uint32_t channel) const {
-        auto [ds, emitter_val] = scene->sample_emitter_direction(
-            ref_interaction, sampler->next2d(), false);
-        if (ds.pdf == 0.f)
-            return { Spectrum::Zero(), ds };
-        Spectrum transmittance(1.0f);
-        Ray ray          = ref_interaction.spawn_ray(ds.d);
-        ray.mint         = is_medium_interaction ? 0.f : ray.mint;
-        Float total_dist = 0.f;
-        SurfaceInteraction si;
-        si.t = math::Infinity<Float>;
-        while (true) {
-            Float remaining_dist =
-                ds.dist * (1.f - math::ShadowEpsilon<Float>) -total_dist;
-            ray.maxt = remaining_dist;
-            if (remaining_dist <= 0.f)
-                break;
-
-            bool escaped_medium = false;
+        bool scattered = false, non_specular = false, emission = true;
+        SurfaceInteraction si = scene->ray_intersect(ray);
+        uint32_t channel = std::min<uint32_t>(sampler->next1d() * 3, 3 - 1);
+        for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
+            MediumInteraction mi;
+            Float medium_pdf;
             if (medium != nullptr) {
-                auto mi =
+                std::tie(mi, medium_pdf) =
                     medium->sample_interaction(ray, sampler->next1d(), channel);
-                if (medium->is_homogeneous() && mi.is_valid())
-                    ray.maxt = std::min(mi.t, remaining_dist);
-                si = scene->ray_intersect(ray);
-                if (si.t < mi.t)
-                    mi.t = math::Infinity<Float>;
-                if (mi.t > remaining_dist && mi.is_valid())
-                    total_dist = ds.dist;
-                if (mi.t > remaining_dist)
-                    mi.t = math::Infinity<Float>;
-                escaped_medium = !mi.is_valid();
-                if (mi.is_valid()) {
-                    total_dist += mi.t;
-                    ray.o    = mi.p;
-                    ray.mint = 0.f;
-                    si.t -= mi.t;
-                    transmittance *=
-                        mi.sigma_n.array() / mi.combined_extinction.array();
+            }
+            if (medium != nullptr && mi.is_valid()) {
+                throughput *= mi.sigma_s * mi.transmittance / medium_pdf;
+                const PhaseFunction *phase = medium->phase_function();
+                PhaseFunctionContext phase_ctx(sampler);
+                /*
+                 * Direct illumination sampling
+                 */
+                auto [ds, spec] = sample_attenuated_emitter(scene, medium, si,
+                                                            sampler->next2d());
+                if (!is_black(spec)) {
+                    result +=
+                        throughput * spec * phase->eval(phase_ctx, mi, ds.d);
                 }
+                if (depth >= m_max_depth && m_max_depth > 0)
+                    break;
+                /**
+                 * Phase function sampling
+                 */
+                auto [phase_wo, phase_val] =
+                    phase->sample(phase_ctx, mi, sampler->next2d());
+                if (phase_val == 0.f)
+                    break;
+                throughput *= phase_val;
+                // Trace a ray in phase sampled direction
+                ray = si.spawn_ray(phase_wo);
+                si  = scene->ray_intersect(ray);
             } else {
-                total_dist += si.t;
-                if (si.is_valid()) {
-                    auto bsdf         = si.bsdf(ray);
-                    Spectrum bsdf_val = bsdf->eval_null_transmission(si);
-                    transmittance *= bsdf_val;
-                    ray      = si.spawn_ray(ray.d);
-                    ray.maxt = remaining_dist;
-
-                    if (si.is_medium_transition()) {
-                        medium = si.target_medium(ray.d);
+                if (medium != nullptr) {
+                    throughput *= mi.transmittance / medium_pdf;
+                }
+                /*
+                 * Sample surface integral
+                 */
+                if (!si.is_valid()) {
+                    if (medium != nullptr)
+                        result += throughput * medium->eval_transmittance(ray);
+                    break;
+                }
+                // Compute emitted radiance
+                auto emitter = si.emitter(scene);
+                if (emitter != nullptr) {
+                    result += throughput * emitter->eval(si);
+                }
+                /*
+                 * Direct illumination sampling
+                 */
+                BSDFContext ctx;
+                auto bsdf = si.bsdf(ray);
+                if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
+                    auto [ds, emitter_val] = scene->sample_emitter_direction(
+                        si, sampler->next2d(), true);
+                    if (ds.pdf != 0.f) {
+                        auto wo           = si.to_local(ds.d);
+                        Spectrum bsdf_val = bsdf->eval(ctx, si, wo);
+                        Float bsdf_pdf    = bsdf->pdf(ctx, si, wo);
+                        Float weight      = mis_weight(ds.pdf, bsdf_pdf);
+                        result += throughput * emitter_val * bsdf_val * weight;
                     }
                 }
+                /*
+                 * BSDF Sampling
+                 */
+                auto [bs, bsdf_val] =
+                    bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
+                scattered |= bs.sampled_type != (uint32_t) BSDFFlags::Null;
+                non_specular |= !(bs.sampled_type & BSDFFlags::Delta);
+
+                const auto wo    = si.to_world(bs.wo);
+                bool hit_emitter = false;
+
+                throughput *= bsdf_val;
+                eta *= bs.eta;
+                if (si.is_medium_transition())
+                    medium = si.target_medium(wo);
+
+                ray = si.spawn_ray(wo);
+
+                SurfaceInteraction si_bsdf = scene->ray_intersect(ray);
+            }
+
+            // Russian roulette
+            if (depth + 1 >= m_rr_depth) {
+                Float q =
+                    std::min(throughput.maxCoeff() * eta * eta, Float(0.95));
+                if (sampler->next1d() >= q)
+                    break;
+                throughput /= q;
             }
         }
-        return { emitter_val * transmittance, ds };
+        return result;
+    }
+
+    Spectrum evaluate_transmittance(const Scene *scene, const Vector3 &ref,
+                                    const Vector3 &p,
+                                    const Medium *medium) const {
+        Vector3 d       = p - ref;
+        Float remaining = d.norm();
+        d /= d.norm();
+        Ray ray(ref, d, math::RayEpsilon<Float>,
+                remaining * (1 - math::ShadowEpsilon<Float>), 0);
+        Spectrum transmittance = Spectrum::Constant(1);
+        while (remaining) {
+            SurfaceInteraction si = scene->ray_intersect(ray);
+            if (si.is_valid() && !si.bsdf()) {
+                return Spectrum::Zero();
+            }
+            if (medium) {
+                Ray medium_ray  = ray;
+                medium_ray.mint = 0.f;
+                medium_ray.maxt = std::min(si.t, remaining);
+                transmittance *= medium->eval_transmittance(medium_ray);
+            }
+            if (!si.is_valid() || is_black(transmittance))
+                break;
+            const auto bsdf = si.bsdf();
+            BSDFContext ctx;
+            transmittance *= bsdf->eval(ctx, si, si.to_local(ray.d));
+            if (si.is_medium_transition()) {
+                if (medium != si.target_medium(-d))
+                    return Spectrum::Zero();
+                medium = si.target_medium(d);
+            }
+            ray.o = ray(si.t);
+            remaining -= si.t;
+            ray.maxt = remaining * (1 - math::ShadowEpsilon<Float>);
+        }
+        return transmittance;
+    }
+
+    std::pair<DirectSample, Spectrum>
+    sample_attenuated_emitter(const Scene *scene, const Medium *medium,
+                              const SurfaceInteraction &ref,
+                              const Vector2 &sample_) const {
+        DirectSample ds;
+        Spectrum spec;
+        Vector2 sample(sample_);
+        Float emitter_pdf = 0.;
+        // Uniform pick an emitter
+        if (!scene->emitters().empty()) {
+            if (scene->emitters().size() == 1) {
+                std::tie(ds, spec) =
+                    scene->emitters()[0]->sample_direct(ref, sample);
+            } else {
+                emitter_pdf = 1.f / scene->emitters().size();
+                auto index  = std::min(
+                    uint32_t(sample.x() * (Float) scene->emitters().size()),
+                    (uint32_t) scene->emitters().size() - 1);
+                sample.x() = (sample.x() - index * emitter_pdf) *
+                             scene->emitters().size();
+                std::tie(ds, spec) =
+                    scene->emitters()[index]->sample_direct(ref, sample);
+            }
+        }
+        if (ds.pdf != 0.f) {
+            if (ref.is_valid() && ref.is_medium_transition())
+                medium = ref.target_medium(ds.d);
+            spec *= evaluate_transmittance(scene, ref.p, ds.p, medium);
+            ds.pdf *= emitter_pdf;
+            return { ds, spec };
+        } else {
+            return { ds, Spectrum::Zero() };
+        }
     }
 
     Float mis_weight(Float pdf_a, Float pdf_b) const {
@@ -209,7 +296,7 @@ private:
     std::mutex m_mutex;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(VolumetricPathIntegrator , Integrator)
-APR_INTERNAL_PLUGIN(VolumetricPathIntegrator , "volpath")
+APR_IMPLEMENT_CLASS_VARIANT(PathTracer, Integrator)
+APR_INTERNAL_PLUGIN(PathTracer, "path")
 
 } // namespace aspirin
