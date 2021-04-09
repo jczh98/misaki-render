@@ -18,7 +18,7 @@
 namespace aspirin {
 
 template <typename Float, typename Spectrum>
-class PathTracer final : public Integrator<Float, Spectrum> {
+class VolumetricPathTracer final : public Integrator<Float, Spectrum> {
 public:
     APR_IMPORT_CORE_TYPES(Float)
     using Base = Integrator<Float, Spectrum>;
@@ -29,6 +29,7 @@ public:
     using ImageBlock           = ImageBlock<Float, Spectrum>;
     using Sampler              = Sampler<Float, Spectrum>;
     using Medium               = Medium<Float, Spectrum>;
+    using MediumInteraction    = MediumInteraction<Float, Spectrum>;
     using Interaction          = Interaction<Float, Spectrum>;
     using SurfaceInteraction   = SurfaceInteraction<Float, Spectrum>;
     using PhaseFunction        = PhaseFunction<Float, Spectrum>;
@@ -36,7 +37,7 @@ public:
     using DirectSample         = DirectSample<Float, Spectrum>;
     using MediumPtr            = const Medium *;
 
-    PathTracer(const Properties &props) : Base(props) {}
+    VolumetricPathTracer(const Properties &props) : Base(props) {}
 
     bool render(Scene *scene, Sensor *sensor) {
         auto film      = sensor->film();
@@ -160,7 +161,7 @@ public:
                 }
                 // Compute emitted radiance
                 auto emitter = si.emitter(scene);
-                if (emitter != nullptr) {
+                if (emitter != nullptr && emission) {
                     result += throughput * emitter->eval(si);
                 }
                 /*
@@ -169,8 +170,8 @@ public:
                 BSDFContext ctx;
                 auto bsdf = si.bsdf(ray);
                 if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
-                    auto [ds, emitter_val] = scene->sample_emitter_direction(
-                        si, sampler->next2d(), true);
+                    auto [ds, emitter_val] = sample_attenuated_emitter(scene, medium, si,
+                                                                       sampler->next2d());
                     if (ds.pdf != 0.f) {
                         auto wo           = si.to_local(ds.d);
                         Spectrum bsdf_val = bsdf->eval(ctx, si, wo);
@@ -187,6 +188,10 @@ public:
                 scattered |= bs.sampled_type != (uint32_t) BSDFFlags::Null;
                 non_specular |= !(bs.sampled_type & BSDFFlags::Delta);
 
+                if (non_specular) {
+                    emission = false;
+                }
+
                 const auto wo    = si.to_world(bs.wo);
                 bool hit_emitter = false;
 
@@ -198,6 +203,7 @@ public:
                 ray = si.spawn_ray(wo);
 
                 SurfaceInteraction si_bsdf = scene->ray_intersect(ray);
+                si = std::move(si_bsdf);
             }
 
             // Russian roulette
@@ -223,7 +229,7 @@ public:
         Spectrum transmittance = Spectrum::Constant(1);
         while (remaining) {
             SurfaceInteraction si = scene->ray_intersect(ray);
-            if (si.is_valid() && !si.bsdf()) {
+            if (si.is_valid() && si.bsdf()) {
                 return Spectrum::Zero();
             }
             if (medium) {
@@ -260,6 +266,7 @@ public:
         // Uniform pick an emitter
         if (!scene->emitters().empty()) {
             if (scene->emitters().size() == 1) {
+                emitter_pdf = 1.f;
                 std::tie(ds, spec) =
                     scene->emitters()[0]->sample_direct(ref, sample);
             } else {
@@ -296,7 +303,7 @@ private:
     std::mutex m_mutex;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(PathTracer, Integrator)
-APR_INTERNAL_PLUGIN(PathTracer, "path")
+APR_IMPLEMENT_CLASS_VARIANT(VolumetricPathTracer, Integrator)
+APR_INTERNAL_PLUGIN(VolumetricPathTracer, "volpath")
 
 } // namespace aspirin
