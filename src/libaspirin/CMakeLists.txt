@@ -30,10 +30,10 @@ add_library(aspirin-render SHARED
         medium.cpp
 
         samplers/independent.cpp
-        bsdfs/diffuse.cpp
-        textures/srgb.cpp
+        bsdfs/diffuse.cpp bsdfs/twosided.cpp bsdfs/dielectric.cpp
+        textures/srgb.cpp textures/checkerboard.cpp
         shapes/obj.cpp
-        emitters/area.cpp
+        emitters/area.cpp emitters/constant.cpp
         sensors/perspective.cpp
         filters/gaussian.cpp
         films/rgbfilm.cpp

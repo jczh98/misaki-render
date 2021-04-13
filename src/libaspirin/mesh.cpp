@@ -14,6 +14,7 @@ Mesh<Float, Spectrum>::Mesh(const Properties &props)
     m_to_world = props.transform("to_world", Transform4());
     m_is_mesh  = true;
     set_children();
+    recompute_bbox();
 }
 
 template <typename Float, typename Spectrum> Mesh<Float, Spectrum>::~Mesh() {}
@@ -22,6 +23,13 @@ template <typename Float, typename Spectrum>
 typename Mesh<Float, Spectrum>::BoundingBox3
 Mesh<Float, Spectrum>::bbox() const {
     return m_bbox;
+}
+
+template <typename Float, typename Spectrum>
+void Mesh<Float, Spectrum>::recompute_bbox() {
+    m_bbox.reset();
+    for (size_t i = 0; i < m_vertex_count; ++i)
+        m_bbox.expand(vertex_position(i));
 }
 
 template <typename Float, typename Spectrum>

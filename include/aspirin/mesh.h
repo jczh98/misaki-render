@@ -82,6 +82,7 @@ public:
                                 PreliminaryIntersection pi) const override;
 
     void area_distr_build();
+    void recompute_bbox();
 
     BoundingBox3 bbox() const override;
     BoundingBox3 bbox(uint32_t index) const override;

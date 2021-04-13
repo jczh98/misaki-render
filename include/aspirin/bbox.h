@@ -43,7 +43,7 @@ template <typename Value, int Size> struct BoundingBox {
 
   BoundingSphere<Value, Size> bounding_sphere() const {
     PointType c = center();
-    return {c, norm(c - pmax)};
+    return {c, (c - pmax).norm()};
   }
 
   PointType pmin, pmax;
