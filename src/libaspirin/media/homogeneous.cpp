@@ -23,8 +23,10 @@ public:
 
     HomogeneousMedium(const Properties &props) : Base(props) {
         m_is_homogeneous = true;
-        m_sigma_a        = props.texture<Texture>("albedo", 0.75f);
-        m_sigma_s        = props.texture<Texture>("sigma_t", 1.f);
+        //m_sigma_a        = props.texture<Texture>("sigma_s", 0.75f);
+        //m_sigma_s        = props.texture<Texture>("sigma_t", 1.f);
+        m_sigma_a = Spectrum::Constant(0.1);
+        m_sigma_s = Spectrum::Constant(0.1);
         m_sigma_t        = m_sigma_s + m_sigma_a;
         m_scale          = props.get_float("scale", 1.0f);
     }
@@ -37,7 +39,7 @@ public:
 
         sampled_distance = -std::log((1 - sample) / m_sigma_t[channel]);
         MediumInteraction mi;
-        Float pdf;
+        Float pdf = 0.f;
         if (sampled_distance < ray.maxt - ray.mint) {
             mi.t       = sampled_distance + ray.mint;
             mi.p       = ray(mi.t);
@@ -61,8 +63,8 @@ public:
     std::string to_string() const override {
         std::ostringstream oss;
         oss << "HomogeneousMedium[" << std::endl
-            << "  albedo  = " << string::indent(m_sigma_s) << std::endl
-            << "  sigma_t = " << string::indent(m_sigma_a) << std::endl
+            << "  sigma_a = " << string::indent(m_sigma_a) << std::endl
+            << "  sigma_t = " << string::indent(m_sigma_s) << std::endl
             << "  scale   = " << m_scale << std::endl
             << "]";
         return oss.str();

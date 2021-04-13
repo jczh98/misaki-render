@@ -118,8 +118,11 @@ public:
             MediumInteraction mi;
             Float medium_pdf;
             if (medium != nullptr) {
+                Ray medium_ray = ray;
+                medium_ray.mint = 0;
+                medium_ray.maxt = si.t;
                 std::tie(mi, medium_pdf) =
-                    medium->sample_interaction(ray, sampler->next1d(), channel);
+                    medium->sample_interaction(medium_ray, sampler->next1d(), channel);
             }
             if (medium != nullptr && mi.is_valid()) {
                 throughput *= mi.sigma_s * mi.transmittance / medium_pdf;

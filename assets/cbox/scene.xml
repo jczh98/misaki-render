@@ -1,5 +1,5 @@
 <scene>
-    <integrator type="volpath">
+    <integrator type="path">
     </integrator>
     <sensor type="perspective">
         <float name="near_clip" value="10"/>
@@ -17,8 +17,8 @@
             <integer name="height" value="600"/>
         </film>
 <!--        <medium type="homogeneous" name="interior">-->
-<!--            <rgb name="sigmaS" value="0.1, 0.1, 0.1"/>-->
-<!--            <rgb name="sigmaA" value="0.1, 0.1, 0.1"/>-->
+<!--            <rgb name="sigma_s" value="0.1, 0.1, 0.1"/>-->
+<!--            <rgb name="sigma_a" value="0.1, 0.1, 0.1"/>-->
 <!--            <rgb name="sigma_t" value="0.2, 0.2, 0.2"/>-->
 <!--            <rgb name="albedo" value="0.5, 0.5, 0.5"/>-->
 <!--        </medium>-->
