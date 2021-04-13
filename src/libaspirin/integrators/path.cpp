@@ -20,6 +20,7 @@ class PathTracer final : public Integrator<Float, Spectrum> {
 public:
     APR_IMPORT_CORE_TYPES(Float)
     using Base = Integrator<Float, Spectrum>;
+    using typename Base::RadianceQuery;
     using typename Base::Scene;
     using typename Base::Sensor;
     using Ray                = Ray<Float, Spectrum>;
@@ -96,21 +97,25 @@ public:
 
     Spectrum sample(const Scene *scene, Sampler *sampler,
                     const RayDifferential &ray_) const {
+        RadianceQuery type  = RadianceQuery::Radiance;
         RayDifferential ray = ray_;
         Spectrum throughput = Spectrum::Constant(1.f),
                  result     = Spectrum::Zero();
         Float eta           = 1.f;
-        bool scattered = false, non_specular = false, emission = true;
+        bool scattered = false;
         SurfaceInteraction si = scene->ray_intersect(ray);
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
-            if (!si.is_valid()) {
+            if (!si.is_valid() && scene->environment() != nullptr) {
                 // If no intersection, compute the environment illumination
+                if ((type & RadianceQuery::EmittedRadiance) && scattered)
+                    result += throughput * scene->environment()->eval(si);
                 break;
             }
-            auto bsdf = si.bsdf(ray);
+            auto bsdf    = si.bsdf(ray);
+            auto emitter = si.shape->emitter();
             // Compute emitted radiance
-            auto emitter = si.emitter(scene);
-            if (emitter != nullptr && emission) {
+            if (emitter != nullptr && (type & RadianceQuery::EmittedRadiance) &&
+                scattered) {
                 result += throughput * emitter->eval(si);
             }
             if (depth >= m_max_depth && m_max_depth > 0)
@@ -119,7 +124,8 @@ public:
              * Direct illumination sampling
              */
             BSDFContext ctx;
-            if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
+            if ((type & RadianceQuery::DirectSurfaceRadiance) &&
+                has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
                 auto [ds, emitter_val] = scene->sample_emitter_direction(
                     si, sampler->next2d(), true);
                 if (ds.pdf != 0.f) {
@@ -136,7 +142,6 @@ public:
             auto [bs, bsdf_val] =
                 bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
             scattered |= bs.sampled_type != (uint32_t) BSDFFlags::Null;
-            non_specular |= !(bs.sampled_type & BSDFFlags::Delta);
 
             const auto wo    = si.to_world(bs.wo);
             bool hit_emitter = false;
@@ -144,31 +149,43 @@ public:
 
             ray                        = si.spawn_ray(wo);
             SurfaceInteraction si_bsdf = scene->ray_intersect(ray);
-            emitter                    = si_bsdf.emitter(scene);
 
             if (si_bsdf.is_valid()) {
+                emitter = si_bsdf.shape->emitter();
                 if (emitter != nullptr) {
                     value       = emitter->eval(si_bsdf);
                     hit_emitter = true;
                 }
+            } else {
+                // Intersected nothing or environment
+                if (scene->environment() != nullptr) {
+                    if (!scattered)
+                        break;
+                    value       = scene->environment()->eval(si);
+                    hit_emitter = true;
+                } else
+                    break;
             }
             throughput *= bsdf_val;
             eta *= bs.eta;
 
             // If an emitter was hit, estimate the illumination
-            if (hit_emitter) {
+            if (hit_emitter && (type & RadianceQuery::DirectSurfaceRadiance)) {
                 DirectSample ds(si_bsdf, si);
                 auto emitter_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta)
                                        ? scene->pdf_emitter_direction(si, ds)
                                        : 0.f;
-                if (non_specular) {
-                    result +=
-                        throughput * value * mis_weight(bs.pdf, emitter_pdf);
-                }
+                result += throughput * value * mis_weight(bs.pdf, emitter_pdf);
             }
             // Indirect illumination
-            emission = false;
+            if (!si.is_valid() ||
+                !(type & RadianceQuery::IndirectSurfaceRadiance))
+                break;
+
+            type = RadianceQuery::RadianceNoEmission;
+
             si = std::move(si_bsdf);
+
             // Russian roulette
             if (depth + 1 >= m_rr_depth) {
                 Float q =

@@ -193,8 +193,8 @@ template <typename Float_, typename Spectrum_> struct PreliminaryIntersection {
         if (si.is_valid()) {
             si.prim_index = prim_index;
             si.shape      = shape;
-            si.wi         = si.to_local(-ray.d);
             si.initialize_sh_frame();
+            si.wi         = si.to_local(-ray.d);
         } else {
             si.t  = math::Infinity<Float>;
             si.wi = -ray.d;
