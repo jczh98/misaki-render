@@ -18,12 +18,12 @@ public:
         m_flags = +PhaseFunctionFlags::Isotropic;
     }
 
-    std::pair<Vector3, Float> sample(const PhaseFunctionContext &,
-                                     const MediumInteraction &,
-                                     const Vector2 &sample) const override {
+    std::tuple<Vector3, Float, Float>
+    sample(const PhaseFunctionContext &, const MediumInteraction &,
+           const Vector2 &sample) const override {
         auto wo  = warp::square_to_uniform_sphere(sample);
         auto pdf = warp::square_to_uniform_sphere_pdf(wo);
-        return std::make_pair(wo, pdf);
+        return { wo, pdf, 1.f };
     }
 
     Float eval(const PhaseFunctionContext &, const MediumInteraction &,

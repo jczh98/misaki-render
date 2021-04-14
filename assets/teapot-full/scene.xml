@@ -9,7 +9,7 @@
             <matrix value="0.00560664 -0.488405 -0.872599 23.1701 0 0.872613 -0.488413 15.7142 0.999984 0.00274286 0.00490048 -0.172476 0 0 0 1"/>
         </transform>
         <sampler type="independent">
-            <integer name="sample_count" value="64"/>
+            <integer name="sample_count" value="128"/>
         </sampler>
         <film type="rgbfilm">
             <integer name="width" value="1280"/>
@@ -64,10 +64,10 @@
             <float name="int_ior" value="1.33"/>
             <float name="ext_ior" value="1"/>
         </bsdf>
-        <!--		<medium type="homogeneous" name="interior" >-->
-        <!--			<rgb name="sigmaS" value="0, 0, 0"/>-->
-        <!--			<rgb name="sigmaA" value="0.1486, 0.321, 0.736"/>-->
-        <!--		</medium>-->
+        <medium type="homogeneous" name="interior">
+            <rgb name="sigma_s" value="0, 0, 0"/>
+            <rgb name="sigma_a" value="0.1486, 0.321, 0.736"/>
+        </medium>
     </shape>
     <shape type="obj">
         <string name="filename" value="models/Mesh000.obj"/>
@@ -78,10 +78,10 @@
             <float name="int_ior" value="1.13"/>
             <float name="ext_ior" value="1"/>
         </bsdf>
-        <!--		<medium type="homogeneous" name="exterior" >-->
-        <!--			<rgb name="sigmaS" value="0, 0, 0"/>-->
-        <!--			<rgb name="sigmaA" value="0.1486, 0.321, 0.736"/>-->
-        <!--		</medium>-->
+        <medium type="homogeneous" name="exterior">
+            <rgb name="sigma_s" value="0, 0, 0"/>
+            <rgb name="sigma_a" value="0.1486, 0.321, 0.736"/>
+        </medium>
     </shape>
     <emitter type="constant">
         <transform name="to_world">
