@@ -54,11 +54,14 @@ public:
     using PhaseFunctionContext = PhaseFunctionContext<Float, Spectrum>;
     using MediumInteraction    = MediumInteraction<Float, Spectrum>;
 
-    /// Importance sample the phase function model, returns a sampled direction
-    /// wo with pdf
-    virtual std::pair<Vector3, Float> sample(const PhaseFunctionContext &ctx,
-                                             const MediumInteraction &mi,
-                                             const Vector2 &sample) const = 0;
+    /**
+     * @brief Sample a phase function
+     * @param sample
+     * @return sampled direction, pdf, and phase value
+     */
+    virtual std::tuple<Vector3, Float, Float>
+    sample(const PhaseFunctionContext &ctx, const MediumInteraction &mi,
+           const Vector2 &sample) const = 0;
 
     virtual Float eval(const PhaseFunctionContext &ctx,
                        const MediumInteraction &mi,

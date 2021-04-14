@@ -478,6 +478,9 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                 auto obj = PluginManager::instance()->create_object(
                     props2, Class::for_name("Texture", ctx.variant));
                 props.set_object(node.attribute("name").value(), obj);
+                props.set_color(
+                    fmt::format("{}_color", node.attribute("name").value()),
+                    color);
             } break;
             case Tag::Transform: {
                 check_attributes(src, node, { "name" });

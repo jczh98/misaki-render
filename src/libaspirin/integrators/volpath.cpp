@@ -133,25 +133,32 @@ public:
                 /*
                  * Direct illumination sampling
                  */
-                auto [ds, spec] = sample_attenuated_emitter(scene, medium, si,
-                                                            sampler->next2d());
-                if (!is_black(spec)) {
-                    result +=
-                        throughput * spec * phase->eval(phase_ctx, mi, ds.d);
+                if (rtype & RadianceQuery::DirectMediumRadiance) {
+                    auto [ds, spec] = sample_attenuated_emitter(
+                        scene, medium, si, sampler->next2d());
+                    if (!is_black(spec)) {
+                        result += throughput * spec *
+                                  phase->eval(phase_ctx, mi, ds.d);
+                    }
                 }
-                if (depth >= m_max_depth && m_max_depth > 0)
+
+                if ((depth >= m_max_depth && m_max_depth > 0) ||
+                    !(rtype & RadianceQuery::IndirectMediumRadiance))
                     break;
                 /**
                  * Phase function sampling
                  */
-                auto [phase_wo, phase_val] =
+                auto [phase_wo, phase_pdf, phase_val] =
                     phase->sample(phase_ctx, mi, sampler->next2d());
                 if (phase_val == 0.f)
                     break;
                 throughput *= phase_val;
                 // Trace a ray in phase sampled direction
-                ray = si.spawn_ray(phase_wo);
-                si  = scene->ray_intersect(ray);
+                ray        = mi.spawn_ray(phase_wo);
+                ray.mint   = 0;
+                si         = scene->ray_intersect(ray);
+                null_chain = false;
+                scattered  = true;
             } else {
                 if (medium != nullptr) {
                     throughput *= mi.transmittance / medium_pdf;
@@ -161,7 +168,8 @@ public:
                  */
                 if (!si.is_valid() && scene->environment() != nullptr) {
                     if ((rtype & RadianceQuery::EmittedRadiance) && scattered) {
-                        Spectrum value = throughput * scene->environment()->eval(si);
+                        Spectrum value =
+                            throughput * scene->environment()->eval(si);
                         if (medium != nullptr)
                             value *= medium->eval_transmittance(ray);
                         result += value;
@@ -196,6 +204,9 @@ public:
                 auto [bs, bsdf_val] =
                     bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
 
+                if (is_black(bsdf_val))
+                    break;
+
                 int recursive_type = 0;
                 if ((depth + 1 < m_max_depth || m_max_depth < 0) &&
                     (rtype & RadianceQuery::IndirectSurfaceRadiance))
@@ -226,8 +237,7 @@ public:
 
                 ray = si.spawn_ray(wo);
 
-                auto si_bsdf = scene->ray_intersect(ray);
-                si           = std::move(si_bsdf);
+                si = scene->ray_intersect(ray);
 
                 scattered |= !has_flag(bs.sampled_type, BSDFFlags::Null);
             }
@@ -249,13 +259,14 @@ public:
                                     const Medium *medium) const {
         Vector3 d       = p - ref;
         Float remaining = d.norm();
-        d /= d.norm();
+        d /= remaining;
         Ray ray(ref, d, math::RayEpsilon<Float>,
                 remaining * (1 - math::ShadowEpsilon<Float>), 0);
         Spectrum transmittance = Spectrum::Constant(1);
         while (remaining) {
             SurfaceInteraction si = scene->ray_intersect(ray);
-            if (si.is_valid() && si.bsdf()) {
+            if (si.is_valid() &&
+                !has_flag(si.bsdf()->flags(), BSDFFlags::Null)) {
                 return Spectrum::Zero();
             }
             if (medium) {
@@ -266,9 +277,12 @@ public:
             }
             if (!si.is_valid() || is_black(transmittance))
                 break;
-            const auto bsdf = si.bsdf();
             BSDFContext ctx;
-            transmittance *= bsdf->eval(ctx, si, si.to_local(ray.d));
+            const auto bsdf = si.bsdf();
+            ctx.type_mask   = +BSDFFlags::Null;
+            const auto wo   = si.to_local(ray.d);
+            si.wi           = -wo;
+            transmittance *= bsdf->eval(ctx, si, wo);
             if (si.is_medium_transition()) {
                 if (medium != si.target_medium(-d))
                     return Spectrum::Zero();
@@ -277,6 +291,7 @@ public:
             ray.o = ray(si.t);
             remaining -= si.t;
             ray.maxt = remaining * (1 - math::ShadowEpsilon<Float>);
+            ray.mint = math::RayEpsilon<Float>;
         }
         return transmittance;
     }
@@ -288,16 +303,15 @@ public:
         DirectSample ds;
         Spectrum spec;
         Vector2 sample(sample_);
-        Float emitter_pdf = 0.;
+        Float emitter_pdf = 1.f;
         // Uniform pick an emitter
         if (!scene->emitters().empty()) {
             if (scene->emitters().size() == 1) {
-                emitter_pdf = 1.f;
                 std::tie(ds, spec) =
                     scene->emitters()[0]->sample_direct(ref, sample);
             } else {
-                emitter_pdf = 1.f / scene->emitters().size();
-                auto index  = std::min(
+                emitter_pdf /= scene->emitters().size();
+                auto index = std::min(
                     uint32_t(sample.x() * (Float) scene->emitters().size()),
                     (uint32_t) scene->emitters().size() - 1);
                 sample.x() = (sample.x() - index * emitter_pdf) *
@@ -307,9 +321,10 @@ public:
             }
         }
         if (ds.pdf != 0.f) {
-            if (ref.is_valid() && ref.is_medium_transition())
+            if (ref.shape != nullptr && ref.is_medium_transition())
                 medium = ref.target_medium(ds.d);
-            spec *= evaluate_transmittance(scene, ref.p, ds.p, medium);
+            spec *= evaluate_transmittance(scene, ref.p, ds.p, medium) /
+                    emitter_pdf;
             ds.pdf *= emitter_pdf;
             return { ds, spec };
         } else {

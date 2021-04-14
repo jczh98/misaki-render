@@ -21,43 +21,47 @@ public:
     using Volume      = Volume<Float, Spectrum>;
     using Interaction = Interaction<Float, Spectrum>;
 
-    HomogeneousMedium(const Properties &props) : Base(props) {
+    explicit HomogeneousMedium(const Properties &props) : Base(props) {
         m_is_homogeneous = true;
-        //m_sigma_a        = props.texture<Texture>("sigma_s", 0.75f);
-        //m_sigma_s        = props.texture<Texture>("sigma_t", 1.f);
-        m_sigma_a = Spectrum::Constant(0.1);
-        m_sigma_s = Spectrum::Constant(0.1);
-        m_sigma_t        = m_sigma_s + m_sigma_a;
-        m_scale          = props.get_float("scale", 1.0f);
+        m_sigma_a = props.color("sigma_a_color", Spectrum::Constant(1.f));
+        m_sigma_s = props.color("sigma_s_color", Spectrum::Constant(1.f));
+        m_sigma_t = m_sigma_s + m_sigma_a;
+        m_scale   = props.get_float("scale", 1.0f);
     }
 
     std::pair<MediumInteraction, Float>
     sample_interaction(const Ray &ray, Float sample,
                        uint32_t channel) const override {
-        Float maxt = std::min(ray.maxt, std::numeric_limits<Float>::max()),
-              sampled_distance;
+        Float sampled_distance = -std::log(1 - sample) / m_sigma_t[channel];
 
-        sampled_distance = -std::log((1 - sample) / m_sigma_t[channel]);
         MediumInteraction mi;
-        Float pdf = 0.f;
+        Float pdf;
         if (sampled_distance < ray.maxt - ray.mint) {
             mi.t       = sampled_distance + ray.mint;
             mi.p       = ray(mi.t);
             mi.sigma_a = m_sigma_a;
             mi.sigma_s = m_sigma_s;
-            pdf = ((m_sigma_t * (-sampled_distance)).exp() * m_sigma_t).mean();
+            if (mi.p == ray.o) {
+                mi.t = math::Infinity<Float>;
+                pdf  = (m_sigma_t * (-sampled_distance)).exp().mean();
+            } else
+                pdf = ((m_sigma_t * (-sampled_distance)).exp() * m_sigma_t)
+                          .mean();
         } else {
+            mi.t             = math::Infinity<Float>;
             sampled_distance = ray.maxt - ray.mint;
             pdf              = (m_sigma_t * (-sampled_distance)).exp().mean();
         }
         mi.transmittance = (m_sigma_t * (-sampled_distance)).exp();
-        mi.medium        = this;
+        if (mi.transmittance.maxCoeff() < 1e-20)
+            mi.transmittance = Spectrum::Zero();
+        mi.medium = this;
         return { mi, pdf };
     }
 
     Spectrum eval_transmittance(const Ray &ray) const override {
-        Float t = std::min(ray.maxt, std::numeric_limits<float>::max());
-        return (m_sigma_t * (-t)).exp();
+        Float neg_length = ray.mint - ray.maxt;
+        return (m_sigma_t * neg_length).exp();
     }
 
     std::string to_string() const override {
