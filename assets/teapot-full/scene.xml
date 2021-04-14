@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <scene>
-    <integrator type="path">
+    <integrator type="volpath">
     </integrator>
     <sensor type="perspective">
         <float name="fov" value="35"/>
