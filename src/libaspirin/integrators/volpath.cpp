@@ -22,6 +22,7 @@ class VolumetricPathTracer final : public Integrator<Float, Spectrum> {
 public:
     APR_IMPORT_CORE_TYPES(Float)
     using Base = Integrator<Float, Spectrum>;
+    using typename Base::RadianceQuery;
     using typename Base::Scene;
     using typename Base::Sensor;
     using Ray                  = Ray<Float, Spectrum>;
@@ -111,18 +112,19 @@ public:
                  result     = Spectrum::Zero();
         Float eta           = 1.f;
         MediumPtr medium    = initial_medium;
-        bool scattered = false, non_specular = false, emission = true;
+        bool scattered = false, null_chain = true;
+        RadianceQuery rtype   = RadianceQuery::Radiance;
         SurfaceInteraction si = scene->ray_intersect(ray);
         uint32_t channel = std::min<uint32_t>(sampler->next1d() * 3, 3 - 1);
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
             MediumInteraction mi;
             Float medium_pdf;
             if (medium != nullptr) {
-                Ray medium_ray = ray;
-                medium_ray.mint = 0;
-                medium_ray.maxt = si.t;
-                std::tie(mi, medium_pdf) =
-                    medium->sample_interaction(medium_ray, sampler->next1d(), channel);
+                Ray medium_ray           = ray;
+                medium_ray.mint          = 0;
+                medium_ray.maxt          = si.t;
+                std::tie(mi, medium_pdf) = medium->sample_interaction(
+                    medium_ray, sampler->next1d(), channel);
             }
             if (medium != nullptr && mi.is_valid()) {
                 throughput *= mi.sigma_s * mi.transmittance / medium_pdf;
@@ -157,30 +159,35 @@ public:
                 /*
                  * Sample surface integral
                  */
-                if (!si.is_valid()) {
-                    if (medium != nullptr)
-                        result += throughput * medium->eval_transmittance(ray);
+                if (!si.is_valid() && scene->environment() != nullptr) {
+                    if ((rtype & RadianceQuery::EmittedRadiance) && scattered) {
+                        Spectrum value = throughput * scene->environment()->eval(si);
+                        if (medium != nullptr)
+                            value *= medium->eval_transmittance(ray);
+                        result += value;
+                    }
                     break;
                 }
                 // Compute emitted radiance
-                auto emitter = si.emitter(scene);
-                if (emitter != nullptr && emission) {
-                    result += throughput * emitter->eval(si);
+                if (si.shape->emitter() != nullptr &&
+                    (rtype & RadianceQuery::EmittedRadiance) && scattered) {
+                    result += throughput * si.shape->emitter()->eval(si);
                 }
                 /*
                  * Direct illumination sampling
                  */
                 BSDFContext ctx;
                 auto bsdf = si.bsdf(ray);
-                if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
-                    auto [ds, emitter_val] = sample_attenuated_emitter(scene, medium, si,
-                                                                       sampler->next2d());
+                if ((rtype & RadianceQuery::DirectSurfaceRadiance) &&
+                    has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
+                    auto [ds, emitter_val] = sample_attenuated_emitter(
+                        scene, medium, si, sampler->next2d());
                     if (ds.pdf != 0.f) {
                         auto wo           = si.to_local(ds.d);
                         Spectrum bsdf_val = bsdf->eval(ctx, si, wo);
                         Float bsdf_pdf    = bsdf->pdf(ctx, si, wo);
                         Float weight      = mis_weight(ds.pdf, bsdf_pdf);
-                        result += throughput * emitter_val * bsdf_val * weight;
+                        result += throughput * emitter_val * bsdf_val;
                     }
                 }
                 /*
@@ -188,15 +195,29 @@ public:
                  */
                 auto [bs, bsdf_val] =
                     bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
-                scattered |= bs.sampled_type != (uint32_t) BSDFFlags::Null;
-                non_specular |= !(bs.sampled_type & BSDFFlags::Delta);
 
-                if (non_specular) {
-                    emission = false;
+                int recursive_type = 0;
+                if ((depth + 1 < m_max_depth || m_max_depth < 0) &&
+                    (rtype & RadianceQuery::IndirectSurfaceRadiance))
+                    recursive_type |= RadianceQuery::RadianceNoEmission;
+
+                // Recursively gather direct illumination
+                if ((depth < m_max_depth || m_max_depth < 0) &&
+                    (rtype & RadianceQuery::DirectSurfaceRadiance) &&
+                    has_flag(bs.sampled_type, BSDFFlags::Delta) &&
+                    (!has_flag(bs.sampled_type, BSDFFlags::Null) ||
+                     null_chain)) {
+                    recursive_type |= RadianceQuery::EmittedRadiance;
+                    null_chain = true;
+                } else {
+                    null_chain &= has_flag(bs.sampled_type, BSDFFlags::Null);
                 }
+                // Potentially stop the recursion if there is nothing more to do
+                if (recursive_type == 0)
+                    break;
+                rtype = (RadianceQuery) recursive_type;
 
-                const auto wo    = si.to_world(bs.wo);
-                bool hit_emitter = false;
+                const auto wo = si.to_world(bs.wo);
 
                 throughput *= bsdf_val;
                 eta *= bs.eta;
@@ -205,8 +226,10 @@ public:
 
                 ray = si.spawn_ray(wo);
 
-                SurfaceInteraction si_bsdf = scene->ray_intersect(ray);
-                si = std::move(si_bsdf);
+                auto si_bsdf = scene->ray_intersect(ray);
+                si           = std::move(si_bsdf);
+
+                scattered |= !has_flag(bs.sampled_type, BSDFFlags::Null);
             }
 
             // Russian roulette
