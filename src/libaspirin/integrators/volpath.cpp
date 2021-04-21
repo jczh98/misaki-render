@@ -47,7 +47,7 @@ public:
         Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(),
             film_size.y(), total_spp);
         int m_block_size = APR_BLOCK_SIZE;
-        BlockGenerator gen(film_size, m_block_size);
+        BlockGenerator gen(film_size, Vector2i::Zero(), m_block_size);
         size_t total_blocks = gen.block_count();
         ProgressBar pbar(total_blocks, 70);
         Timer timer;
@@ -58,7 +58,7 @@ public:
                 ref<ImageBlock> block = new ImageBlock(
                     Vector2i::Constant(m_block_size), film->filter());
                 for (auto i = range.begin(); i != range.end(); ++i) {
-                    auto [offset, size] = gen.next_block();
+                    auto [offset, size, block_id] = gen.next_block();
                     block->set_offset(offset);
                     block->set_size(size);
                     render_block(scene, sensor, sampler, block, total_spp);
@@ -166,10 +166,13 @@ public:
                 /*
                  * Sample surface integral
                  */
-                if (!si.is_valid() && scene->environment() != nullptr) {
-                    if ((rtype & RadianceQuery::EmittedRadiance) && scattered) {
+                if (!si.is_valid()) {
+                    if ((rtype & RadianceQuery::EmittedRadiance) &&
+                        (!m_hide_emitter || scattered)) {
                         Spectrum value =
-                            throughput * scene->environment()->eval(si);
+                            throughput * ((scene->environment() != nullptr)
+                                              ? scene->environment()->eval(si)
+                                              : Spectrum::Zero());
                         if (medium != nullptr)
                             value *= medium->eval_transmittance(ray);
                         result += value;
@@ -178,7 +181,8 @@ public:
                 }
                 // Compute emitted radiance
                 if (si.shape->emitter() != nullptr &&
-                    (rtype & RadianceQuery::EmittedRadiance) && scattered) {
+                    (rtype & RadianceQuery::EmittedRadiance) &&
+                    (!m_hide_emitter || scattered)) {
                     result += throughput * si.shape->emitter()->eval(si);
                 }
                 /*
@@ -341,6 +345,7 @@ public:
     APR_DECLARE_CLASS()
 private:
     int m_max_depth = -1, m_rr_depth = 5;
+    bool m_hide_emitter = false;
     std::mutex m_mutex;
 };
 

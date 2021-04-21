@@ -38,7 +38,7 @@ public:
         Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(),
             film_size.y(), total_spp);
         int m_block_size = APR_BLOCK_SIZE;
-        BlockGenerator gen(film_size, m_block_size);
+        BlockGenerator gen(film_size, Vector2i::Zero(), m_block_size);
         size_t total_blocks = gen.block_count();
         ProgressBar pbar(total_blocks, 70);
         Timer timer;
@@ -49,7 +49,7 @@ public:
                 ref<ImageBlock> block = new ImageBlock(
                     Vector2i::Constant(m_block_size), film->filter());
                 for (auto i = range.begin(); i != range.end(); ++i) {
-                    auto [offset, size] = gen.next_block();
+                    auto [offset, size, block_id] = gen.next_block();
                     block->set_offset(offset);
                     block->set_size(size);
                     render_block(scene, sensor, sampler, block, total_spp);
@@ -97,25 +97,26 @@ public:
 
     Spectrum sample(const Scene *scene, Sampler *sampler,
                     const RayDifferential &ray_) const {
-        RadianceQuery type  = RadianceQuery::Radiance;
-        RayDifferential ray = ray_;
-        Spectrum throughput = Spectrum::Constant(1.f),
-                 result     = Spectrum::Zero();
-        Float eta           = 1.f;
-        bool scattered = false;
+        RadianceQuery type    = RadianceQuery::Radiance;
+        RayDifferential ray   = ray_;
+        Spectrum throughput   = Spectrum::Constant(1.f),
+                 result       = Spectrum::Zero();
+        Float eta             = 1.f;
+        bool scattered        = false;
         SurfaceInteraction si = scene->ray_intersect(ray);
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
-            if (!si.is_valid() && scene->environment() != nullptr) {
+            if (!si.is_valid()) {
                 // If no intersection, compute the environment illumination
-                if ((type & RadianceQuery::EmittedRadiance) && scattered)
-                    result += throughput * scene->environment()->eval(si);
+                if ((type & RadianceQuery::EmittedRadiance) && (!m_hide_emitter || scattered)) {
+                    if (scene->environment() != nullptr)
+                        result += throughput * scene->environment()->eval(si);
+                }
                 break;
             }
-            auto bsdf    = si.bsdf(ray);
             auto emitter = si.shape->emitter();
             // Compute emitted radiance
             if (emitter != nullptr && (type & RadianceQuery::EmittedRadiance) &&
-                scattered) {
+                (!m_hide_emitter || scattered)) {
                 result += throughput * emitter->eval(si);
             }
             if (depth >= m_max_depth && m_max_depth > 0)
@@ -124,6 +125,7 @@ public:
              * Direct illumination sampling
              */
             BSDFContext ctx;
+            auto bsdf = si.bsdf(ray);
             if ((type & RadianceQuery::DirectSurfaceRadiance) &&
                 has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
                 auto [ds, emitter_val] = scene->sample_emitter_direction(
@@ -159,7 +161,7 @@ public:
             } else {
                 // Intersected nothing or environment
                 if (scene->environment() != nullptr) {
-                    if (!scattered)
+                    if (m_hide_emitter && !scattered)
                         break;
                     value       = scene->environment()->eval(si);
                     hit_emitter = true;
@@ -207,6 +209,7 @@ public:
     APR_DECLARE_CLASS()
 private:
     int m_max_depth = -1, m_rr_depth = 5;
+    bool m_hide_emitter = false;
     std::mutex m_mutex;
 };
 

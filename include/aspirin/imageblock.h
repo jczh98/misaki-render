@@ -61,18 +61,40 @@ public:
     using Float = float;
     APR_IMPORT_CORE_TYPES(float)
 
-    BlockGenerator(const Vector2i &size, int block_size);
+    BlockGenerator(const Vector2i &size, const Vector2i &offset, int block_size);
     size_t max_block_size() const { return m_block_size; }
-    size_t block_count() const { return m_blocks_left; }
+    size_t block_count() const { return m_block_count; }
+
+    /// Reset the spiral to its initial state. Does not affect the number of passes.
+    void reset();
+
     // Return the `offset` and `size`
-    std::tuple<Vector2i, Vector2i> next_block();
+    std::tuple<Vector2i, Vector2i, size_t> next_block();
 
     APR_DECLARE_CLASS()
 protected:
-    enum Direction { Right = 0, Down, Left, Up };
-    Vector2i m_block, m_size, m_num_blocks;
-    int m_block_size, m_num_steps, m_blocks_left, m_steps_left;
-    int m_direction;
+    enum class Direction {
+        Right = 0,
+        Down,
+        Left,
+        Up
+    };
+
+    size_t m_block_counter, //< Number of blocks generated so far
+    m_block_count,   //< Total number of blocks to be generated
+    m_block_size;    //< Size of the (square) blocks (in pixels)
+
+    Vector2i m_size,        //< Size of the 2D image (in pixels).
+    m_offset,      //< Offset to the crop region on the sensor (pixels).
+    m_blocks;      //< Number of blocks in each direction.
+
+    Vector2i  m_position;    //< Relative position of the current block.
+    /// Direction where the spiral is currently headed.
+    Direction m_current_direction;
+    /// Step counters.
+    int m_steps_left, m_steps;
+
+    /// Protects the spiral's state (thread safety).
     tbb::spin_mutex m_mutex;
 };
 

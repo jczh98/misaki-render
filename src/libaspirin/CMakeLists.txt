@@ -37,7 +37,10 @@ add_library(aspirin-render SHARED
         sensors/perspective.cpp
         filters/gaussian.cpp
         films/rgbfilm.cpp
-        integrators/debug.cpp integrators/path.cpp integrators/volpath.cpp
+        # Integrators
+        integrators/debug.cpp integrators/path.cpp
+        integrators/volpath.cpp integrators/sppm.cpp
+        # Phases
         phase/isotropic.cpp
         volume/constant3d.cpp
         media/homogeneous.cpp

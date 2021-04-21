@@ -36,7 +36,7 @@ public:
         Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(),
             film_size.y(), total_spp);
         int m_block_size = APR_BLOCK_SIZE;
-        BlockGenerator gen(film_size, m_block_size);
+        BlockGenerator gen(film_size, Vector2i::Zero(), m_block_size);
         size_t total_blocks = gen.block_count();
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, total_blocks, 1),
@@ -45,7 +45,7 @@ public:
                 auto block   = std::make_unique<ImageBlock>(
                     Vector2i::Constant(m_block_size), film->filter());
                 for (auto i = range.begin(); i != range.end(); ++i) {
-                    auto [offset, size] = gen.next_block();
+                    auto [offset, size, block_id] = gen.next_block();
                     block->set_offset(offset);
                     block->set_size(size);
                     block->clear();
@@ -55,18 +55,16 @@ public:
                             if (pos.x() >= size.x() || pos.y() >= size.y())
                                 continue;
                             pos = pos + offset.template cast<Float>();
-                            for (int s = 0; s < total_spp; ++s) {
-                                auto position_sample = pos + sampler->next2d();
-                                auto [ray, ray_weight] =
-                                    sensor->sample_ray(position_sample);
-                                auto si = scene->ray_intersect(ray);
-                                if (si.is_valid()) {
-                                    auto spec =
-                                        Spectrum(std::abs(si.sh_frame.n.x()),
-                                                 std::abs(si.sh_frame.n.y()),
-                                                 std::abs(si.sh_frame.n.z()));
-                                    block->put(position_sample, spec);
-                                }
+                            auto position_sample = pos + sampler->next2d();
+                            auto [ray, ray_weight] =
+                                sensor->sample_ray(position_sample);
+                            auto si = scene->ray_intersect(ray);
+                            if (si.is_valid()) {
+                                auto spec =
+                                    Spectrum(std::abs(si.sh_frame.n.x()),
+                                             std::abs(si.sh_frame.n.y()),
+                                             std::abs(si.sh_frame.n.z()));
+                                block->put(position_sample, spec);
                             }
                         }
                     }

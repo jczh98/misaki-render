@@ -61,14 +61,14 @@ bool ImageBlock<Float, Spectrum>::put(const Vector2 &pos_,
                       .cwiseMin(m_size +
                                 Vector2i::Constant(2 * m_border_size - 1))
                       .template cast<uint32_t>();
-    for (int x = lo.x(), idx = 0; x <= hi.x(); ++x)
+    for (uint32_t x = lo.x(), idx = 0; x <= hi.x(); ++x)
         m_weight_x[idx++] =
             m_filter_weights[(int) (std::abs(x - pos.x()) * m_lookup_factor)];
-    for (int y = lo.y(), idx = 0; y <= hi.y(); ++y)
+    for (uint32_t y = lo.y(), idx = 0; y <= hi.y(); ++y)
         m_weight_y[idx++] =
             m_filter_weights[(int) (std::abs(y - pos.y()) * m_lookup_factor)];
-    for (int y = lo.y(), yr = 0; y <= hi.y(); ++y, ++yr)
-        for (int x = lo.x(), xr = 0; x <= hi.x(); ++x, ++xr) {
+    for (uint32_t y = lo.y(), yr = 0; y <= hi.y(); ++y, ++yr)
+        for (uint32_t x = lo.x(), xr = 0; x <= hi.x(); ++x, ++xr) {
             m_buffer.coeffRef(y, x) += Color4(val.r(), val.g(), val.b(), 1.f) *
                                        m_weight_x[xr] * m_weight_y[yr];
         }
@@ -99,56 +99,76 @@ std::string ImageBlock<Float, Spectrum>::to_string() const {
 }
 
 // Image Block Generator in sprial
-BlockGenerator::BlockGenerator(const Vector2i &size, int block_size)
-    : m_block_size(block_size), m_size(size) {
-    m_num_blocks  = Vector2i((int) std::ceil(size.x() / (float) block_size),
-                            (int) std::ceil(size.y() / (float) block_size));
-    m_blocks_left = m_num_blocks.x() * m_num_blocks.y();
-    m_direction   = Direction::Right;
-    m_block       = m_num_blocks / 2;
-    m_steps_left  = 1;
-    m_num_steps   = 1;
+BlockGenerator::BlockGenerator(const Vector2i &size, const Vector2i &offset,
+                               int block_size)
+    : m_block_size(block_size), m_size(size), m_offset(offset) {
+
+    m_blocks      = Vector2i((int) std::ceil(size.x() / (float) block_size),
+                        (int) std::ceil(size.y() / (float) block_size));
+    m_block_count = m_blocks.x() * m_blocks.y();
+
+    reset();
 }
 
-std::tuple<BlockGenerator::Vector2i, BlockGenerator::Vector2i>
+void BlockGenerator::reset() {
+    m_block_counter     = 0;
+    m_current_direction = Direction::Right;
+    m_position          = m_blocks / 2;
+    m_steps_left        = 1;
+    m_steps             = 1;
+}
+
+std::tuple<BlockGenerator::Vector2i, BlockGenerator::Vector2i, size_t>
 BlockGenerator::next_block() {
     std::lock_guard<tbb::spin_mutex> lock(m_mutex);
 
-    if (m_blocks_left == 0)
-        return { Vector2i::Zero(), Vector2i::Zero() };
-    Vector2i pos    = m_block * m_block_size;
-    Vector2i offset = pos;
-    Vector2i size   = (m_size - pos).cwiseMin(Vector2i::Constant(m_block_size));
+    if (m_block_count == m_block_counter) {
+        return { Vector2i(0), Vector2i(0), (size_t) -1 };
+    }
 
-    if (--m_blocks_left == 0)
-        return { Vector2i::Zero(), Vector2i::Zero() };
+    // Calculate a unique identifer per block
+    size_t block_id = m_block_counter;
 
-    do {
-        switch (m_direction) {
-            case Direction::Right:
-                ++m_block.x();
-                break;
-            case Direction::Down:
-                ++m_block.y();
-                break;
-            case Direction::Left:
-                --m_block.x();
-                break;
-            case Direction::Up:
-                --m_block.y();
-                break;
-        }
+    Vector2i offset(m_position * (int) m_block_size);
+    Vector2i size =
+        (m_size - offset).cwiseMin(Vector2i::Constant(m_block_size));
+    offset += m_offset;
 
-        if (--m_steps_left == 0) {
-            m_direction = (m_direction + 1) % 4;
-            if (m_direction == Left || m_direction == Right)
-                ++m_num_steps;
-            m_steps_left = m_num_steps;
-        }
-    } while ((m_block.array() < 0).any() ||
-             (m_block.array() >= m_num_blocks.array()).any());
+    assert((size > 0).all());
 
-    return { offset, size };
+    ++m_block_counter;
+
+    if (m_block_counter != m_block_count) {
+        // Prepare the next block's position along the spiral.
+        do {
+            switch (m_current_direction) {
+                case Direction::Right:
+                    ++m_position.x();
+                    break;
+                case Direction::Down:
+                    ++m_position.y();
+                    break;
+                case Direction::Left:
+                    --m_position.x();
+                    break;
+                case Direction::Up:
+                    --m_position.y();
+                    break;
+            }
+
+            if (--m_steps_left == 0) {
+                m_current_direction =
+                    Direction(((int) m_current_direction + 1) % 4);
+                if (m_current_direction == Direction::Left ||
+                    m_current_direction == Direction::Right)
+                    ++m_steps;
+                m_steps_left = m_steps;
+            }
+        } while ((m_position.array() < 0).any() ||
+                 (m_position.array() >= m_blocks.array()).any());
+    }
+
+    return { offset, size, block_id };
 }
 
 APR_IMPLEMENT_CLASS_VARIANT(ImageBlock, Object)
