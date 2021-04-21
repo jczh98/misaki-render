@@ -35,7 +35,7 @@ public:
     using SurfaceInteraction   = SurfaceInteraction<Float, Spectrum>;
     using PhaseFunction        = PhaseFunction<Float, Spectrum>;
     using PhaseFunctionContext = PhaseFunctionContext<Float, Spectrum>;
-    using DirectionSample         = DirectionSample<Float, Spectrum>;
+    using DirectionSample      = DirectionSample<Float, Spectrum>;
     using MediumPtr            = const Medium *;
 
     VolumetricPathTracer(const Properties &props) : Base(props) {}
