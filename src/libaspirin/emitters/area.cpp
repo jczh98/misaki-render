@@ -15,7 +15,7 @@ public:
     using Base::m_shape;
     using Base::m_world_transform;
     using Texture = Texture<Float, Spectrum>;
-    using typename Base::DirectSample;
+    using typename Base::DirectionSample;
     using typename Base::Interaction;
     using typename Base::Shape;
     using typename Base::SurfaceInteraction;
@@ -26,9 +26,9 @@ public:
         m_flags = +EmitterFlags::Surface;
     }
 
-    std::pair<DirectSample, Spectrum>
-    sample_direct(const Interaction &it, const Vector2 &sample) const override {
-        auto ds = m_shape->sample_direct(it, sample);
+    std::pair<DirectionSample, Spectrum>
+    sample_direction(const Interaction &it, const Vector2 &sample) const override {
+        auto ds = m_shape->sample_direction(it, sample);
         SurfaceInteraction si(ds);
         ds.object = this;
         if (ds.d.dot(ds.n) < 0.f && ds.pdf != 0.f) {
@@ -39,8 +39,8 @@ public:
         }
     }
 
-    Float pdf_direct(const Interaction &ref, const DirectSample &ds) const override {
-        return m_shape->pdf_direct(ref, ds);
+    Float pdf_direction(const Interaction &ref, const DirectionSample &ds) const override {
+        return m_shape->pdf_direction(ref, ds);
     }
 
     Spectrum eval(const SurfaceInteraction &si) const override {

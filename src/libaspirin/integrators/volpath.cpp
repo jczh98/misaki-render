@@ -35,7 +35,7 @@ public:
     using SurfaceInteraction   = SurfaceInteraction<Float, Spectrum>;
     using PhaseFunction        = PhaseFunction<Float, Spectrum>;
     using PhaseFunctionContext = PhaseFunctionContext<Float, Spectrum>;
-    using DirectSample         = DirectSample<Float, Spectrum>;
+    using DirectionSample         = DirectionSample<Float, Spectrum>;
     using MediumPtr            = const Medium *;
 
     VolumetricPathTracer(const Properties &props) : Base(props) {}
@@ -300,11 +300,11 @@ public:
         return transmittance;
     }
 
-    std::pair<DirectSample, Spectrum>
+    std::pair<DirectionSample, Spectrum>
     sample_attenuated_emitter(const Scene *scene, const Medium *medium,
                               const SurfaceInteraction &ref,
                               const Vector2 &sample_) const {
-        DirectSample ds;
+        DirectionSample ds;
         Spectrum spec;
         Vector2 sample(sample_);
         Float emitter_pdf = 1.f;
@@ -312,7 +312,7 @@ public:
         if (!scene->emitters().empty()) {
             if (scene->emitters().size() == 1) {
                 std::tie(ds, spec) =
-                    scene->emitters()[0]->sample_direct(ref, sample);
+                    scene->emitters()[0]->sample_direction(ref, sample);
             } else {
                 emitter_pdf /= scene->emitters().size();
                 auto index = std::min(
@@ -321,7 +321,7 @@ public:
                 sample.x() = (sample.x() - index * emitter_pdf) *
                              scene->emitters().size();
                 std::tie(ds, spec) =
-                    scene->emitters()[index]->sample_direct(ref, sample);
+                    scene->emitters()[index]->sample_direction(ref, sample);
             }
         }
         if (ds.pdf != 0.f) {

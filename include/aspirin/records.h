@@ -28,7 +28,7 @@ template <typename Float_, typename Spectrum_> struct PositionSample {
 };
 
 template <typename Float_, typename Spectrum_>
-struct DirectSample : public PositionSample<Float_, Spectrum_> {
+struct DirectionSample : public PositionSample<Float_, Spectrum_> {
     using Base = PositionSample<Float_, Spectrum_>;
     using Base::delta;
     using Base::n;
@@ -47,10 +47,10 @@ struct DirectSample : public PositionSample<Float_, Spectrum_> {
     Vector3 d;
     Float dist;
 
-    DirectSample()
+    DirectionSample()
         : PositionSample<Float, Spectrum>(), d(Vector3::Zero()), dist(0.f) {}
 
-    DirectSample(const SurfaceInteraction &it, const Interaction &ref)
+    DirectionSample(const SurfaceInteraction &it, const Interaction &ref)
         : PositionSample<Float, Spectrum>(it) {
         d    = it.p - ref.p;
         dist = d.norm();
@@ -59,7 +59,7 @@ struct DirectSample : public PositionSample<Float_, Spectrum_> {
             d = -it.wi;
     }
 
-    DirectSample(const PositionSample<Float, Spectrum> &base)
+    DirectionSample(const PositionSample<Float, Spectrum> &base)
         : PositionSample<Float, Spectrum>(base) {}
 };
 

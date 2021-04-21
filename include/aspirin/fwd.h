@@ -93,7 +93,7 @@ template <typename Float, typename Spectrum> class Shape;
 template <typename Float, typename Spectrum> class Texture;
 template <typename Float, typename Spectrum> class Volume;
 
-template <typename Float, typename Spectrum> struct DirectSample;
+template <typename Float, typename Spectrum> struct DirectionSample;
 template <typename Float, typename Spectrum> struct PositionSample;
 template <typename Float, typename Spectrum> struct Interaction;
 template <typename Float, typename Spectrum> struct PreliminaryIntersection;

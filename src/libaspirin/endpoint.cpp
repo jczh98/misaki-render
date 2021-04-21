@@ -41,16 +41,16 @@ Float Endpoint<Float, Spectrum>::pdf_position(const PositionSample &ps) const {
 }
 
 template <typename Float, typename Spectrum>
-std::pair<typename Endpoint<Float, Spectrum>::DirectSample, Spectrum>
-Endpoint<Float, Spectrum>::sample_direct(const Interaction &ref,
+std::pair<typename Endpoint<Float, Spectrum>::DirectionSample, Spectrum>
+Endpoint<Float, Spectrum>::sample_direction(const Interaction &ref,
                                          const Vector2 &sample) const {
-    APR_NOT_IMPLEMENTED("sample_direct");
+    APR_NOT_IMPLEMENTED("sample_direction");
 }
 
 template <typename Float, typename Spectrum>
-Float Endpoint<Float, Spectrum>::pdf_direct(const Interaction &ref,
-                                            const DirectSample &ds) const {
-    APR_NOT_IMPLEMENTED("pdf_direct");
+Float Endpoint<Float, Spectrum>::pdf_direction(const Interaction &ref,
+                                            const DirectionSample &ds) const {
+    APR_NOT_IMPLEMENTED("pdf_direction");
 }
 
 template <typename Float, typename Spectrum>

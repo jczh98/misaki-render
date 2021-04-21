@@ -12,7 +12,7 @@ public:
     using Base::m_is_mesh;
     using Base::set_children;
     using typename Base::BSDF;
-    using typename Base::DirectSample;
+    using typename Base::DirectionSample;
     using typename Base::Emitter;
     using typename Base::PositionSample;
     using typename Base::PreliminaryIntersection;

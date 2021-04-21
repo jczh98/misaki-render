@@ -17,7 +17,7 @@ public:
     using Base::m_shape;
     using Base::m_world_transform;
     using Texture = Texture<Float, Spectrum>;
-    using typename Base::DirectSample;
+    using typename Base::DirectionSample;
     using typename Base::Interaction;
     using typename Base::Scene;
     using typename Base::Shape;
@@ -37,12 +37,12 @@ public:
                      m_bsphere.radius * (1.f + math::RayEpsilon<Float>) );
     }
 
-    std::pair<DirectSample, Spectrum>
-    sample_direct(const Interaction &it, const Vector2 &sample) const override {
+    std::pair<DirectionSample, Spectrum>
+    sample_direction(const Interaction &it, const Vector2 &sample) const override {
         Vector3 d  = warp::square_to_uniform_sphere(sample);
         Float dist = 2.f * m_bsphere.radius;
 
-        DirectSample ds;
+        DirectionSample ds;
         ds.p      = it.p + d * dist;
         ds.n      = -d;
         ds.uv     = Vector2(0.f, 0.f);
@@ -57,8 +57,8 @@ public:
         return { ds, m_radiance->eval_3(si) / ds.pdf };
     }
 
-    Float pdf_direct(const Interaction &ref,
-                     const DirectSample &ds) const override {
+    Float pdf_direction(const Interaction &ref,
+                     const DirectionSample &ds) const override {
         return warp::square_to_uniform_sphere_pdf(ds.d);
     }
 

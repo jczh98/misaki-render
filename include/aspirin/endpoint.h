@@ -19,7 +19,7 @@ public:
     using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
     using Interaction        = Interaction<Float, Spectrum>;
     using PositionSample     = PositionSample<Float, Spectrum>;
-    using DirectSample       = DirectSample<Float, Spectrum>;
+    using DirectionSample       = DirectionSample<Float, Spectrum>;
 
     // Returns Sampled ray with structred RaySample
     virtual std::pair<Ray, Spectrum>
@@ -27,12 +27,12 @@ public:
 
     // Returns direction, weight
     virtual std::pair<PositionSample, Spectrum> sample_position(const Vector2 &sample) const;
-    virtual std::pair<DirectSample, Spectrum>
-    sample_direct(const Interaction &ref, const Vector2 &sample) const;
+    virtual std::pair<DirectionSample, Spectrum>
+    sample_direction(const Interaction &ref, const Vector2 &sample) const;
 
     virtual Float pdf_position(const PositionSample &ps) const;
-    virtual Float pdf_direct(const Interaction &ref,
-                                const DirectSample &ds) const;
+    virtual Float pdf_direction(const Interaction &ref,
+                                const DirectionSample &ds) const;
 
     virtual Spectrum eval(const SurfaceInteraction &si) const;
 

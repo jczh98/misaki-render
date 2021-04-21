@@ -173,7 +173,7 @@ public:
 
             // If an emitter was hit, estimate the illumination
             if (hit_emitter && (type & RadianceQuery::DirectSurfaceRadiance)) {
-                DirectSample ds(si_bsdf, si);
+                DirectionSample ds(si_bsdf, si);
                 auto emitter_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta)
                                        ? scene->pdf_emitter_direction(si, ds)
                                        : 0.f;

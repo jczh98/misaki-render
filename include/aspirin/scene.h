@@ -18,7 +18,7 @@ public:
     using Interaction             = Interaction<Float, Spectrum>;
     using PreliminaryIntersection = PreliminaryIntersection<Float, Spectrum>;
     using SurfaceInteraction      = SurfaceInteraction<Float, Spectrum>;
-    using DirectSample         = DirectSample<Float, Spectrum>;
+    using DirectionSample         = DirectionSample<Float, Spectrum>;
     using Sensor                  = Sensor<Float, Spectrum>;
     using Integrator              = Integrator<Float, Spectrum>;
     using Emitter                 = Emitter<Float, Spectrum>;
@@ -31,11 +31,11 @@ public:
     void accel_init(const Properties &props);
     void accel_release();
 
-    std::pair<DirectSample, Spectrum>
+    std::pair<DirectionSample, Spectrum>
     sample_emitter_direction(const Interaction &ref, const Vector2 &sample,
                              bool test_visibility = true) const;
     Float pdf_emitter_direction(const Interaction &ref,
-                                const DirectSample &ds) const;
+                                const DirectionSample &ds) const;
 
     const Sensor *sensor() const { return m_sensor; }
     Sensor *sensor() { return m_sensor; }

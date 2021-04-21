@@ -66,16 +66,16 @@ template <typename Float, typename Spectrum> Scene<Float, Spectrum>::~Scene() {
 }
 
 template <typename Float, typename Spectrum>
-std::pair<typename Scene<Float, Spectrum>::DirectSample, Spectrum>
+std::pair<typename Scene<Float, Spectrum>::DirectionSample, Spectrum>
 Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
                                                  const Vector2 &sample_,
                                                  bool test_visibility) const {
-    DirectSample ds;
+    DirectionSample ds;
     Spectrum spec;
     Vector2 sample(sample_);
     if (!m_emitters.empty()) {
         if (m_emitters.size() == 1) {
-            std::tie(ds, spec) = m_emitters[0]->sample_direct(ref, sample);
+            std::tie(ds, spec) = m_emitters[0]->sample_direction(ref, sample);
         } else {
             auto light_sel_pdf = 1.f / m_emitters.size();
             auto index =
@@ -83,7 +83,7 @@ Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
                          (uint32_t) m_emitters.size() - 1);
             sample.x() =
                 (sample.x() - index * light_sel_pdf) * m_emitters.size();
-            std::tie(ds, spec) = m_emitters[index]->sample_direct(ref, sample);
+            std::tie(ds, spec) = m_emitters[index]->sample_direction(ref, sample);
             ds.pdf *= light_sel_pdf;
             spec *= m_emitters.size();
         }
@@ -103,12 +103,12 @@ Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
 
 template <typename Float, typename Spectrum>
 Float Scene<Float, Spectrum>::pdf_emitter_direction(
-    const Interaction &ref, const DirectSample &ds) const {
+    const Interaction &ref, const DirectionSample &ds) const {
     if (m_emitters.size() == 1) {
-        return m_emitters[0]->pdf_direct(ref, ds);
+        return m_emitters[0]->pdf_direction(ref, ds);
     } else {
-        return reinterpret_cast<const Emitter *>(ds.object)->pdf_direct(ref,
-                                                                        ds) *
+        return reinterpret_cast<const Emitter *>(ds.object)->pdf_direction(ref,
+                                                                           ds) *
                (1.f / m_emitters.size());
     }
 }

@@ -65,10 +65,10 @@ Float Shape<Float, Spectrum>::pdf_position(const PositionSample &ps) const {
 }
 
 template <typename Float, typename Spectrum>
-typename Shape<Float, Spectrum>::DirectSample
-Shape<Float, Spectrum>::sample_direct(const Interaction &it,
+typename Shape<Float, Spectrum>::DirectionSample
+Shape<Float, Spectrum>::sample_direction(const Interaction &it,
                                       const Vector2 &sample) const {
-    DirectSample ds(sample_position(sample));
+    DirectionSample ds(sample_position(sample));
     ds.d = ds.p - it.p;
 
     Float dist_squared = ds.d.squaredNorm();
@@ -83,8 +83,8 @@ Shape<Float, Spectrum>::sample_direct(const Interaction &it,
 }
 
 template <typename Float, typename Spectrum>
-Float Shape<Float, Spectrum>::pdf_direct(const Interaction &it,
-                                         const DirectSample &ds) const {
+Float Shape<Float, Spectrum>::pdf_direction(const Interaction &it,
+                                         const DirectionSample &ds) const {
     Float pdf = pdf_position(ds), dp = std::abs(ds.d.dot(ds.n));
 
     pdf *= (dp != 0.f) ? (ds.dist * ds.dist) / dp : 0.f;
