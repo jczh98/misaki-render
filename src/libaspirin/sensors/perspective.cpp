@@ -27,7 +27,7 @@ public:
     }
 
     std::pair<Ray, Spectrum>
-    sample_ray(const Vector2 &pos_sample) const override {
+    sample_ray(const Vector2 &pos_sample, const Vector2 &) const override {
         Ray ray;
         auto near_p = m_sample_to_camera.apply_point(
             { pos_sample.x(), pos_sample.y(), 0.f });

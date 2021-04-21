@@ -98,7 +98,7 @@ public:
                        Float diff_scale_factor) const {
         auto position_sample = pos + sampler->next2d();
         auto [ray, ray_weight] =
-            sensor->sample_ray_differential(position_sample);
+            sensor->sample_ray_differential(position_sample, sampler->next2d());
         ray.scale_differential(diff_scale_factor);
         auto result = sample(scene, sampler, ray, sensor->medium());
         block->put(position_sample, result);

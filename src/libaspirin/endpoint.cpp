@@ -25,7 +25,7 @@ Endpoint<Float, Spectrum>::~Endpoint() {}
 
 template <typename Float, typename Spectrum>
 std::pair<typename Endpoint<Float, Spectrum>::Ray, Spectrum>
-Endpoint<Float, Spectrum>::sample_ray(const Vector2 &pos_sample) const {
+Endpoint<Float, Spectrum>::sample_ray(const Vector2 &, const Vector2 &) const {
     APR_NOT_IMPLEMENTED("sample_ray");
 }
 

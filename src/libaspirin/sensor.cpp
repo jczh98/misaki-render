@@ -39,9 +39,9 @@ Sensor<Float, Spectrum>::~Sensor() {}
 
 template <typename Float, typename Spectrum>
 std::pair<typename Sensor<Float, Spectrum>::RayDifferential, Spectrum>
-Sensor<Float, Spectrum>::sample_ray_differential(const Vector2 &sample) const {
+Sensor<Float, Spectrum>::sample_ray_differential(const Vector2 &sample, const Vector2 &sample3) const {
 
-    auto [temp_ray, result_spec] = sample_ray(sample);
+    auto [temp_ray, result_spec] = sample_ray(sample, sample3);
 
     RayDifferential result_ray(temp_ray);
 
@@ -49,13 +49,13 @@ Sensor<Float, Spectrum>::sample_ray_differential(const Vector2 &sample) const {
     Vector2 dy(0.f, 1.f / m_resolution.y());
 
     // Sample a result_ray for X+1
-    std::tie(temp_ray, std::ignore) = sample_ray(sample + dx);
+    std::tie(temp_ray, std::ignore) = sample_ray(sample + dx, sample3);
 
     result_ray.o_x = temp_ray.o;
     result_ray.d_x = temp_ray.d;
 
     // Sample a result_ray for Y+1
-    std::tie(temp_ray, std::ignore) = sample_ray(sample + dy);
+    std::tie(temp_ray, std::ignore) = sample_ray(sample + dy, sample3);
 
     result_ray.o_y               = temp_ray.o;
     result_ray.d_y               = temp_ray.d;

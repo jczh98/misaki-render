@@ -3,6 +3,7 @@
 #include <aspirin/properties.h>
 #include <aspirin/records.h>
 #include <aspirin/texture.h>
+#include <aspirin/warp.h>
 
 namespace aspirin {
 
@@ -17,6 +18,8 @@ public:
     using Texture = Texture<Float, Spectrum>;
     using typename Base::DirectionSample;
     using typename Base::Interaction;
+    using typename Base::PositionSample;
+    using typename Base::Ray;
     using typename Base::Shape;
     using typename Base::SurfaceInteraction;
 
@@ -26,8 +29,20 @@ public:
         m_flags = +EmitterFlags::Surface;
     }
 
+    virtual std::pair<Ray, Spectrum>
+    sample_ray(const Vector2 &sample, const Vector2 &) const override {
+        PositionSample ps = m_shape->sample_position(sample);
+        SurfaceInteraction si(ps);
+        Vector3 local = warp::square_to_cosine_hemisphere(sample);
+
+        Spectrum power = m_radiance->eval_3(si) * math::Pi<Float> / ps.pdf;
+
+        return { Ray(ps.p, si.to_world(local), 0), power };
+    }
+
     std::pair<DirectionSample, Spectrum>
-    sample_direction(const Interaction &it, const Vector2 &sample) const override {
+    sample_direction(const Interaction &it,
+                     const Vector2 &sample) const override {
         auto ds = m_shape->sample_direction(it, sample);
         SurfaceInteraction si(ds);
         ds.object = this;
@@ -39,7 +54,8 @@ public:
         }
     }
 
-    Float pdf_direction(const Interaction &ref, const DirectionSample &ds) const override {
+    Float pdf_direction(const Interaction &ref,
+                        const DirectionSample &ds) const override {
         return m_shape->pdf_direction(ref, ds);
     }
 

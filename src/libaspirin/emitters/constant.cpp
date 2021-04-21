@@ -19,6 +19,7 @@ public:
     using Texture = Texture<Float, Spectrum>;
     using typename Base::DirectionSample;
     using typename Base::Interaction;
+    using typename Base::Ray;
     using typename Base::Scene;
     using typename Base::Shape;
     using typename Base::SurfaceInteraction;
@@ -35,10 +36,33 @@ public:
         m_bsphere.radius =
             std::max(math::RayEpsilon<Float>,
                      m_bsphere.radius * (1.f + math::RayEpsilon<Float>) );
+        m_surface_area =
+            4.f * math::Pi<Float> * m_bsphere.radius * m_bsphere.radius;
+    }
+
+    virtual std::pair<Ray, Spectrum>
+    sample_ray(const Vector2 &sample2, const Vector2 &sample3) const override {
+        Vector3 v0     = warp::square_to_uniform_sphere(sample2);
+        Vector3 origin = m_bsphere.center + v0 * m_bsphere.radius;
+
+        Vector3 v1        = warp::square_to_cosine_hemisphere(sample3);
+        Vector3 direction = Frame3(-v0).to_world(v1);
+
+        SurfaceInteraction si;
+        si.t  = 0.f;
+        si.p  = origin;
+        si.uv = sample2;
+        si.wi = direction; // Points toward the scene
+
+        Spectrum power =
+            m_radiance->eval_3(si) * m_surface_area * math::Pi<Float>;
+
+        return { Ray(origin, direction, 0), power };
     }
 
     std::pair<DirectionSample, Spectrum>
-    sample_direction(const Interaction &it, const Vector2 &sample) const override {
+    sample_direction(const Interaction &it,
+                     const Vector2 &sample) const override {
         Vector3 d  = warp::square_to_uniform_sphere(sample);
         Float dist = 2.f * m_bsphere.radius;
 
@@ -58,7 +82,7 @@ public:
     }
 
     Float pdf_direction(const Interaction &ref,
-                     const DirectionSample &ds) const override {
+                        const DirectionSample &ds) const override {
         return warp::square_to_uniform_sphere_pdf(ds.d);
     }
 
@@ -70,6 +94,7 @@ public:
 private:
     ref<Texture> m_radiance;
     BoundingSphere3 m_bsphere;
+    Float m_surface_area;
 };
 
 APR_IMPLEMENT_CLASS_VARIANT(ConstantBackgroundEmitter, Emitter)

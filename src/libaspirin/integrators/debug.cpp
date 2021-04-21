@@ -57,7 +57,7 @@ public:
                             pos = pos + offset.template cast<Float>();
                             auto position_sample = pos + sampler->next2d();
                             auto [ray, ray_weight] =
-                                sensor->sample_ray(position_sample);
+                                sensor->sample_ray(position_sample, sampler->next2d());
                             auto si = scene->ray_intersect(ray);
                             if (si.is_valid()) {
                                 auto spec =
