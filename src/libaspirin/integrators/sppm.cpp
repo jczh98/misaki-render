@@ -118,7 +118,7 @@ public:
                                     sensor->sample_ray_differential(
                                         position_sample, sampler->next2d());
                                 ray.scale_differential(inv_sqrt_spp);
-                                SPPMPixel &pixel = pixels[x + y * size.x()];
+                                SPPMPixel &pixel = pixels[pos.x() + pos.y() * film_size.x()];
                                 bool is_specular = false;
                                 SurfaceInteraction si =
                                     scene->ray_intersect(ray);

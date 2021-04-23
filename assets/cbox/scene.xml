@@ -1,5 +1,5 @@
 <scene>
-    <integrator type="path">
+    <integrator type="sppm">
     </integrator>
     <sensor type="perspective">
         <float name="near_clip" value="10"/>
