@@ -8,7 +8,7 @@ namespace aspirin {
 
 
 Film::Film(const Properties &props) {
-    m_size = { props.get_int("width", 640), props.get_int("height", 320) };
+    m_size = { props.int_("width", 640), props.int_("height", 320) };
     for (auto &[name, obj] : props.objects()) {
         auto *rfilter = dynamic_cast<ReconstructionFilter *>(obj.get());
         if (rfilter) {

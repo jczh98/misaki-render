@@ -39,9 +39,9 @@ namespace aspirin {
         return (TYPE const &) it->second.data;                                 \
     }
 
-DEFINE_PROPERTY_ACCESSOR(bool, boolean, set_bool, get_bool)
-DEFINE_PROPERTY_ACCESSOR(int, integer, set_int, get_int)
-DEFINE_PROPERTY_ACCESSOR(float, float, set_float, get_float)
+DEFINE_PROPERTY_ACCESSOR(bool, boolean, set_bool, bool_)
+DEFINE_PROPERTY_ACCESSOR(int, integer, set_int, int_)
+DEFINE_PROPERTY_ACCESSOR(float, float, set_float, float_)
 DEFINE_PROPERTY_ACCESSOR(std::string, string, set_string, string)
 DEFINE_PROPERTY_ACCESSOR(Vector3, vector, set_vector3, vector3)
 DEFINE_PROPERTY_ACCESSOR(Color3, color, set_color, color)

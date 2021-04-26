@@ -6,7 +6,7 @@
 namespace aspirin {
 
 Integrator::Integrator(const Properties &props) {
-    m_block_size = props.get_int("block_size", APR_BLOCK_SIZE);
+    m_block_size = props.int_("block_size", APR_BLOCK_SIZE);
 }
 
 Integrator::~Integrator() {}

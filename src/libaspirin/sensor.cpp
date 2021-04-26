@@ -67,9 +67,9 @@ Sensor::sample_ray_differential(const Vector2 &sample, const Vector2 &sample3) c
 
 ProjectiveCamera::ProjectiveCamera(const Properties &props)
     : Sensor(props) {
-    m_near_clip      = props.get_float("near_clip", 1e-2f);
-    m_far_clip       = props.get_float("far_clip", 1e4f);
-    m_focus_distance = props.get_float("focus_distance", m_far_clip);
+    m_near_clip      = props.float_("near_clip", 1e-2f);
+    m_far_clip       = props.float_("far_clip", 1e4f);
+    m_focus_distance = props.float_("focus_distance", m_far_clip);
 }
 
 

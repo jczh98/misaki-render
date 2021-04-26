@@ -464,14 +464,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                     src.throw_error(node, "could not parse RGB value \"%s\"",
                                     node.attribute("value").value());
                 }
-                Properties props2("srgb");
-                props2.set_color("color", color);
-                auto obj = PluginManager::instance()->create_object(
-                    props2, Class::for_name("Texture"));
-                props.set_object(node.attribute("name").value(), obj);
-                props.set_color(
-                    fmt::format("{}_color", node.attribute("name").value()),
-                    color);
+                props.set_color(node.attribute("name").value(), color);
             } break;
             case Tag::Transform: {
                 check_attributes(src, node, { "name" });
@@ -553,8 +546,7 @@ static ref<Object> instantiate_node(XMLParseContext &ctx,
 
 } // namespace detail
 
-ref<Object> load_file(const fs::path &filename,
-                      ParameterList parameters) {
+ref<Object> load_file(const fs::path &filename, ParameterList parameters) {
     if (!fs::exists(filename)) {
         Throw(R"("{}": file not exists.)", filename.string());
     }

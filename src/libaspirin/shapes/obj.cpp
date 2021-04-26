@@ -56,7 +56,7 @@ class OBJMesh final : public Mesh {
 
 public:
     OBJMesh(const Properties &props) : Mesh(props) {
-        bool filp_tex_coords = props.get_bool("filp_tex_coords", true);
+        bool filp_tex_coords = props.bool_("filp_tex_coords", true);
         auto fr              = get_file_resolver();
         fs::path file_path   = fr->resolve(props.string("filename"));
         m_name               = file_path.filename().string();

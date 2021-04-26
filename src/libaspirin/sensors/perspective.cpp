@@ -7,7 +7,7 @@ class PerspectiveCamera final : public ProjectiveCamera {
 public:
 
     PerspectiveCamera(const Properties &props) : ProjectiveCamera(props) {
-        m_fov = props.get_float("fov", 30);
+        m_fov = props.float_("fov", 30);
         m_camera_to_sample =
             Transform4::scale(
                 Vector3(m_film->size().x(), m_film->size().y(), 1.f)) *

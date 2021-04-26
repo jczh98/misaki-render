@@ -9,8 +9,8 @@ class SmoothDielectric final : public BSDF {
 public:
 
     SmoothDielectric(const Properties &props) : BSDF(props) {
-        Float int_ior = props.get_float("int_ior", 1.49);
-        Float ext_ior = props.get_float("ext_ior", 1.00028);
+        Float int_ior = props.float_("int_ior", 1.49);
+        Float ext_ior = props.float_("ext_ior", 1.00028);
         m_eta         = int_ior / ext_ior;
         m_specular_reflectance =
             props.texture<Texture>("specular_reflectance", 1.f);

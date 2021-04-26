@@ -5,8 +5,8 @@
 namespace aspirin {
 
 Sampler::Sampler(const Properties &props) {
-    m_sample_count = props.get_int("sample_count", 1);
-    m_base_seed    = props.get_int("base_seed", 0);
+    m_sample_count = props.int_("sample_count", 1);
+    m_base_seed    = props.int_("base_seed", 0);
 }
 
 Sampler::~Sampler() {}

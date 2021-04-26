@@ -71,9 +71,9 @@ public:
     const TYPE &GETTER(const std::string &name) const;                         \
     const TYPE &GETTER(const std::string &name, const TYPE &def_val) const;
 
-    DEFINE_PROPERTY_METHODS(bool, set_bool, get_bool)
-    DEFINE_PROPERTY_METHODS(int, set_int, get_int)
-    DEFINE_PROPERTY_METHODS(float, set_float, get_float)
+    DEFINE_PROPERTY_METHODS(bool, set_bool, bool_)
+    DEFINE_PROPERTY_METHODS(int, set_int, int_)
+    DEFINE_PROPERTY_METHODS(float, set_float, float_)
     DEFINE_PROPERTY_METHODS(std::string, set_string, string)
     DEFINE_PROPERTY_METHODS(NamedReference, set_named_reference,
                             named_reference)
@@ -98,9 +98,15 @@ public:
                       " <spectrum> or <texture>).",
                       name);
             return (Texture *) object.get();
+        } else if (p_type == Properties::Type::Color) {
+            Properties props("srgb");
+            props.set_color("color", color(name));
+            return (Texture *) PluginManager::instance()
+                ->create_object<Texture>(props)
+                .get();
         } else if (p_type == Properties::Type::Float) {
             Properties props("srgb");
-            props.set_color("color", Color3::Constant(get_float(name)));
+            props.set_color("color", Color3::Constant(float_(name)));
             return (Texture *) PluginManager::instance()
                 ->create_object<Texture>(props)
                 .get();
@@ -158,7 +164,7 @@ public:
             }
         } else if (p_type == Properties::Type::Float) {
             Properties props("constvolume");
-            props.set_float("color", get_float(name));
+            props.set_float("color", float_(name));
             return (Volume *) PluginManager::instance()
                 ->create_object<Volume>(props)
                 .get();
