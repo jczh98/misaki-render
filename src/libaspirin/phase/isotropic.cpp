@@ -5,16 +5,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class IsotropicPhaseFunction final : public PhaseFunction<Float, Spectrum> {
+class IsotropicPhaseFunction final : public PhaseFunction {
 public:
-    APR_IMPORT_CORE_TYPES(Float);
-    using Base = PhaseFunction<Float, Spectrum>;
-    using Base::m_flags;
-    using typename Base::MediumInteraction;
-    using typename Base::PhaseFunctionContext;
 
-    IsotropicPhaseFunction(const Properties &props) : Base(props) {
+    IsotropicPhaseFunction(const Properties &props) : PhaseFunction(props) {
         m_flags = +PhaseFunctionFlags::Isotropic;
     }
 
@@ -39,6 +33,6 @@ public:
 private:
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(IsotropicPhaseFunction, PhaseFunction)
+APR_IMPLEMENT_CLASS(IsotropicPhaseFunction, PhaseFunction)
 APR_INTERNAL_PLUGIN(IsotropicPhaseFunction, "isotropic")
 } // namespace aspirin

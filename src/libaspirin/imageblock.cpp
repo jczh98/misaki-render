@@ -6,9 +6,7 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-ImageBlock<Float, Spectrum>::ImageBlock(const Vector2i &size,
-                                        const ReconstructionFilter *filter)
+ImageBlock::ImageBlock(const Vector2i &size, const ReconstructionFilter *filter)
     : m_offset(Vector2i::Zero()), m_filter(filter), m_size(size) {
     if (filter) {
         m_filter_radius  = filter->radius();
@@ -29,15 +27,13 @@ ImageBlock<Float, Spectrum>::ImageBlock(const Vector2i &size,
     m_buffer.resize(size.y() + 2 * m_border_size, size.x() + 2 * m_border_size);
 }
 
-template <typename Float, typename Spectrum>
-ImageBlock<Float, Spectrum>::~ImageBlock() {
+ImageBlock::~ImageBlock() {
     delete[] m_filter_weights;
     delete[] m_weight_x;
     delete[] m_weight_y;
 }
 
-template <typename Float, typename Spectrum>
-void ImageBlock<Float, Spectrum>::put(const ImageBlock *b) {
+void ImageBlock::put(const ImageBlock *b) {
     Vector2i offset = b->offset() - m_offset +
                       Vector2i::Constant(m_border_size - b->border_size());
     Vector2i size = b->size() + Vector2i::Constant(2 * b->border_size());
@@ -46,9 +42,7 @@ void ImageBlock<Float, Spectrum>::put(const ImageBlock *b) {
         b->data().topLeftCorner(size.y(), size.x());
 }
 
-template <typename Float, typename Spectrum>
-bool ImageBlock<Float, Spectrum>::put(const Vector2 &pos_,
-                                      const Spectrum &val) {
+bool ImageBlock::put(const Vector2 &pos_, const Spectrum &val) {
     Vector2 offset = m_offset.template cast<Float>();
     // TODO: check all value are valid
     Vector2 pos = pos_ - (offset - Vector2::Constant(m_border_size + 0.5f));
@@ -75,18 +69,11 @@ bool ImageBlock<Float, Spectrum>::put(const Vector2 &pos_,
     return true;
 }
 
-template <typename Float, typename Spectrum>
-void ImageBlock<Float, Spectrum>::set_size(const Vector2i &size) {
-    m_size = size;
-}
+void ImageBlock::set_size(const Vector2i &size) { m_size = size; }
 
-template <typename Float, typename Spectrum>
-void ImageBlock<Float, Spectrum>::clear() {
-    m_buffer.setConstant(Color4::Zero());
-}
+void ImageBlock::clear() { m_buffer.setConstant(Color4::Zero()); }
 
-template <typename Float, typename Spectrum>
-std::string ImageBlock<Float, Spectrum>::to_string() const {
+std::string ImageBlock::to_string() const {
     std::ostringstream oss;
     oss << "ImageBlock[" << std::endl
         << "  offset = " << m_offset << "," << std::endl
@@ -118,8 +105,7 @@ void BlockGenerator::reset() {
     m_steps             = 1;
 }
 
-std::tuple<BlockGenerator::Vector2i, BlockGenerator::Vector2i, size_t>
-BlockGenerator::next_block() {
+std::tuple<Vector2i, Vector2i, size_t> BlockGenerator::next_block() {
     std::lock_guard<tbb::spin_mutex> lock(m_mutex);
 
     if (m_block_count == m_block_counter) {
@@ -171,8 +157,7 @@ BlockGenerator::next_block() {
     return { offset, size, block_id };
 }
 
-APR_IMPLEMENT_CLASS_VARIANT(ImageBlock, Object)
+APR_IMPLEMENT_CLASS(ImageBlock, Object)
 APR_IMPLEMENT_CLASS(BlockGenerator, Object)
-APR_INSTANTIATE_CLASS(ImageBlock)
 
 } // namespace aspirin

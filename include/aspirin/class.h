@@ -1,6 +1,6 @@
 #pragma once
 
-#include "aspirin.h"
+#include "fwd.h"
 #include <functional>
 #include <string>
 
@@ -11,12 +11,9 @@ public:
     using ConstructFunctor = std::function<Object *(const Properties &)>;
 
     Class(const std::string &name, const std::string &parent,
-          const std::string &variant = "", ConstructFunctor construct = {},
-          const std::string &alias = "");
+          ConstructFunctor construct = {}, const std::string &alias = "");
 
     const std::string &name() const { return m_name; }
-
-    const std::string &variant() const { return m_variant; }
 
     const std::string &alias() const { return m_alias; }
 
@@ -26,8 +23,7 @@ public:
 
     bool derives_from(const Class *clazz) const;
 
-    static const Class *for_name(const std::string &name,
-                                 const std::string &variant = "");
+    static const Class *for_name(const std::string &name);
 
     ref<Object> construct(const Properties &props) const;
 
@@ -41,7 +37,7 @@ private:
     static void initialize_once(Class *clazz);
 
 private:
-    std::string m_name, m_parent_name, m_variant, m_alias;
+    std::string m_name, m_parent_name, m_alias;
     Class *m_parent;
     ConstructFunctor m_construct;
     inline static bool m_is_initialized = false;
@@ -59,28 +55,16 @@ public:                                                                        \
 
 #define APR_IMPLEMENT_CLASS(Name, Parent, ...)                                 \
     Class *Name::m_class = new Class(                                          \
-        #Name, #Parent, "", ::aspirin::detail::get_construct_functor<Name>(),  \
+        #Name, #Parent, ::aspirin::detail::get_construct_functor<Name>(),      \
         ##__VA_ARGS__);                                                        \
     const Class *Name::clazz() const { return m_class; }
-
-#define APR_IMPLEMENT_CLASS_VARIANT(Name, Parent, ...)                         \
-    template <typename Float, typename Spectrum>                               \
-    Class *Name<Float, Spectrum>::m_class = new Class(                         \
-        #Name, #Parent, ::aspirin::detail::get_variant<Float, Spectrum>(),     \
-        ::aspirin::detail::get_construct_functor<Name<Float, Spectrum>>(),     \
-        ##__VA_ARGS__);                                                        \
-    template <typename Float, typename Spectrum>                               \
-    const Class *Name<Float, Spectrum>::clazz() const {                        \
-        return m_class;                                                        \
-    }
 
 #define APR_INTERNAL_PLUGIN(Class, PluginName)                                 \
     APR_EXPORT struct Plugin_##Class {                                         \
         Plugin_##Class() {                                                     \
             detail::register_internal_plugin(#Class, PluginName);              \
         }                                                                      \
-    } plugin_##Class;                                                          \
-    APR_INSTANTIATE_CLASS(Class)
+    } plugin_##Class;
 
 namespace detail {
 template <typename, typename Arg, typename = void>

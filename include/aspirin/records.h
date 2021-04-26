@@ -5,11 +5,7 @@
 
 namespace aspirin {
 
-template <typename Float_, typename Spectrum_> struct PositionSample {
-    using Float    = Float_;
-    using Spectrum = Spectrum_;
-    APR_IMPORT_CORE_TYPES(Float_)
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
+struct PositionSample {
 
     Vector3 p;
     Vector3 n;
@@ -27,31 +23,17 @@ template <typename Float_, typename Spectrum_> struct PositionSample {
         : p(si.p), n(si.sh_frame.n), uv(si.uv), delta(false) {}
 };
 
-template <typename Float_, typename Spectrum_>
-struct DirectionSample : public PositionSample<Float_, Spectrum_> {
-    using Base = PositionSample<Float_, Spectrum_>;
-    using Base::delta;
-    using Base::n;
-    using Base::object;
-    using Base::p;
-    using Base::pdf;
-    using typename Base::Float;
-    using typename Base::Spectrum;
-    using typename Base::SurfaceInteraction;
-    using typename Base::Vector2;
-    using typename Base::Vector3;
-    using Interaction = Interaction<Float, Spectrum>;
-
+struct DirectionSample : public PositionSample {
     Vector3 ref;
     Vector3 ref_n;
     Vector3 d;
     Float dist;
 
     DirectionSample()
-        : PositionSample<Float, Spectrum>(), d(Vector3::Zero()), dist(0.f) {}
+        : PositionSample(), d(Vector3::Zero()), dist(0.f) {}
 
     DirectionSample(const SurfaceInteraction &it, const Interaction &ref)
-        : PositionSample<Float, Spectrum>(it) {
+        : PositionSample(it) {
         d    = it.p - ref.p;
         dist = d.norm();
         d /= dist;
@@ -59,8 +41,8 @@ struct DirectionSample : public PositionSample<Float_, Spectrum_> {
             d = -it.wi;
     }
 
-    DirectionSample(const PositionSample<Float, Spectrum> &base)
-        : PositionSample<Float, Spectrum>(base) {}
+    DirectionSample(const PositionSample &base)
+        : PositionSample(base) {}
 };
 
 } // namespace aspirin

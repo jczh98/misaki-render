@@ -10,19 +10,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT Scene : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Ray                     = Ray<Float, Spectrum>;
-    using Interaction             = Interaction<Float, Spectrum>;
-    using PreliminaryIntersection = PreliminaryIntersection<Float, Spectrum>;
-    using SurfaceInteraction      = SurfaceInteraction<Float, Spectrum>;
-    using DirectionSample         = DirectionSample<Float, Spectrum>;
-    using Sensor                  = Sensor<Float, Spectrum>;
-    using Integrator              = Integrator<Float, Spectrum>;
-    using Emitter                 = Emitter<Float, Spectrum>;
-    using Shape                   = Shape<Float, Spectrum>;
 
     Scene(const Properties &props);
 
@@ -67,18 +56,7 @@ protected:
     BoundingBox3 m_bbox;
 };
 
-// See interaction.h
-template <typename Float, typename Spectrum>
-typename SurfaceInteraction<Float, Spectrum>::EmitterPtr
-SurfaceInteraction<Float, Spectrum>::emitter(const Scene *scene) const {
-    if (is_valid())
-        return shape->emitter();
-    else
-        return scene->environment();
-}
-
 extern APR_EXPORT void library_nop();
 
-APR_EXTERN_CLASS(Scene)
 
 } // namespace aspirin

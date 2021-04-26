@@ -10,9 +10,8 @@
 
 using namespace aspirin;
 
-template <typename Float, typename Spectrum>
 bool render(Object *scene_, fs::path filename) {
-    auto *scene = dynamic_cast<Scene<Float, Spectrum> *>(scene_);
+    auto *scene = dynamic_cast<Scene *>(scene_);
     if (!scene) {
         Throw("Root element of the input file must be a <scene> tag!");
     }
@@ -39,10 +38,8 @@ int main(int argc, char **argv) {
     get_file_resolver()->append(fs::path(argv[0]).parent_path());
     get_file_resolver()->append(path.parent_path());
     try {
-        auto scene =
-            xml::load_file(get_file_resolver()->resolve(path), "scalar_rgb");
-        bool success =
-            APR_INVOKE_VARIANT("scalar_rgb", render, scene.get(), path);
+        auto scene   = xml::load_file(get_file_resolver()->resolve(path));
+        bool success = render(scene.get(), path);
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
     }

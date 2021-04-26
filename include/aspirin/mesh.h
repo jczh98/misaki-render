@@ -4,21 +4,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class APR_EXPORT Mesh : public Shape<Float, Spectrum> {
+class APR_EXPORT Mesh : public Shape {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Shape<Float, Spectrum>;
-    using Base::m_is_mesh;
-    using Base::set_children;
-    using typename Base::BSDF;
-    using typename Base::DirectionSample;
-    using typename Base::Emitter;
-    using typename Base::PositionSample;
-    using typename Base::PreliminaryIntersection;
-    using typename Base::Ray;
-    using typename Base::Sensor;
-    using typename Base::SurfaceInteraction;
 
     uint32_t vertex_count() const { return m_vertex_count; }
     uint32_t face_count() const { return m_face_count; }
@@ -109,7 +96,5 @@ protected:
     BoundingBox3 m_bbox;
     Transform4 m_to_world;
 };
-
-APR_EXTERN_CLASS(Mesh)
 
 } // namespace aspirin

@@ -3,14 +3,11 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-Emitter<Float, Spectrum>::Emitter(const Properties &props)
-    : Endpoint<Float, Spectrum>(props) {}
+Emitter::Emitter(const Properties &props)
+    : Endpoint(props) {}
 
-template <typename Float, typename Spectrum>
-Emitter<Float, Spectrum>::~Emitter() {}
+Emitter::~Emitter() {}
 
-APR_IMPLEMENT_CLASS_VARIANT(Emitter, Endpoint, "emitter")
-APR_INSTANTIATE_CLASS(Emitter)
+APR_IMPLEMENT_CLASS(Emitter, Endpoint, "emitter")
 
 } // namespace aspirin

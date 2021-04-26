@@ -4,9 +4,7 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum> struct Ray {
-    using Vector3 = Eigen::Matrix<Float, 3, 1>;
-
+struct Ray {
     Vector3 o, d;
     Float mint = math::RayEpsilon<Float>;
     Float maxt = math::Infinity<Float>;
@@ -32,8 +30,8 @@ template <typename Float, typename Spectrum> struct Ray {
     std::string to_string() const {
         std::ostringstream oss;
         oss << "Ray[" << std::endl;
-        oss << "  o = " << string::indent(o.to_string(), 6) << "," << std::endl;
-        oss << "  d = " << string::indent(d.to_string(), 6) << "," << std::endl;
+        oss << "  o = " << string::indent(o, 6) << "," << std::endl;
+        oss << "  d = " << string::indent(d, 6) << "," << std::endl;
         oss << "  mint = " << mint << "," << std::endl;
         oss << "  maxt = " << maxt << "," << std::endl;
         oss << "  time = " << time << std::endl;
@@ -42,14 +40,7 @@ template <typename Float, typename Spectrum> struct Ray {
     }
 };
 
-template <typename Float, typename Spectrum>
-struct RayDifferential : public Ray<Float, Spectrum> {
-    using Ray = Ray<Float, Spectrum>;
-    using Ray::d;
-    using Ray::o;
-    using Ray::Ray;
-    using typename Ray::Vector3;
-
+struct RayDifferential : public Ray {
     Vector3 o_x, o_y, d_x, d_y;
     bool has_differentials = false;
 

@@ -12,11 +12,6 @@ namespace detail {
 
 static std::unordered_map<std::string, std::string> *_plugins = nullptr;
 
-inline std::string class_key(const std::string &name,
-                             const std::string &variant) {
-    return name + "." + variant;
-}
-
 void register_internal_plugin(const std::string &name,
                               const std::string &plugin_name) {
     if (!_plugins) {
@@ -39,9 +34,7 @@ ref<Object> PluginManager::create_object(const Properties &props,
         return class_->construct(props);
     auto it = detail::_plugins->find(props.plugin_name());
     const Class *plugin_class =
-        (it != detail::_plugins->end())
-            ? Class::for_name(it->second, class_->variant())
-            : nullptr;
+        (it != detail::_plugins->end()) ? Class::for_name(it->second) : nullptr;
     if (plugin_class == nullptr) {
         // Now we do not have a plugin instance
         throw std::runtime_error("Error while loading internal plugin");
@@ -53,10 +46,9 @@ ref<Object> PluginManager::create_object(const Properties &props,
         if (oc->parent())
             oc = oc->parent();
         Throw("Type mismatch when loading plugin \"{}\": Expected "
-              "an instance of type \"{}\" (variant \"{}\"), got an instance of "
-              "type \"{}\" (variant \"{}\")",
-              props.plugin_name(), class_->name(), class_->variant(),
-              oc->name(), oc->variant());
+              "an instance of type \"{}\", got an instance of "
+              "type \"{}\"",
+              props.plugin_name(), class_->name(), oc->name());
     }
     return object;
 }

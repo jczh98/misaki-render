@@ -11,8 +11,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-Shape<Float, Spectrum>::Shape(const Properties &props) : m_id(props.id()) {
+
+Shape::Shape(const Properties &props) : m_id(props.id()) {
     m_world_transform = props.transform("to_world", Transform4());
     for (auto &[name, obj] : props.objects()) {
         auto *emitter = dynamic_cast<Emitter *>(obj.get());
@@ -47,26 +47,26 @@ Shape<Float, Spectrum>::Shape(const Properties &props) : m_id(props.id()) {
         m_bsdf = PluginManager::instance()->create_object<BSDF>(
             Properties("diffuse"));
 }
-template <typename Float, typename Spectrum>
-void Shape<Float, Spectrum>::set_children() {
+
+void Shape::set_children() {
     if (m_emitter) {
         m_emitter->set_shape(this);
     }
 }
-template <typename Float, typename Spectrum>
-typename Shape<Float, Spectrum>::PositionSample
-Shape<Float, Spectrum>::sample_position(const Vector2 &sample) const {
+
+PositionSample
+Shape::sample_position(const Vector2 &sample) const {
     APR_NOT_IMPLEMENTED("sample_position");
 }
 
-template <typename Float, typename Spectrum>
-Float Shape<Float, Spectrum>::pdf_position(const PositionSample &ps) const {
+
+Float Shape::pdf_position(const PositionSample &ps) const {
     APR_NOT_IMPLEMENTED("pdf_position");
 }
 
-template <typename Float, typename Spectrum>
-typename Shape<Float, Spectrum>::DirectionSample
-Shape<Float, Spectrum>::sample_direction(const Interaction &it,
+
+DirectionSample
+Shape::sample_direction(const Interaction &it,
                                       const Vector2 &sample) const {
     DirectionSample ds(sample_position(sample));
     ds.d = ds.p - it.p;
@@ -82,8 +82,8 @@ Shape<Float, Spectrum>::sample_direction(const Interaction &it,
     return ds;
 }
 
-template <typename Float, typename Spectrum>
-Float Shape<Float, Spectrum>::pdf_direction(const Interaction &it,
+
+Float Shape::pdf_direction(const Interaction &it,
                                          const DirectionSample &ds) const {
     Float pdf = pdf_position(ds), dp = std::abs(ds.d.dot(ds.n));
 
@@ -92,38 +92,37 @@ Float Shape<Float, Spectrum>::pdf_direction(const Interaction &it,
     return pdf;
 }
 
-template <typename Float, typename Spectrum>
-typename Shape<Float, Spectrum>::BoundingBox3
-Shape<Float, Spectrum>::bbox() const {
+
+BoundingBox3
+Shape::bbox() const {
     APR_NOT_IMPLEMENTED("bbox");
 }
 
-template <typename Float, typename Spectrum>
-typename Shape<Float, Spectrum>::BoundingBox3
-Shape<Float, Spectrum>::bbox(uint32_t index) const {
+
+BoundingBox3
+Shape::bbox(uint32_t index) const {
     APR_NOT_IMPLEMENTED("bbox");
 }
 
-template <typename Float, typename Spectrum>
-Float Shape<Float, Spectrum>::surface_area() const {
+
+Float Shape::surface_area() const {
     APR_NOT_IMPLEMENTED("surface_area");
 }
 
-template <typename Float, typename Spectrum>
-typename Shape<Float, Spectrum>::SurfaceInteraction
-Shape<Float, Spectrum>::compute_surface_interaction(
+
+SurfaceInteraction
+Shape::compute_surface_interaction(
     const Ray &ray, PreliminaryIntersection pi) const {
     APR_NOT_IMPLEMENTED("compute_surface_point");
 }
 
 #if defined(APR_ENABLE_EMBREE)
-template <typename Float, typename Spectrum>
-RTCGeometry Shape<Float, Spectrum>::embree_geometry(RTCDevice device) const {
+
+RTCGeometry Shape::embree_geometry(RTCDevice device) const {
     APR_NOT_IMPLEMENTED("embree_geometry");
 }
 #endif
 
-APR_IMPLEMENT_CLASS_VARIANT(Shape, Object, "shape")
-APR_INSTANTIATE_CLASS(Shape)
+APR_IMPLEMENT_CLASS(Shape, Object, "shape")
 
 } // namespace aspirin

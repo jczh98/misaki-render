@@ -9,21 +9,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT Shape : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Ray                     = Ray<Float, Spectrum>;
-    using Sensor                  = Sensor<Float, Spectrum>;
-    using BSDF                    = BSDF<Float, Spectrum>;
-    using Emitter                 = Emitter<Float, Spectrum>;
-    using Medium                  = Medium<Float, Spectrum>;
-    using Interaction             = Interaction<Float, Spectrum>;
-    using PositionSample          = PositionSample<Float, Spectrum>;
-    using DirectionSample         = DirectionSample<Float, Spectrum>;
-    using SurfaceInteraction      = SurfaceInteraction<Float, Spectrum>;
-    using PreliminaryIntersection = PreliminaryIntersection<Float, Spectrum>;
-
     virtual PositionSample sample_position(const Vector2 &sample) const;
     virtual Float pdf_position(const PositionSample &ps) const;
 
@@ -81,5 +68,4 @@ protected:
     bool m_is_mesh = false;
 };
 
-APR_EXTERN_CLASS(Shape)
 } // namespace aspirin

@@ -6,16 +6,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class RGBFilm final : public Film<Float, Spectrum> {
+class RGBFilm final : public Film {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Film<Float, Spectrum>;
-    using Base::filter;
-    using Base::m_size;
-    using typename Base::ImageBlock;
 
-    RGBFilm(const Properties &props) : Base(props) {
+    RGBFilm(const Properties &props) : Film(props) {
         m_storage = new ImageBlock(m_size, filter());
         m_storage->clear();
     }
@@ -59,7 +53,7 @@ private:
     tbb::spin_mutex m_mutex;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(RGBFilm, Film)
+APR_IMPLEMENT_CLASS(RGBFilm, Film)
 APR_INTERNAL_PLUGIN(RGBFilm, "rgbfilm")
 
 } // namespace aspirin

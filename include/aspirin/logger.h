@@ -1,7 +1,7 @@
 #pragma once
 
 #include "string.h"
-#include "aspirin.h"
+#include "fwd.h"
 #include <fmt/format.h>
 
 namespace aspirin {

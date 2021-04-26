@@ -1,6 +1,6 @@
 #pragma once
 
-#include "aspirin.h"
+#include "fwd.h"
 #include "logger.h"
 #include "object.h"
 #include "plugin.h"
@@ -26,8 +26,6 @@ private:
 
 class APR_EXPORT Properties {
 public:
-    using Float = float;
-    APR_IMPORT_CORE_TYPES(float)
     enum class Type {
         Bool,
         Int,

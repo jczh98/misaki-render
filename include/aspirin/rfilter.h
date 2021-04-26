@@ -7,11 +7,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT ReconstructionFilter : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-
     virtual Float eval(Float x) const;
     Float radius() const { return m_radius; }
 
@@ -25,6 +22,5 @@ protected:
     Float m_radius;
 };
 
-APR_EXTERN_CLASS(ReconstructionFilter)
 
 } // namespace aspirin

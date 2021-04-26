@@ -65,9 +65,7 @@ struct APR_EXPORT BSDFContext {
     }
 };
 
-template <typename Float, typename Spectrum> struct BSDFSample {
-    using Vector3 = Eigen::Matrix<Float, 3, 1>;
-
+struct BSDFSample {
     Vector3 wo;
     Float pdf;
     Float eta;
@@ -78,17 +76,11 @@ template <typename Float, typename Spectrum> struct BSDFSample {
         : wo(Vector3::Zero()), pdf(0.f), eta(1.f), sampled_type(0),
           sampled_component(-1u) {}
     BSDFSample(const Vector3 &wo)
-        : wo(wo), pdf(0.f), eta(1.f), sampled_type(0), sampled_component(-1) {}
+        : wo(wo), pdf(0.f), eta(1.f), sampled_type(0), sampled_component(-1u) {}
 };
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT BSDF : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-
-    using BSDFSample         = BSDFSample<Float, Spectrum>;
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
-
     // Sample BSDF * cos(theta) and returns sampled bsdf information with BSDF *
     // cos(theta) divided by pdf
     virtual std::pair<BSDFSample, Spectrum>
@@ -135,17 +127,4 @@ protected:
     std::string m_id;
 };
 
-template <typename Float, typename Spectrum>
-typename SurfaceInteraction<Float, Spectrum>::BSDFPtr
-SurfaceInteraction<Float, Spectrum>::bsdf(
-    const typename SurfaceInteraction<Float, Spectrum>::RayDifferential &ray) {
-    const BSDFPtr bsdf = shape->bsdf();
-
-    if (!has_uv_partials() && bsdf->needs_differentials()) {
-        compute_uv_partials(ray);
-    }
-    return bsdf;
-}
-
-APR_EXTERN_CLASS(BSDF)
 } // namespace aspirin

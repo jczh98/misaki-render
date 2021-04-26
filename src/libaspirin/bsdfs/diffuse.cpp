@@ -7,18 +7,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class SmoothDiffuse final : public BSDF<Float, Spectrum> {
+class SmoothDiffuse final : public BSDF {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = BSDF<Float, Spectrum>;
-    using Base::m_components;
-    using Base::m_flags;
-    using typename Base::BSDFSample;
-    using typename Base::SurfaceInteraction;
-    using Texture = Texture<Float, Spectrum>;
 
-    SmoothDiffuse(const Properties &props) : Base(props) {
+    SmoothDiffuse(const Properties &props) : BSDF(props) {
         m_reflectance = props.texture<Texture>("reflectance", 0.5f);
         m_flags       = +BSDFFlags::DiffuseReflection;
         m_components.push_back(m_flags);
@@ -78,7 +70,7 @@ protected:
     ref<Texture> m_reflectance;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(SmoothDiffuse, BSDF)
+APR_IMPLEMENT_CLASS(SmoothDiffuse, BSDF)
 APR_INTERNAL_PLUGIN(SmoothDiffuse, "diffuse")
 
 } // namespace aspirin

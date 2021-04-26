@@ -20,8 +20,8 @@ FileResolver *get_file_resolver() {
 
 void library_nop() {}
 
-template <typename Float, typename Spectrum>
-Scene<Float, Spectrum>::Scene(const Properties &props) {
+
+Scene::Scene(const Properties &props) {
     for (auto &[name, obj] : props.objects()) {
         auto *shape      = dynamic_cast<Shape *>(obj.get());
         auto *sensor     = dynamic_cast<Sensor *>(obj.get());
@@ -61,13 +61,13 @@ Scene<Float, Spectrum>::Scene(const Properties &props) {
     }
 }
 
-template <typename Float, typename Spectrum> Scene<Float, Spectrum>::~Scene() {
+ Scene::~Scene() {
     accel_release();
 }
 
-template <typename Float, typename Spectrum>
-std::pair<typename Scene<Float, Spectrum>::DirectionSample, Spectrum>
-Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
+
+std::pair<DirectionSample, Spectrum>
+Scene::sample_emitter_direction(const Interaction &ref,
                                                  const Vector2 &sample_,
                                                  bool test_visibility) const {
     DirectionSample ds;
@@ -101,8 +101,8 @@ Scene<Float, Spectrum>::sample_emitter_direction(const Interaction &ref,
     return { ds, spec };
 }
 
-template <typename Float, typename Spectrum>
-Float Scene<Float, Spectrum>::pdf_emitter_direction(
+
+Float Scene::pdf_emitter_direction(
     const Interaction &ref, const DirectionSample &ds) const {
     if (m_emitters.size() == 1) {
         return m_emitters[0]->pdf_direction(ref, ds);
@@ -113,14 +113,23 @@ Float Scene<Float, Spectrum>::pdf_emitter_direction(
     }
 }
 
+// See interaction.h
+SurfaceInteraction::EmitterPtr
+SurfaceInteraction::emitter(const Scene *scene) const {
+    if (is_valid())
+        return shape->emitter();
+    else
+        return scene->environment();
+}
+
 /*------------------------Embree
  * specification---------------------------------*/
 #if defined(APR_ENABLE_EMBREE)
 #include <embree3/rtcore.h>
 static RTCDevice __embree_device = nullptr;
 
-template <typename Float, typename Spectrum>
-void Scene<Float, Spectrum>::accel_init(const Properties &props) {
+
+void Scene::accel_init(const Properties &props) {
     if (!__embree_device)
         __embree_device = rtcNewDevice("");
     // util::Timer timer;
@@ -133,14 +142,14 @@ void Scene<Float, Spectrum>::accel_init(const Properties &props) {
     // Log(Info, "Embree ready.  (took {})", util::time_string(timer.value()));
 }
 
-template <typename Float, typename Spectrum>
-void Scene<Float, Spectrum>::accel_release() {
+
+void Scene::accel_release() {
     rtcReleaseScene((RTCScene) m_accel);
 }
 
-template <typename Float, typename Spectrum>
-typename Scene<Float, Spectrum>::SurfaceInteraction
-Scene<Float, Spectrum>::ray_intersect(const Ray &ray) const {
+
+SurfaceInteraction
+Scene::ray_intersect(const Ray &ray) const {
     RTCIntersectContext context;
     rtcInitIntersectContext(&context);
     RTCRayHit rh;
@@ -178,8 +187,8 @@ Scene<Float, Spectrum>::ray_intersect(const Ray &ray) const {
     return si;
 }
 
-template <typename Float, typename Spectrum>
-bool Scene<Float, Spectrum>::ray_test(const Ray &ray) const {
+
+bool Scene::ray_test(const Ray &ray) const {
     RTCIntersectContext context;
     rtcInitIntersectContext(&context);
     RTCRay ray2;
@@ -201,7 +210,6 @@ bool Scene<Float, Spectrum>::ray_test(const Ray &ray) const {
 
 #endif
 
-APR_IMPLEMENT_CLASS_VARIANT(Scene, Object, "scene")
-APR_INSTANTIATE_CLASS(Scene)
+APR_IMPLEMENT_CLASS(Scene, Object, "scene")
 
 } // namespace aspirin

@@ -5,7 +5,6 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT Integrator : public Object {
 public:
     enum RadianceQuery {
@@ -60,9 +59,6 @@ public:
         SensorRay                = Radiance | Opacity
     };
 
-    using Scene  = Scene<Float, Spectrum>;
-    using Sensor = Sensor<Float, Spectrum>;
-
     virtual bool render(Scene *scene, Sensor *sensor);
 
     APR_DECLARE_CLASS()
@@ -72,7 +68,5 @@ protected:
 protected:
     uint32_t m_block_size;
 };
-
-APR_EXTERN_CLASS(Integrator)
 
 } // namespace aspirin

@@ -18,16 +18,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class DebugIntegrator final : public Integrator<Float, Spectrum> {
+class DebugIntegrator final : public Integrator {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Integrator<Float, Spectrum>;
-    using typename Base::Scene;
-    using typename Base::Sensor;
-    using ImageBlock = ImageBlock<Float, Spectrum>;
 
-    DebugIntegrator(const Properties &props) : Base(props) {}
+    DebugIntegrator(const Properties &props) : Integrator(props) {}
 
     bool render(Scene *scene, Sensor *sensor) override {
         auto film      = sensor->film();
@@ -78,7 +72,7 @@ public:
 private:
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(DebugIntegrator, Integrator)
+APR_IMPLEMENT_CLASS(DebugIntegrator, Integrator)
 APR_INTERNAL_PLUGIN(DebugIntegrator, "debug")
 
 } // namespace aspirin

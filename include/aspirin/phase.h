@@ -32,10 +32,7 @@ constexpr auto has_flag(UInt32 flags, PhaseFunctionFlags f) {
     return (flags & (uint32_t) f) != 0;
 }
 
-template <typename Float, typename Spectrum>
 struct APR_EXPORT PhaseFunctionContext {
-    using Sampler = Sampler<Float, Spectrum>;
-
     TransportMode mode;
 
     Sampler *sampler;
@@ -47,12 +44,8 @@ struct APR_EXPORT PhaseFunctionContext {
     void reverse() { mode = (TransportMode)(1 - (int) mode); }
 };
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT PhaseFunction : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using PhaseFunctionContext = PhaseFunctionContext<Float, Spectrum>;
-    using MediumInteraction    = MediumInteraction<Float, Spectrum>;
 
     /**
      * @brief Sample a phase function
@@ -83,6 +76,5 @@ protected:
 
     std::string m_id;
 };
-APR_EXTERN_CLASS(PhaseFunction)
 
 } // namespace aspirin

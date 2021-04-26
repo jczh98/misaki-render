@@ -5,11 +5,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT Sampler : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-
     virtual ref<Sampler> clone() = 0;
     virtual void seed(uint64_t seed_value);
     virtual Float next1d();
@@ -26,6 +23,5 @@ protected:
     uint64_t m_base_seed;
 };
 
-APR_EXTERN_CLASS(Sampler)
 
 } // namespace aspirin

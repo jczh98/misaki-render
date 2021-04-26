@@ -28,6 +28,7 @@ add_library(aspirin-render SHARED
         phase.cpp
         volume.cpp
         medium.cpp
+        interaction.cpp
 
         samplers/independent.cpp
         bsdfs/diffuse.cpp bsdfs/twosided.cpp bsdfs/dielectric.cpp

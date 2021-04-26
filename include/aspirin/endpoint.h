@@ -8,19 +8,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT Endpoint : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Ray                = Ray<Float, Spectrum>;
-    using Shape              = Shape<Float, Spectrum>;
-    using Scene              = Scene<Float, Spectrum>;
-    using Medium             = Medium<Float, Spectrum>;
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
-    using Interaction        = Interaction<Float, Spectrum>;
-    using PositionSample     = PositionSample<Float, Spectrum>;
-    using DirectionSample       = DirectionSample<Float, Spectrum>;
-
     // Returns Sampled ray with structred RaySample
     virtual std::pair<Ray, Spectrum>
     sample_ray(const Vector2 &pos_sample, const Vector2 &dir_sample) const;
@@ -59,5 +48,4 @@ protected:
     std::string m_id;
 };
 
-APR_EXTERN_CLASS(Endpoint)
 } // namespace aspirin

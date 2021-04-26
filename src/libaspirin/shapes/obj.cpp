@@ -7,8 +7,7 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class OBJMesh final : public Mesh<Float, Spectrum> {
+class OBJMesh final : public Mesh {
     static unsigned int to_uint(const std::string &str) {
         char *end_ptr       = nullptr;
         unsigned int result = (int) strtoul(str.c_str(), &end_ptr, 10);
@@ -56,22 +55,7 @@ class OBJMesh final : public Mesh<Float, Spectrum> {
     };
 
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Mesh<Float, Spectrum>;
-    using Base::area_distr_build;
-    using Base::m_bbox;
-    using Base::m_face_count;
-    using Base::m_face_size;
-    using Base::m_faces;
-    using Base::m_name;
-    using Base::m_normal_offset;
-    using Base::m_texcoord_offset;
-    using Base::m_to_world;
-    using Base::m_vertex_count;
-    using Base::m_vertex_size;
-    using Base::m_vertices;
-
-    OBJMesh(const Properties &props) : Base(props) {
+    OBJMesh(const Properties &props) : Mesh(props) {
         bool filp_tex_coords = props.get_bool("filp_tex_coords", true);
         auto fr              = get_file_resolver();
         fs::path file_path   = fr->resolve(props.string("filename"));
@@ -150,8 +134,8 @@ public:
             }
         }
 
-        m_vertex_count    = obj_vertices.size();
-        m_face_count      = triangles.size() / 3;
+        m_vertex_count    = static_cast<uint32_t>(obj_vertices.size());
+        m_face_count      = static_cast<uint32_t>(triangles.size() / 3);
         m_normal_offset   = normals.empty() ? 0 : 3;
         m_texcoord_offset = texcoords.empty() ? 0 : 6;
         m_vertex_size     = 3 + 3 + 2;
@@ -198,7 +182,7 @@ public:
     APR_DECLARE_CLASS()
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(OBJMesh, Mesh)
+APR_IMPLEMENT_CLASS(OBJMesh, Mesh)
 APR_INTERNAL_PLUGIN(OBJMesh, "obj")
 
 } // namespace aspirin

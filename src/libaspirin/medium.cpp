@@ -6,11 +6,11 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-Medium<Float, Spectrum>::Medium() : m_is_homogeneous(false) {}
 
-template <typename Float, typename Spectrum>
-Medium<Float, Spectrum>::Medium(const Properties &props) : m_id(props.id()) {
+Medium::Medium() : m_is_homogeneous(false) {}
+
+
+Medium::Medium(const Properties &props) : m_id(props.id()) {
 
     for (auto &[name, obj] : props.objects()) {
         auto *phase = dynamic_cast<PhaseFunction *>(obj.get());
@@ -29,10 +29,9 @@ Medium<Float, Spectrum>::Medium(const Properties &props) : m_id(props.id()) {
     }
 }
 
-template <typename Float, typename Spectrum>
-Medium<Float, Spectrum>::~Medium() {}
 
-APR_IMPLEMENT_CLASS_VARIANT(Medium, Object, "medium")
-APR_INSTANTIATE_CLASS(Medium)
+Medium::~Medium() {}
+
+APR_IMPLEMENT_CLASS(Medium, Object, "medium")
 
 } // namespace aspirin

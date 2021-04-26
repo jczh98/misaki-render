@@ -6,11 +6,6 @@
 
 namespace aspirin {
 
-using Float      = typename Properties::Float;
-using Vector3    = typename Properties::Vector3;
-using Color3     = typename Properties::Color3;
-using Transform4 = typename Properties::Transform4;
-
 #define DEFINE_PROPERTY_ACCESSOR(TYPE, TAG_NAME, SETTER, GETTER)               \
     void Properties::SETTER(const std::string &name, TYPE const &value,        \
                             bool warn_duplicates) {                            \

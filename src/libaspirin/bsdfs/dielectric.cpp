@@ -5,18 +5,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class SmoothDielectric final : public BSDF<Float, Spectrum> {
+class SmoothDielectric final : public BSDF {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = BSDF<Float, Spectrum>;
-    using Base::m_components;
-    using Base::m_flags;
-    using typename Base::BSDFSample;
-    using typename Base::SurfaceInteraction;
-    using Texture = Texture<Float, Spectrum>;
 
-    SmoothDielectric(const Properties &props) : Base(props) {
+    SmoothDielectric(const Properties &props) : BSDF(props) {
         Float int_ior = props.get_float("int_ior", 1.49);
         Float ext_ior = props.get_float("ext_ior", 1.00028);
         m_eta         = int_ior / ext_ior;
@@ -105,7 +97,7 @@ private:
     ref<Texture> m_specular_reflectance, m_specular_transmittance;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(SmoothDielectric, BSDF)
+APR_IMPLEMENT_CLASS(SmoothDielectric, BSDF)
 APR_INTERNAL_PLUGIN(SmoothDielectric, "dielectric")
 
 } // namespace aspirin

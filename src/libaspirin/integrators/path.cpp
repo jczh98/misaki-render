@@ -15,21 +15,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class PathTracer final : public Integrator<Float, Spectrum> {
+class PathTracer final : public Integrator {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Integrator<Float, Spectrum>;
-    using typename Base::RadianceQuery;
-    using typename Base::Scene;
-    using typename Base::Sensor;
-    using Ray                = Ray<Float, Spectrum>;
-    using RayDifferential    = RayDifferential<Float, Spectrum>;
-    using ImageBlock         = ImageBlock<Float, Spectrum>;
-    using Sampler            = Sampler<Float, Spectrum>;
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
-    PathTracer(const Properties &props) : Base(props) {}
+    PathTracer(const Properties &props) : Integrator(props) {}
 
     bool render(Scene *scene, Sensor *sensor) {
         auto film      = sensor->film();
@@ -213,7 +202,7 @@ private:
     std::mutex m_mutex;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(PathTracer, Integrator)
+APR_IMPLEMENT_CLASS(PathTracer, Integrator)
 APR_INTERNAL_PLUGIN(PathTracer, "path")
 
 } // namespace aspirin

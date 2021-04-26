@@ -3,19 +3,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class PerspectiveCamera final : public ProjectiveCamera<Float, Spectrum> {
+class PerspectiveCamera final : public ProjectiveCamera {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = ProjectiveCamera<Float, Spectrum>;
-    using Base::m_aspect;
-    using Base::m_far_clip;
-    using Base::m_film;
-    using Base::m_near_clip;
-    using Base::m_world_transform;
-    using typename Base::Ray;
 
-    PerspectiveCamera(const Properties &props) : Base(props) {
+    PerspectiveCamera(const Properties &props) : ProjectiveCamera(props) {
         m_fov = props.get_float("fov", 30);
         m_camera_to_sample =
             Transform4::scale(
@@ -47,7 +38,7 @@ private:
     Float m_fov;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(PerspectiveCamera, ProjectiveCamera)
+APR_IMPLEMENT_CLASS(PerspectiveCamera, ProjectiveCamera)
 APR_INTERNAL_PLUGIN(PerspectiveCamera, "perspective")
 
 } // namespace aspirin

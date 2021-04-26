@@ -7,17 +7,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class ConstVolume final : public Volume<Float, Spectrum> {
+class ConstVolume final : public Volume {
 public:
-    APR_IMPORT_CORE_TYPES(Float);
-    using Base = Volume<Float, Spectrum>;
-    using Base::m_world_to_local;
-    using typename Base::Interaction;
-    using typename Base::Texture;
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
-    ConstVolume(const Properties &props) : Base(props) {
+    ConstVolume(const Properties &props) : Volume(props) {
         m_color = props.texture<Texture>("color", 1.f);
     }
 
@@ -25,7 +18,7 @@ public:
         return eval_impl(it);
     }
 
-    APR_INLINE auto eval_impl(const Interaction &it) const {
+    APR_INLINE Spectrum eval_impl(const Interaction &it) const {
         SurfaceInteraction si;
         si.uv       = Vector2(0.f, 0.f);
         auto result = m_color->eval_3(si);
@@ -46,7 +39,7 @@ protected:
     ref<Texture> m_color;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(ConstVolume, Volume)
+APR_IMPLEMENT_CLASS(ConstVolume, Volume)
 APR_INTERNAL_PLUGIN(ConstVolume, "constvolume")
 
 } // namespace aspirin

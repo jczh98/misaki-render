@@ -5,12 +5,7 @@
 
 namespace aspirin {
 
-template <typename Float_, typename Spectrum_> struct Interaction {
-    using Float    = Float_;
-    using Spectrum = Spectrum_;
-    using Vector3  = Eigen::Matrix<Float, 3, 1>;
-    using Ray      = Ray<Float, Spectrum>;
-
+struct Interaction {
     Float t = math::Infinity<Float>;
     Vector3 p;
 
@@ -27,23 +22,7 @@ template <typename Float_, typename Spectrum_> struct Interaction {
     }
 };
 
-template <typename Float_, typename Spectrum_>
-struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
-    using Float    = Float_;
-    using Spectrum = Spectrum_;
-    APR_IMPORT_CORE_TYPES(Float_)
-    using Base = Interaction<Float, Spectrum>;
-    using Base::is_valid;
-    using Base::p;
-    using typename Base::Ray;
-    using Emitter         = Emitter<Float, Spectrum>;
-    using BSDF            = BSDF<Float, Spectrum>;
-    using Medium          = Medium<Float, Spectrum>;
-    using Shape           = Shape<Float, Spectrum>;
-    using PositionSample  = PositionSample<Float, Spectrum>;
-    using Scene           = Scene<Float, Spectrum>;
-    using RayDifferential = RayDifferential<Float, Spectrum>;
-
+struct SurfaceInteraction : public Interaction {
     using ShapePtr   = const Shape *;
     using EmitterPtr = const Emitter *;
     using BSDFPtr    = const BSDF *;
@@ -71,11 +50,9 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
     Vector2 duv_dx, duv_dy;
 
     SurfaceInteraction()
-        : Interaction<Float, Spectrum>(), sh_frame(Frame3(Vector3::Zero())) {}
+        : Interaction(), sh_frame(Frame3(Vector3::Zero())) {}
 
-    explicit SurfaceInteraction(const PositionSample &ps)
-        : Interaction<Float, Spectrum>(0.f, ps.p), uv(ps.uv), n(ps.n),
-          sh_frame(Frame3(ps.n)) {}
+    explicit SurfaceInteraction(const PositionSample &ps);
 
     Vector3 to_world(const Vector3 &v) const { return sh_frame.to_world(v); }
 
@@ -125,31 +102,19 @@ struct SurfaceInteraction : public Interaction<Float_, Spectrum_> {
     EmitterPtr emitter(const Scene *scene) const;
 
     BSDFPtr bsdf(const RayDifferential &ray);
-    BSDFPtr bsdf() const { return shape->bsdf(); }
+    BSDFPtr bsdf() const;
 
-    bool is_medium_transition() const { return shape->is_medium_transition(); }
+    bool is_medium_transition() const;
 
     MediumPtr target_medium(const Vector3 &d) const {
         return target_medium(d.dot(n));
     }
 
-    MediumPtr target_medium(const Float &cos_theta) const {
-        return cos_theta > 0 ? shape->exterior_medium()
-                             : shape->interior_medium();
-    }
+    MediumPtr target_medium(const Float &cos_theta) const;
 };
 
-template <typename Float_, typename Spectrum_>
-struct MediumInteraction : Interaction<Float_, Spectrum_> {
-    using Float    = Float_;
-    using Spectrum = Spectrum_;
-    APR_IMPORT_CORE_TYPES(Float_)
-    using Base = Interaction<Float, Spectrum>;
-    using Base::is_valid;
-    using Base::p;
-    using Base::t;
-
-    using MediumPtr = const Medium<Float, Spectrum> *;
+struct MediumInteraction : Interaction {
+    using MediumPtr = const Medium *;
 
     MediumPtr medium = nullptr;
     Frame3 sh_frame;
@@ -160,7 +125,7 @@ struct MediumInteraction : Interaction<Float_, Spectrum_> {
     Spectrum transmittance;
 
     MediumInteraction()
-        : Interaction<Float, Spectrum>(), sh_frame(Frame3(Vector3::Zero())),
+        : Interaction(), sh_frame(Frame3(Vector3::Zero())),
           wi(Vector3::Zero()) {}
 
     Vector3 to_world(const Vector3 &v) const { return sh_frame.to_world(v); }
@@ -168,13 +133,8 @@ struct MediumInteraction : Interaction<Float_, Spectrum_> {
     Vector3 to_local(const Vector3 &v) const { return sh_frame.to_local(v); }
 };
 
-template <typename Float_, typename Spectrum_> struct PreliminaryIntersection {
-    using Float    = Float_;
-    using Spectrum = Spectrum_;
-    APR_IMPORT_CORE_TYPES(Float_)
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
-    using Ray                = Ray<Float, Spectrum>;
-    using ShapePtr           = const Shape<Float, Spectrum> *;
+struct PreliminaryIntersection {
+    using ShapePtr           = const Shape *;
 
     Float t = math::Infinity<Float>;
 
@@ -188,19 +148,7 @@ template <typename Float_, typename Spectrum_> struct PreliminaryIntersection {
 
     bool is_valid() const { return t != math::Infinity<Float>; }
 
-    SurfaceInteraction compute_surface_interaction(const Ray &ray) {
-        SurfaceInteraction si = shape->compute_surface_interaction(ray, *this);
-        if (si.is_valid()) {
-            si.prim_index = prim_index;
-            si.shape      = shape;
-            si.initialize_sh_frame();
-            si.wi         = si.to_local(-ray.d);
-        } else {
-            si.t  = math::Infinity<Float>;
-            si.wi = -ray.d;
-        }
-        return si;
-    }
+    SurfaceInteraction compute_surface_interaction(const Ray &ray);
 };
 
 } // namespace aspirin

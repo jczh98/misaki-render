@@ -8,23 +8,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class ConstantBackgroundEmitter final : public Emitter<Float, Spectrum> {
+class ConstantBackgroundEmitter final : public Emitter {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Emitter<Float, Spectrum>;
-    using Base::m_flags;
-    using Base::m_shape;
-    using Base::m_world_transform;
-    using Texture = Texture<Float, Spectrum>;
-    using typename Base::DirectionSample;
-    using typename Base::Interaction;
-    using typename Base::Ray;
-    using typename Base::Scene;
-    using typename Base::Shape;
-    using typename Base::SurfaceInteraction;
 
-    ConstantBackgroundEmitter(const Properties &props) : Base(props) {
+    ConstantBackgroundEmitter(const Properties &props) : Emitter(props) {
         m_bsphere  = BoundingSphere3(Vector3::Constant(0.f), 1.f);
         m_radiance = props.texture<Texture>("radiance", 1.f);
 
@@ -97,7 +84,7 @@ private:
     Float m_surface_area;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(ConstantBackgroundEmitter, Emitter)
+APR_IMPLEMENT_CLASS(ConstantBackgroundEmitter, Emitter)
 APR_INTERNAL_PLUGIN(ConstantBackgroundEmitter, "constant")
 
 } // namespace aspirin

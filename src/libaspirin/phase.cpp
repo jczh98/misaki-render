@@ -3,14 +3,11 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-PhaseFunction<Float, Spectrum>::PhaseFunction(const Properties &props)
+PhaseFunction::PhaseFunction(const Properties &props)
     : m_flags(+PhaseFunctionFlags::None), m_id(props.id()) {}
 
-template <typename Float, typename Spectrum>
-PhaseFunction<Float, Spectrum>::~PhaseFunction() {}
+PhaseFunction::~PhaseFunction() {}
 
-APR_IMPLEMENT_CLASS_VARIANT(PhaseFunction, Object, "phase")
-APR_INSTANTIATE_CLASS(PhaseFunction)
+APR_IMPLEMENT_CLASS(PhaseFunction, Object, "phase")
 
 } // namespace aspirin

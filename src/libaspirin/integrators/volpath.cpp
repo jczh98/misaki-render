@@ -17,28 +17,11 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class VolumetricPathTracer final : public Integrator<Float, Spectrum> {
+class VolumetricPathTracer final : public Integrator {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Integrator<Float, Spectrum>;
-    using typename Base::RadianceQuery;
-    using typename Base::Scene;
-    using typename Base::Sensor;
-    using Ray                  = Ray<Float, Spectrum>;
-    using RayDifferential      = RayDifferential<Float, Spectrum>;
-    using ImageBlock           = ImageBlock<Float, Spectrum>;
-    using Sampler              = Sampler<Float, Spectrum>;
-    using Medium               = Medium<Float, Spectrum>;
-    using MediumInteraction    = MediumInteraction<Float, Spectrum>;
-    using Interaction          = Interaction<Float, Spectrum>;
-    using SurfaceInteraction   = SurfaceInteraction<Float, Spectrum>;
-    using PhaseFunction        = PhaseFunction<Float, Spectrum>;
-    using PhaseFunctionContext = PhaseFunctionContext<Float, Spectrum>;
-    using DirectionSample      = DirectionSample<Float, Spectrum>;
-    using MediumPtr            = const Medium *;
+    using MediumPtr = typename SurfaceInteraction::MediumPtr;
 
-    VolumetricPathTracer(const Properties &props) : Base(props) {}
+    VolumetricPathTracer(const Properties &props) : Integrator(props) {}
 
     bool render(Scene *scene, Sensor *sensor) {
         auto film      = sensor->film();
@@ -349,7 +332,7 @@ private:
     std::mutex m_mutex;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(VolumetricPathTracer, Integrator)
+APR_IMPLEMENT_CLASS(VolumetricPathTracer, Integrator)
 APR_INTERNAL_PLUGIN(VolumetricPathTracer, "volpath")
 
 } // namespace aspirin

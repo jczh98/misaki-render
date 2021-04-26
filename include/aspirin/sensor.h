@@ -9,16 +9,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class APR_EXPORT Sensor : public Endpoint<Float, Spectrum> {
+class APR_EXPORT Sensor : public Endpoint {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Endpoint<Float, Spectrum>;
-    using Base::sample_ray;
-    using typename Base::Ray;
-    using RayDifferential = RayDifferential<Float, Spectrum>;
-    using Film            = Film<Float, Spectrum>;
-    using Sampler         = Sampler<Float, Spectrum>;
 
     virtual std::pair<RayDifferential, Spectrum>
     sample_ray_differential(const Vector2 &sample2, const Vector2 &sample3) const;
@@ -41,11 +33,8 @@ protected:
     Float m_aspect;
 };
 
-template <typename Float, typename Spectrum>
-class APR_EXPORT ProjectiveCamera : public Sensor<Float, Spectrum> {
+class APR_EXPORT ProjectiveCamera : public Sensor {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-
     Float near_clip() const { return m_near_clip; }
     Float far_clip() const { return m_far_clip; }
     Float focus_distance() const { return m_focus_distance; }
@@ -59,8 +48,5 @@ protected:
 protected:
     Float m_near_clip, m_far_clip, m_focus_distance;
 };
-
-APR_EXTERN_CLASS(Sensor)
-APR_EXTERN_CLASS(ProjectiveCamera)
 
 } // namespace aspirin

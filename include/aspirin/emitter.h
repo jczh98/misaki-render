@@ -33,11 +33,8 @@ constexpr auto has_flag(UInt32 flags, EmitterFlags f) {
     return (flags & (uint32_t) f) != 0u;
 }
 
-template <typename Float, typename Spectrum>
-class APR_EXPORT Emitter : public Endpoint<Float, Spectrum> {
+class APR_EXPORT Emitter : public Endpoint {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-
     bool is_environment() const {
         return has_flag(m_flags, EmitterFlags::Infinite) &&
                !has_flag(m_flags, EmitterFlags::Delta);
@@ -53,5 +50,4 @@ protected:
     uint32_t m_flags;
 };
 
-APR_EXTERN_CLASS(Emitter)
 } // namespace aspirin

@@ -6,18 +6,9 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT Medium : public Object {
 
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Ray                = Ray<Float, Spectrum>;
-    using PhaseFunction      = PhaseFunction<Float, Spectrum>;
-    using Sampler            = Sampler<Float, Spectrum>;
-    using Scene              = Scene<Float, Spectrum>;
-    using Texture            = Texture<Float, Spectrum>;
-    using MediumInteraction  = MediumInteraction<Float, Spectrum>;
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
 
     /// Sample a free-flight distance in the medium.
     virtual std::pair<MediumInteraction, Float> sample_interaction(const Ray &ray, Float sample,
@@ -46,6 +37,5 @@ protected:
 
     std::string m_id;
 };
-APR_EXTERN_CLASS(Medium)
 
 } // namespace aspirin

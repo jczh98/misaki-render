@@ -34,9 +34,6 @@ enum class Tag {
 
 namespace detail {
 
-using Float = float;
-APR_IMPORT_CORE_TYPES(float)
-
 // Throws if non-whitespace characters are found after the given index.
 static void check_whitespace_only(const std::string &s, size_t offset) {
     for (size_t i = offset; i < s.size(); ++i) {
@@ -63,11 +60,6 @@ static int64_t stoll(const std::string &s) {
 static std::unordered_map<std::string, Tag> *tags   = nullptr;
 static std::unordered_map<std::string, // e.g. bsdf.scalar_rgb
                           const Class *> *tag_class = nullptr;
-
-inline std::string class_key(const std::string &name,
-                             const std::string &variant) {
-    return name + "." + variant;
-}
 
 // Called by Class::Class()
 void register_class(const Class *class_) {
@@ -101,10 +93,10 @@ void register_class(const Class *class_) {
 
     if (tags->find(alias) == tags->end())
         (*tags)[alias] = Tag::Object;
-    (*tag_class)[class_key(alias, class_->variant())] = class_;
+    (*tag_class)[alias] = class_;
 
     if (alias == "texture")
-        (*tag_class)[class_key("spectrum", class_->variant())] = class_;
+        (*tag_class)["spectrum"] = class_;
 }
 
 // Called by Class::static_shutdown()
@@ -189,9 +181,8 @@ struct XMLParseContext {
     std::unordered_map<std::string, XMLObject> instances;
     Transform4 transform;
     size_t id_counter = 0;
-    std::string variant;
 
-    XMLParseContext(const std::string &variant) : variant(variant) {}
+    XMLParseContext() {}
 };
 
 // Helper function to check if attributes are fully specified
@@ -363,7 +354,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                         node,
                         "\"{}\" has duplicate id \"{}\" (previous was at {})",
                         node_name, id, src.offset(it_inst->second.location));
-                auto it2 = tag_class->find(class_key(node_name, ctx.variant));
+                auto it2 = tag_class->find(node_name);
                 if (it2 == tag_class->end())
                     src.throw_error(node,
                                     "could not retrieve class object for "
@@ -476,7 +467,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                 Properties props2("srgb");
                 props2.set_color("color", color);
                 auto obj = PluginManager::instance()->create_object(
-                    props2, Class::for_name("Texture", ctx.variant));
+                    props2, Class::for_name("Texture"));
                 props.set_object(node.attribute("name").value(), obj);
                 props.set_color(
                     fmt::format("{}_color", node.attribute("name").value()),
@@ -562,13 +553,12 @@ static ref<Object> instantiate_node(XMLParseContext &ctx,
 
 } // namespace detail
 
-ref<Object> load_file(const fs::path &filename, const std::string &variant,
+ref<Object> load_file(const fs::path &filename,
                       ParameterList parameters) {
     if (!fs::exists(filename)) {
         Throw(R"("{}": file not exists.)", filename.string());
     }
     Log(Info, R"(Loading XML file "{}" ..)", filename.string());
-    Log(Info, R"(Using variant {})", variant);
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_file(
         filename.native().c_str(), pugi::parse_default | pugi::parse_comments);
@@ -584,7 +574,7 @@ ref<Object> load_file(const fs::path &filename, const std::string &variant,
 
     pugi::xml_node root = doc.document_element();
 
-    detail::XMLParseContext ctx(variant);
+    detail::XMLParseContext ctx;
     Properties props;
     size_t arg_counter = 0; // Unused
     auto [name, id]    = detail::parse_xml(src, ctx, root, Tag::Invalid, props,

@@ -9,12 +9,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT ImageBlock : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-
-    using ReconstructionFilter = ReconstructionFilter<Float, Spectrum>;
     using DynamicBuffer =
         Eigen::Array<Color4, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
@@ -58,9 +54,6 @@ protected:
 
 class APR_EXPORT BlockGenerator : public Object {
 public:
-    using Float = float;
-    APR_IMPORT_CORE_TYPES(float)
-
     BlockGenerator(const Vector2i &size, const Vector2i &offset, int block_size);
     size_t max_block_size() const { return m_block_size; }
     size_t block_count() const { return m_block_count; }
@@ -97,7 +90,5 @@ protected:
     /// Protects the spiral's state (thread safety).
     tbb::spin_mutex m_mutex;
 };
-
-APR_EXTERN_CLASS(ImageBlock)
 
 } // namespace aspirin

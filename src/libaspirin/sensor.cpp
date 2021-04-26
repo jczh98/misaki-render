@@ -5,9 +5,9 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-Sensor<Float, Spectrum>::Sensor(const Properties &props)
-    : Endpoint<Float, Spectrum>(props) {
+
+Sensor::Sensor(const Properties &props)
+    : Endpoint(props) {
     for (auto &[name, obj] : props.objects()) {
         auto *film    = dynamic_cast<Film *>(obj.get());
         auto *sampler = dynamic_cast<Sampler *>(obj.get());
@@ -34,12 +34,12 @@ Sensor<Float, Spectrum>::Sensor(const Properties &props)
     m_resolution = Vector2(m_film->size().x(), m_film->size().y());
 }
 
-template <typename Float, typename Spectrum>
-Sensor<Float, Spectrum>::~Sensor() {}
 
-template <typename Float, typename Spectrum>
-std::pair<typename Sensor<Float, Spectrum>::RayDifferential, Spectrum>
-Sensor<Float, Spectrum>::sample_ray_differential(const Vector2 &sample, const Vector2 &sample3) const {
+Sensor::~Sensor() {}
+
+
+std::pair<RayDifferential, Spectrum>
+Sensor::sample_ray_differential(const Vector2 &sample, const Vector2 &sample3) const {
 
     auto [temp_ray, result_spec] = sample_ray(sample, sample3);
 
@@ -64,21 +64,18 @@ Sensor<Float, Spectrum>::sample_ray_differential(const Vector2 &sample, const Ve
     return { result_ray, result_spec };
 }
 
-template <typename Float, typename Spectrum>
-ProjectiveCamera<Float, Spectrum>::ProjectiveCamera(const Properties &props)
-    : Sensor<Float, Spectrum>(props) {
+
+ProjectiveCamera::ProjectiveCamera(const Properties &props)
+    : Sensor(props) {
     m_near_clip      = props.get_float("near_clip", 1e-2f);
     m_far_clip       = props.get_float("far_clip", 1e4f);
     m_focus_distance = props.get_float("focus_distance", m_far_clip);
 }
 
-template <typename Float, typename Spectrum>
-ProjectiveCamera<Float, Spectrum>::~ProjectiveCamera() {}
 
-APR_IMPLEMENT_CLASS_VARIANT(Sensor, Endpoint, "sensor")
-APR_IMPLEMENT_CLASS_VARIANT(ProjectiveCamera, Sensor)
+ProjectiveCamera::~ProjectiveCamera() {}
 
-APR_INSTANTIATE_CLASS(Sensor)
-APR_INSTANTIATE_CLASS(ProjectiveCamera)
+APR_IMPLEMENT_CLASS(Sensor, Endpoint, "sensor")
+APR_IMPLEMENT_CLASS(ProjectiveCamera, Sensor)
 
 } // namespace aspirin

@@ -5,12 +5,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT Volume : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Texture     = Texture<Float, Spectrum>;
-    using Interaction = Interaction<Float, Spectrum>;
 
     virtual Spectrum eval(const Interaction &si) const;
 
@@ -23,6 +19,5 @@ protected:
     Transform4 m_world_to_local;
     BoundingBox3 m_bbox;
 };
-APR_EXTERN_CLASS(Volume)
 
 } // namespace aspirin

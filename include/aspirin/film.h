@@ -7,13 +7,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
 class APR_EXPORT Film : public Object {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using ReconstructionFilter = ReconstructionFilter<Float, Spectrum>;
-    using ImageBlock           = ImageBlock<Float, Spectrum>;
-
     virtual void put(const ImageBlock *block);
     virtual void set_destination_file(const fs::path &filename);
     virtual void develop();
@@ -33,6 +28,5 @@ protected:
     ref<ReconstructionFilter> m_filter;
 };
 
-APR_EXTERN_CLASS(Film)
 
 } // namespace aspirin

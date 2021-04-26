@@ -6,22 +6,10 @@
 #include <iostream>
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class HomogeneousMedium final : public Medium<Float, Spectrum> {
+class HomogeneousMedium final : public Medium {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Medium<Float, Spectrum>;
-    using Base::m_is_homogeneous;
-    using typename Base::MediumInteraction;
-    using typename Base::Ray;
-    using typename Base::Sampler;
-    using typename Base::Scene;
-    using typename Base::SurfaceInteraction;
-    using typename Base::Texture;
-    using Volume      = Volume<Float, Spectrum>;
-    using Interaction = Interaction<Float, Spectrum>;
 
-    explicit HomogeneousMedium(const Properties &props) : Base(props) {
+    explicit HomogeneousMedium(const Properties &props) : Medium(props) {
         m_is_homogeneous = true;
         m_sigma_a = props.color("sigma_a_color", Spectrum::Constant(1.f));
         m_sigma_s = props.color("sigma_s_color", Spectrum::Constant(1.f));
@@ -80,7 +68,7 @@ private:
     Float m_scale;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(HomogeneousMedium, Medium)
+APR_IMPLEMENT_CLASS(HomogeneousMedium, Medium)
 APR_INTERNAL_PLUGIN(HomogeneousMedium, "homogeneous")
 
 } // namespace aspirin

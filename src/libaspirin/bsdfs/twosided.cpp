@@ -3,22 +3,15 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class TwoSidedBRDF final : public BSDF<Float, Spectrum> {
+class TwoSidedBRDF final : public BSDF {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = BSDF<Float, Spectrum>;
-    using Base::m_components;
-    using Base::m_flags;
-    using typename Base::BSDFSample;
-    using typename Base::SurfaceInteraction;
-    using Texture = Texture<Float, Spectrum>;
-    TwoSidedBRDF(const Properties &props) : Base(props) {
+
+    TwoSidedBRDF(const Properties &props) : BSDF(props) {
         auto bsdfs = props.objects();
         if (!bsdfs.empty())
-            m_brdf[0] = static_cast<Base *>(bsdfs[0].second.get());
+            m_brdf[0] = static_cast<BSDF *>(bsdfs[0].second.get());
         if (bsdfs.size() == 2)
-            m_brdf[1] = static_cast<Base *>(bsdfs[1].second.get());
+            m_brdf[1] = static_cast<BSDF *>(bsdfs[1].second.get());
         else if (bsdfs.size() > 2)
             Throw("At most two nested BSDFs can be specified!");
         if (!m_brdf[0])
@@ -115,10 +108,10 @@ public:
 
     APR_DECLARE_CLASS()
 private:
-    ref<Base> m_brdf[2];
+    ref<BSDF> m_brdf[2];
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(TwoSidedBRDF, BSDF)
+APR_IMPLEMENT_CLASS(TwoSidedBRDF, BSDF)
 APR_INTERNAL_PLUGIN(TwoSidedBRDF, "twosided")
 
 } // namespace aspirin

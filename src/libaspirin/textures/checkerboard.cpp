@@ -4,15 +4,12 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class CheckerboardTexture final : public Texture<Float, Spectrum> {
+class CheckerboardTexture final : public Texture {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Texture<Float, Spectrum>;
-    using typename Base::SurfaceInteraction;
-    CheckerboardTexture(const Properties &props) : Base(props) {
-        m_color0    = props.texture<Base>("color0", .4f);
-        m_color1    = props.texture<Base>("color1", .2f);
+
+    CheckerboardTexture(const Properties &props) : Texture(props) {
+        m_color0    = props.texture<Texture>("color0", .4f);
+        m_color1    = props.texture<Texture>("color1", .2f);
         m_transform = props.transform("to_uv", Transform4()).extract();
     }
     Float eval_1(const SurfaceInteraction &si) const override {
@@ -39,11 +36,11 @@ public:
 
     APR_DECLARE_CLASS()
 private:
-    ref<Base> m_color0, m_color1;
+    ref<Texture> m_color0, m_color1;
     Transform3 m_transform;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(CheckerboardTexture, Texture)
+APR_IMPLEMENT_CLASS(CheckerboardTexture, Texture)
 APR_INTERNAL_PLUGIN(CheckerboardTexture, "checkerboard")
 
 } // namespace aspirin

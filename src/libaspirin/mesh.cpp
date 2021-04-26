@@ -8,33 +8,24 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-Mesh<Float, Spectrum>::Mesh(const Properties &props)
-    : Shape<Float, Spectrum>(props) {
+Mesh::Mesh(const Properties &props) : Shape(props) {
     m_to_world = props.transform("to_world", Transform4());
     m_is_mesh  = true;
     set_children();
     recompute_bbox();
 }
 
-template <typename Float, typename Spectrum> Mesh<Float, Spectrum>::~Mesh() {}
+Mesh::~Mesh() {}
 
-template <typename Float, typename Spectrum>
-typename Mesh<Float, Spectrum>::BoundingBox3
-Mesh<Float, Spectrum>::bbox() const {
-    return m_bbox;
-}
+BoundingBox3 Mesh::bbox() const { return m_bbox; }
 
-template <typename Float, typename Spectrum>
-void Mesh<Float, Spectrum>::recompute_bbox() {
+void Mesh::recompute_bbox() {
     m_bbox.reset();
-    for (size_t i = 0; i < m_vertex_count; ++i)
+    for (uint32_t i = 0; i < m_vertex_count; ++i)
         m_bbox.expand(vertex_position(i));
 }
 
-template <typename Float, typename Spectrum>
-typename Mesh<Float, Spectrum>::BoundingBox3
-Mesh<Float, Spectrum>::bbox(uint32_t index) const {
+BoundingBox3 Mesh::bbox(uint32_t index) const {
     assert(index <= m_face_count);
     auto idx   = (const uint32_t *) face(index);
     Vector3 v0 = vertex_position(idx[0]), v1 = vertex_position(idx[1]),
@@ -43,13 +34,9 @@ Mesh<Float, Spectrum>::bbox(uint32_t index) const {
                         v0.cwiseMax(v1.cwiseMax(v2)));
 }
 
-template <typename Float, typename Spectrum>
-Float Mesh<Float, Spectrum>::surface_area() const {
-    return m_surface_area;
-}
+Float Mesh::surface_area() const { return m_surface_area; }
 
-template <typename Float, typename Spectrum>
-void Mesh<Float, Spectrum>::area_distr_build() {
+void Mesh::area_distr_build() {
     // Build surface area distribution
     std::vector<Float> table;
     for (uint32_t i = 0; i < m_face_count; ++i) {
@@ -57,13 +44,12 @@ void Mesh<Float, Spectrum>::area_distr_build() {
         m_surface_area += tri_area;
         table.emplace_back(tri_area);
     }
-    m_area_distr.init(table.data(), table.size());
+    m_area_distr.init(table.data(), static_cast<int>(table.size()));
 }
 
-template <typename Float, typename Spectrum>
-typename Mesh<Float, Spectrum>::SurfaceInteraction
-Mesh<Float, Spectrum>::compute_surface_interaction(
-    const Ray &ray, PreliminaryIntersection pi) const {
+SurfaceInteraction
+Mesh::compute_surface_interaction(const Ray &ray,
+                                  PreliminaryIntersection pi) const {
     Float b1 = pi.prim_uv.x(), b2 = pi.prim_uv.y(), b0 = 1.f - b1 - b2;
     auto fi    = face_indices(pi.prim_index);
     Vector3 p0 = vertex_position(fi[0]), p1 = vertex_position(fi[1]),
@@ -114,9 +100,7 @@ Mesh<Float, Spectrum>::compute_surface_interaction(
     return si;
 }
 
-template <typename Float, typename Spectrum>
-typename Mesh<Float, Spectrum>::PositionSample
-Mesh<Float, Spectrum>::sample_position(const Vector2 &sample_) const {
+PositionSample Mesh::sample_position(const Vector2 &sample_) const {
     Vector2 sample = sample_;
     uint32_t face_idx;
     std::tie(face_idx, sample.y()) = m_area_distr.sample_reuse(sample.y());
@@ -148,14 +132,13 @@ Mesh<Float, Spectrum>::sample_position(const Vector2 &sample_) const {
     return ps;
 }
 
-template <typename Float, typename Spectrum>
-Float Mesh<Float, Spectrum>::pdf_position(const PositionSample &ps) const {
+Float Mesh::pdf_position(const PositionSample &ps) const {
     return 1.f / m_surface_area;
 }
 
 #if defined(APR_ENABLE_EMBREE)
-template <typename Float, typename Spectrum>
-RTCGeometry Mesh<Float, Spectrum>::embree_geometry(RTCDevice device) const {
+
+RTCGeometry Mesh::embree_geometry(RTCDevice device) const {
     RTCGeometry geom = rtcNewGeometry(device, RTC_GEOMETRY_TYPE_TRIANGLE);
     rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0,
                                RTC_FORMAT_FLOAT3, m_vertices.get(), 0,
@@ -168,7 +151,6 @@ RTCGeometry Mesh<Float, Spectrum>::embree_geometry(RTCDevice device) const {
 }
 #endif
 
-APR_IMPLEMENT_CLASS_VARIANT(Mesh, Shape)
-APR_INSTANTIATE_CLASS(Mesh)
+APR_IMPLEMENT_CLASS(Mesh, Shape)
 
 } // namespace aspirin

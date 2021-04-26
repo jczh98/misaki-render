@@ -6,8 +6,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-Film<Float, Spectrum>::Film(const Properties &props) {
+
+Film::Film(const Properties &props) {
     m_size = { props.get_int("width", 640), props.get_int("height", 320) };
     for (auto &[name, obj] : props.objects()) {
         auto *rfilter = dynamic_cast<ReconstructionFilter *>(obj.get());
@@ -27,25 +27,25 @@ Film<Float, Spectrum>::Film(const Properties &props) {
     }
 }
 
-template <typename Float, typename Spectrum> Film<Float, Spectrum>::~Film() {}
+ Film::~Film() {}
 
-template <typename Float, typename Spectrum>
-void Film<Float, Spectrum>::put(const ImageBlock *block) {
+
+void Film::put(const ImageBlock *block) {
     APR_NOT_IMPLEMENTED("put");
 }
 
-template <typename Float, typename Spectrum>
-void Film<Float, Spectrum>::set_destination_file(const fs::path &filename) {
+
+void Film::set_destination_file(const fs::path &filename) {
     APR_NOT_IMPLEMENTED("set_destination_file");
 }
 
-template <typename Float, typename Spectrum>
-void Film<Float, Spectrum>::develop() {
+
+void Film::develop() {
     APR_NOT_IMPLEMENTED("develop");
 }
 
-template <typename Float, typename Spectrum>
-std::string Film<Float, Spectrum>::to_string() const {
+
+std::string Film::to_string() const {
     std::ostringstream oss;
     oss << "Film[" << std::endl
         << "  size = " << m_size << "," << std::endl
@@ -54,7 +54,6 @@ std::string Film<Float, Spectrum>::to_string() const {
     return oss.str();
 }
 
-APR_IMPLEMENT_CLASS_VARIANT(Film, Object, "film")
-APR_INSTANTIATE_CLASS(Film)
+APR_IMPLEMENT_CLASS(Film, Object, "film")
 
 } // namespace aspirin

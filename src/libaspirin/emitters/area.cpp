@@ -7,23 +7,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class AreaLight final : public Emitter<Float, Spectrum> {
+class AreaLight final : public Emitter {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Emitter<Float, Spectrum>;
-    using Base::m_flags;
-    using Base::m_shape;
-    using Base::m_world_transform;
-    using Texture = Texture<Float, Spectrum>;
-    using typename Base::DirectionSample;
-    using typename Base::Interaction;
-    using typename Base::PositionSample;
-    using typename Base::Ray;
-    using typename Base::Shape;
-    using typename Base::SurfaceInteraction;
 
-    AreaLight(const Properties &props) : Base(props) {
+    AreaLight(const Properties &props) : Emitter(props) {
         m_radiance = props.texture<Texture>("radiance", 1.f);
 
         m_flags = +EmitterFlags::Surface;
@@ -69,7 +56,7 @@ private:
     ref<Texture> m_radiance;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(AreaLight, Emitter)
+APR_IMPLEMENT_CLASS(AreaLight, Emitter)
 APR_INTERNAL_PLUGIN(AreaLight, "area")
 
 } // namespace aspirin

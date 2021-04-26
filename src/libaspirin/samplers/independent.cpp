@@ -4,19 +4,15 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class IndependentSampler final : public Sampler<Float, Spectrum> {
+class IndependentSampler final : public Sampler {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Sampler<Float, Spectrum>::m_sample_count;
-    using Sampler<Float, Spectrum>::m_base_seed;
 
     IndependentSampler(const Properties &props = Properties())
-        : Sampler<Float, Spectrum>(props) {
+        : Sampler(props) {
         seed(PCG32_DEFAULT_STATE);
     }
 
-    ref<Sampler<Float, Spectrum>> clone() override {
+    ref<Sampler> clone() override {
         IndependentSampler *sampler = new IndependentSampler();
         sampler->m_sample_count     = m_sample_count;
         return sampler;
@@ -52,7 +48,7 @@ private:
     std::unique_ptr<math::PCG32> m_rng;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(IndependentSampler, Sampler)
+APR_IMPLEMENT_CLASS(IndependentSampler, Sampler)
 APR_INTERNAL_PLUGIN(IndependentSampler, "independent")
 
 } // namespace aspirin

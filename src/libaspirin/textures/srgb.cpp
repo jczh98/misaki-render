@@ -3,14 +3,10 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class SRGBTexture final : public Texture<Float, Spectrum> {
+class SRGBTexture final : public Texture {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Texture<Float, Spectrum>;
-    using typename Base::SurfaceInteraction;
 
-    SRGBTexture(const Properties &props) : Base(props) {
+    SRGBTexture(const Properties &props) : Texture(props) {
         m_value = props.color("color");
     }
 
@@ -39,7 +35,7 @@ private:
     Color3 m_value;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(SRGBTexture, Texture)
+APR_IMPLEMENT_CLASS(SRGBTexture, Texture)
 APR_INTERNAL_PLUGIN(SRGBTexture, "srgb")
 
 } // namespace aspirin

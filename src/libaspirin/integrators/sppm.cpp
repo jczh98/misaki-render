@@ -16,20 +16,8 @@
 
 namespace aspirin {
 
-template <typename Float, typename Spectrum>
-class SPPMIntegrator : public Integrator<Float, Spectrum> {
+class SPPMIntegrator : public Integrator {
 public:
-    APR_IMPORT_CORE_TYPES(Float)
-    using Base = Integrator<Float, Spectrum>;
-    using typename Base::Scene;
-    using typename Base::Sensor;
-    using BSDF               = BSDF<Float, Spectrum>;
-    using RayDifferential    = RayDifferential<Float, Spectrum>;
-    using Ray                = Ray<Float, Spectrum>;
-    using ImageBlock         = ImageBlock<Float, Spectrum>;
-    using Sampler            = Sampler<Float, Spectrum>;
-    using SurfaceInteraction = SurfaceInteraction<Float, Spectrum>;
-
     struct VisiblePoint {
         VisiblePoint() {}
         VisiblePoint(const Vector3 &p, const Vector3 &wi, const BSDF *bsdf,
@@ -81,7 +69,7 @@ public:
         return in_bounds;
     }
 
-    SPPMIntegrator(const Properties &props) : Base(props) {}
+    SPPMIntegrator(const Properties &props) : Integrator(props) {}
 
     bool render(Scene *scene, Sensor *sensor) {
         auto film        = sensor->film();
@@ -161,8 +149,8 @@ public:
                                     if (has_flag(bsdf->flags(),
                                                  BSDFFlags::Diffuse) ||
                                         (has_flag(bsdf->flags(),
-                                                  BSDFFlags::Glossy)) &&
-                                            depth == m_max_depth - 1) {
+                                                  BSDFFlags::Glossy) &&
+                                            depth == m_max_depth - 1)) {
                                         pixel.vp = VisiblePoint(si.p, -ray.d,
                                                                 bsdf, beta);
                                         break;
@@ -257,7 +245,7 @@ public:
                         const auto emitter = scene->emitters()[index];
                         auto [ray, flux]   = emitter->sample_ray(
                             sampler->next2d(), sampler->next2d());
-                        flux *= emitter_sel_pdf;
+                        flux /= emitter_sel_pdf;
                         SurfaceInteraction si = scene->ray_intersect(ray);
                         for (int depth = 0; depth < m_max_depth; depth++) {
                             if (!si.is_valid())
@@ -279,7 +267,7 @@ public:
                                         Spectrum phi =
                                             flux *
                                             pixel.vp.bsdf->eval(
-                                                ctx, si, si.to_local(-ray.d));
+                                                ctx, si, pixel.vp.wi);
                                         for (int channel = 0; channel < 3;
                                              channel++) {
                                             pixel.atomic_add_phi(channel,
@@ -351,14 +339,14 @@ public:
 
     APR_DECLARE_CLASS()
 private:
-    Float m_initial_radius  = 1.f;
-    int m_iterations        = 64;
+    Float m_initial_radius  = 20.f;
+    int m_iterations        = 1;
     int m_max_depth         = 5;
     int m_photons           = 100;
     int m_develop_frequency = 1 << 31;
 };
 
-APR_IMPLEMENT_CLASS_VARIANT(SPPMIntegrator, Integrator)
+APR_IMPLEMENT_CLASS(SPPMIntegrator, Integrator)
 APR_INTERNAL_PLUGIN(SPPMIntegrator, "sppm")
 
 } // namespace aspirin
