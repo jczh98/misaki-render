@@ -23,5 +23,4 @@ protected:
     uint64_t m_base_seed;
 };
 
-
 } // namespace aspirin

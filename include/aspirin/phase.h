@@ -46,7 +46,6 @@ struct APR_EXPORT PhaseFunctionContext {
 
 class APR_EXPORT PhaseFunction : public Object {
 public:
-
     /**
      * @brief Sample a phase function
      * @param sample

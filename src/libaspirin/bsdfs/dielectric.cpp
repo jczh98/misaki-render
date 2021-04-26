@@ -7,7 +7,6 @@ namespace aspirin {
 
 class SmoothDielectric final : public BSDF {
 public:
-
     SmoothDielectric(const Properties &props) : BSDF(props) {
         Float int_ior = props.float_("int_ior", 1.49);
         Float ext_ior = props.float_("ext_ior", 1.00028);
@@ -83,11 +82,13 @@ public:
         std::ostringstream oss;
         oss << "SmoothDielectric[" << std::endl;
         if (m_specular_reflectance)
-            oss << "  specular_reflectance = " << string::indent(m_specular_reflectance) << "," << std::endl;
+            oss << "  specular_reflectance = "
+                << string::indent(m_specular_reflectance) << "," << std::endl;
         if (m_specular_transmittance)
-            oss << "  specular_transmittance = " << string::indent(m_specular_transmittance) << ", " << std::endl;
-        oss << "  eta = " << m_eta << "," << std::endl
-            << "]";
+            oss << "  specular_transmittance = "
+                << string::indent(m_specular_transmittance) << ", "
+                << std::endl;
+        oss << "  eta = " << m_eta << "," << std::endl << "]";
         return oss.str();
     }
 

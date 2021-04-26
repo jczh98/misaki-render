@@ -15,9 +15,9 @@ public:
     virtual Float pdf_position(const PositionSample &ps) const;
 
     virtual DirectionSample sample_direction(const Interaction &it,
-                                          const Vector2 &sample) const;
+                                             const Vector2 &sample) const;
     virtual Float pdf_direction(const Interaction &it,
-                             const DirectionSample &ds) const;
+                                const DirectionSample &ds) const;
 
     virtual SurfaceInteraction
     compute_surface_interaction(const Ray &ray,

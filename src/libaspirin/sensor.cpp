@@ -5,9 +5,7 @@
 
 namespace aspirin {
 
-
-Sensor::Sensor(const Properties &props)
-    : Endpoint(props) {
+Sensor::Sensor(const Properties &props) : Endpoint(props) {
     for (auto &[name, obj] : props.objects()) {
         auto *film    = dynamic_cast<Film *>(obj.get());
         auto *sampler = dynamic_cast<Sampler *>(obj.get());
@@ -34,12 +32,11 @@ Sensor::Sensor(const Properties &props)
     m_resolution = Vector2(m_film->size().x(), m_film->size().y());
 }
 
-
 Sensor::~Sensor() {}
 
-
 std::pair<RayDifferential, Spectrum>
-Sensor::sample_ray_differential(const Vector2 &sample, const Vector2 &sample3) const {
+Sensor::sample_ray_differential(const Vector2 &sample,
+                                const Vector2 &sample3) const {
 
     auto [temp_ray, result_spec] = sample_ray(sample, sample3);
 
@@ -64,14 +61,11 @@ Sensor::sample_ray_differential(const Vector2 &sample, const Vector2 &sample3) c
     return { result_ray, result_spec };
 }
 
-
-ProjectiveCamera::ProjectiveCamera(const Properties &props)
-    : Sensor(props) {
+ProjectiveCamera::ProjectiveCamera(const Properties &props) : Sensor(props) {
     m_near_clip      = props.float_("near_clip", 1e-2f);
     m_far_clip       = props.float_("far_clip", 1e4f);
     m_focus_distance = props.float_("focus_distance", m_far_clip);
 }
-
 
 ProjectiveCamera::~ProjectiveCamera() {}
 

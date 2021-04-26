@@ -6,7 +6,6 @@
 
 namespace aspirin {
 
-
 Film::Film(const Properties &props) {
     m_size = { props.int_("width", 640), props.int_("height", 320) };
     for (auto &[name, obj] : props.objects()) {
@@ -27,23 +26,15 @@ Film::Film(const Properties &props) {
     }
 }
 
- Film::~Film() {}
+Film::~Film() {}
 
-
-void Film::put(const ImageBlock *block) {
-    APR_NOT_IMPLEMENTED("put");
-}
-
+void Film::put(const ImageBlock *block) { APR_NOT_IMPLEMENTED("put"); }
 
 void Film::set_destination_file(const fs::path &filename) {
     APR_NOT_IMPLEMENTED("set_destination_file");
 }
 
-
-void Film::develop() {
-    APR_NOT_IMPLEMENTED("develop");
-}
-
+void Film::develop() { APR_NOT_IMPLEMENTED("develop"); }
 
 std::string Film::to_string() const {
     std::ostringstream oss;

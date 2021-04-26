@@ -9,10 +9,10 @@ namespace aspirin {
 class APR_EXPORT Medium : public Object {
 
 public:
-
     /// Sample a free-flight distance in the medium.
-    virtual std::pair<MediumInteraction, Float> sample_interaction(const Ray &ray, Float sample,
-                                                 uint32_t channel) const = 0;
+    virtual std::pair<MediumInteraction, Float>
+    sample_interaction(const Ray &ray, Float sample,
+                       uint32_t channel) const = 0;
 
     /// Compute the transmittance and PDF
     virtual Spectrum eval_transmittance(const Ray &ray) const = 0;

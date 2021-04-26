@@ -3,8 +3,7 @@
 
 namespace aspirin {
 
-Emitter::Emitter(const Properties &props)
-    : Endpoint(props) {}
+Emitter::Emitter(const Properties &props) : Endpoint(props) {}
 
 Emitter::~Emitter() {}
 

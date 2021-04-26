@@ -20,7 +20,6 @@ namespace aspirin {
 
 class DebugIntegrator final : public Integrator {
 public:
-
     DebugIntegrator(const Properties &props) : Integrator(props) {}
 
     bool render(Scene *scene, Sensor *sensor) override {
@@ -49,9 +48,9 @@ public:
                             if (pos.x() >= size.x() || pos.y() >= size.y())
                                 continue;
                             pos = pos + offset.template cast<Float>();
-                            auto position_sample = pos + sampler->next2d();
-                            auto [ray, ray_weight] =
-                                sensor->sample_ray(position_sample, sampler->next2d());
+                            auto position_sample   = pos + sampler->next2d();
+                            auto [ray, ray_weight] = sensor->sample_ray(
+                                position_sample, sampler->next2d());
                             auto si = scene->ray_intersect(ray);
                             if (si.is_valid()) {
                                 auto spec =

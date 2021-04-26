@@ -7,7 +7,6 @@ namespace aspirin {
 
 class APR_EXPORT Volume : public Object {
 public:
-
     virtual Spectrum eval(const Interaction &si) const;
 
     APR_DECLARE_CLASS()

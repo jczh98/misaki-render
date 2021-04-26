@@ -5,7 +5,6 @@ namespace aspirin {
 
 class TwoSidedBRDF final : public BSDF {
 public:
-
     TwoSidedBRDF(const Properties &props) : BSDF(props) {
         auto bsdfs = props.objects();
         if (!bsdfs.empty())

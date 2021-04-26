@@ -22,5 +22,4 @@ protected:
     Float m_radius;
 };
 
-
 } // namespace aspirin

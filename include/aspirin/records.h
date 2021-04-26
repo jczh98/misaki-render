@@ -29,8 +29,7 @@ struct DirectionSample : public PositionSample {
     Vector3 d;
     Float dist;
 
-    DirectionSample()
-        : PositionSample(), d(Vector3::Zero()), dist(0.f) {}
+    DirectionSample() : PositionSample(), d(Vector3::Zero()), dist(0.f) {}
 
     DirectionSample(const SurfaceInteraction &it, const Interaction &ref)
         : PositionSample(it) {
@@ -41,8 +40,7 @@ struct DirectionSample : public PositionSample {
             d = -it.wi;
     }
 
-    DirectionSample(const PositionSample &base)
-        : PositionSample(base) {}
+    DirectionSample(const PositionSample &base) : PositionSample(base) {}
 };
 
 } // namespace aspirin

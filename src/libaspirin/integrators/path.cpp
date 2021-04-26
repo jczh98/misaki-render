@@ -17,7 +17,6 @@ namespace aspirin {
 
 class PathTracer final : public Integrator {
 public:
-
     PathTracer(const Properties &props) : Integrator(props) {}
 
     bool render(Scene *scene, Sensor *sensor) {
@@ -96,7 +95,8 @@ public:
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
             if (!si.is_valid()) {
                 // If no intersection, compute the environment illumination
-                if ((type & RadianceQuery::EmittedRadiance) && (!m_hide_emitter || scattered)) {
+                if ((type & RadianceQuery::EmittedRadiance) &&
+                    (!m_hide_emitter || scattered)) {
                     if (scene->environment() != nullptr)
                         result += throughput * scene->environment()->eval(si);
                 }

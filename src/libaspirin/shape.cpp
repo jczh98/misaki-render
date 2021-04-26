@@ -11,7 +11,6 @@
 
 namespace aspirin {
 
-
 Shape::Shape(const Properties &props) : m_id(props.id()) {
     m_world_transform = props.transform("to_world", Transform4());
     for (auto &[name, obj] : props.objects()) {
@@ -54,20 +53,16 @@ void Shape::set_children() {
     }
 }
 
-PositionSample
-Shape::sample_position(const Vector2 &sample) const {
+PositionSample Shape::sample_position(const Vector2 &sample) const {
     APR_NOT_IMPLEMENTED("sample_position");
 }
-
 
 Float Shape::pdf_position(const PositionSample &ps) const {
     APR_NOT_IMPLEMENTED("pdf_position");
 }
 
-
-DirectionSample
-Shape::sample_direction(const Interaction &it,
-                                      const Vector2 &sample) const {
+DirectionSample Shape::sample_direction(const Interaction &it,
+                                        const Vector2 &sample) const {
     DirectionSample ds(sample_position(sample));
     ds.d = ds.p - it.p;
 
@@ -82,9 +77,8 @@ Shape::sample_direction(const Interaction &it,
     return ds;
 }
 
-
 Float Shape::pdf_direction(const Interaction &it,
-                                         const DirectionSample &ds) const {
+                           const DirectionSample &ds) const {
     Float pdf = pdf_position(ds), dp = std::abs(ds.d.dot(ds.n));
 
     pdf *= (dp != 0.f) ? (ds.dist * ds.dist) / dp : 0.f;
@@ -92,27 +86,15 @@ Float Shape::pdf_direction(const Interaction &it,
     return pdf;
 }
 
+BoundingBox3 Shape::bbox() const { APR_NOT_IMPLEMENTED("bbox"); }
 
-BoundingBox3
-Shape::bbox() const {
-    APR_NOT_IMPLEMENTED("bbox");
-}
+BoundingBox3 Shape::bbox(uint32_t index) const { APR_NOT_IMPLEMENTED("bbox"); }
 
-
-BoundingBox3
-Shape::bbox(uint32_t index) const {
-    APR_NOT_IMPLEMENTED("bbox");
-}
-
-
-Float Shape::surface_area() const {
-    APR_NOT_IMPLEMENTED("surface_area");
-}
-
+Float Shape::surface_area() const { APR_NOT_IMPLEMENTED("surface_area"); }
 
 SurfaceInteraction
-Shape::compute_surface_interaction(
-    const Ray &ray, PreliminaryIntersection pi) const {
+Shape::compute_surface_interaction(const Ray &ray,
+                                   PreliminaryIntersection pi) const {
     APR_NOT_IMPLEMENTED("compute_surface_point");
 }
 

@@ -6,9 +6,7 @@
 
 namespace aspirin {
 
-
 Medium::Medium() : m_is_homogeneous(false) {}
-
 
 Medium::Medium(const Properties &props) : m_id(props.id()) {
 
@@ -28,7 +26,6 @@ Medium::Medium(const Properties &props) : m_id(props.id()) {
                 Properties("isotropic"));
     }
 }
-
 
 Medium::~Medium() {}
 

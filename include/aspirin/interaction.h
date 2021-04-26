@@ -49,8 +49,7 @@ struct SurfaceInteraction : public Interaction {
     /// UV partials wrt. screen displacement
     Vector2 duv_dx, duv_dy;
 
-    SurfaceInteraction()
-        : Interaction(), sh_frame(Frame3(Vector3::Zero())) {}
+    SurfaceInteraction() : Interaction(), sh_frame(Frame3(Vector3::Zero())) {}
 
     explicit SurfaceInteraction(const PositionSample &ps);
 
@@ -134,7 +133,7 @@ struct MediumInteraction : Interaction {
 };
 
 struct PreliminaryIntersection {
-    using ShapePtr           = const Shape *;
+    using ShapePtr = const Shape *;
 
     Float t = math::Infinity<Float>;
 

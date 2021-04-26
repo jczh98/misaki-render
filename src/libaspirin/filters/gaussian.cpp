@@ -5,7 +5,6 @@ namespace aspirin {
 
 class GaussianFilter final : public ReconstructionFilter {
 public:
-
     GaussianFilter(const Properties &props) : ReconstructionFilter(props) {
         m_stddev = props.float_("stddev", 0.5f);
         m_radius = 4 * m_stddev;

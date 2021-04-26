@@ -5,7 +5,6 @@ namespace aspirin {
 
 class SRGBTexture final : public Texture {
 public:
-
     SRGBTexture(const Properties &props) : Texture(props) {
         m_value = props.color("color");
     }

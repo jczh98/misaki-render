@@ -6,7 +6,6 @@ namespace aspirin {
 
 class CheckerboardTexture final : public Texture {
 public:
-
     CheckerboardTexture(const Properties &props) : Texture(props) {
         m_color0    = props.texture<Texture>("color0", .4f);
         m_color1    = props.texture<Texture>("color1", .2f);

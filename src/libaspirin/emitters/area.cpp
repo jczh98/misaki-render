@@ -9,7 +9,6 @@ namespace aspirin {
 
 class AreaLight final : public Emitter {
 public:
-
     AreaLight(const Properties &props) : Emitter(props) {
         m_radiance = props.texture<Texture>("radiance", 1.f);
 

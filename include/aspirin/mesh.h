@@ -6,7 +6,6 @@ namespace aspirin {
 
 class APR_EXPORT Mesh : public Shape {
 public:
-
     uint32_t vertex_count() const { return m_vertex_count; }
     uint32_t face_count() const { return m_face_count; }
 

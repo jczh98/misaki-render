@@ -12,7 +12,6 @@ namespace aspirin {
 
 class APR_EXPORT Scene : public Object {
 public:
-
     Scene(const Properties &props);
 
     bool ray_test(const Ray &ray) const;
@@ -57,6 +56,5 @@ protected:
 };
 
 extern APR_EXPORT void library_nop();
-
 
 } // namespace aspirin

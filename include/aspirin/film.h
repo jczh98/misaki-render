@@ -28,5 +28,4 @@ protected:
     ref<ReconstructionFilter> m_filter;
 };
 
-
 } // namespace aspirin

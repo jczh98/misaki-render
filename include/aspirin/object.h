@@ -148,11 +148,11 @@ private:
 };
 
 // Prints the canonical string representation of an object instance
-APR_EXPORT std::ostream& operator<<(std::ostream &os, const Object *object);
+APR_EXPORT std::ostream &operator<<(std::ostream &os, const Object *object);
 
 // Prints the canonical string representation of an object instance
 template <typename T>
-std::ostream& operator<<(std::ostream &os, const ref<T> &object) {
+std::ostream &operator<<(std::ostream &os, const ref<T> &object) {
     return operator<<(os, object.get());
 }
 

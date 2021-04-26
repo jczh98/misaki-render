@@ -5,7 +5,6 @@ namespace aspirin {
 
 class PerspectiveCamera final : public ProjectiveCamera {
 public:
-
     PerspectiveCamera(const Properties &props) : ProjectiveCamera(props) {
         m_fov = props.float_("fov", 30);
         m_camera_to_sample =
@@ -17,8 +16,8 @@ public:
         m_sample_to_camera = m_camera_to_sample.inverse();
     }
 
-    std::pair<Ray, Spectrum>
-    sample_ray(const Vector2 &pos_sample, const Vector2 &) const override {
+    std::pair<Ray, Spectrum> sample_ray(const Vector2 &pos_sample,
+                                        const Vector2 &) const override {
         Ray ray;
         auto near_p = m_sample_to_camera.apply_point(
             { pos_sample.x(), pos_sample.y(), 0.f });

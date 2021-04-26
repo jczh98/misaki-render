@@ -9,7 +9,6 @@ namespace aspirin {
 
 class ConstVolume final : public Volume {
 public:
-
     ConstVolume(const Properties &props) : Volume(props) {
         m_color = props.texture<Texture>("color", 1.f);
     }

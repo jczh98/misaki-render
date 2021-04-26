@@ -6,7 +6,6 @@ namespace aspirin {
 
 class IndependentSampler final : public Sampler {
 public:
-
     IndependentSampler(const Properties &props = Properties())
         : Sampler(props) {
         seed(PCG32_DEFAULT_STATE);

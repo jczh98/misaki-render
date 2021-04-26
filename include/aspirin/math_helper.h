@@ -158,7 +158,6 @@ coordinate_system(const Eigen::Matrix<Float, 3, 1> &n) {
              { b, sign + n.y() * n.y() * a, -n.y() } };
 }
 
-
 template <typename T, int D>
 std::ostream &operator<<(std::ostream &out, const Eigen::Matrix<T, D, 1> &vec) {
     std::string result;

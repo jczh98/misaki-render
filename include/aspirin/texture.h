@@ -1,7 +1,7 @@
 #pragma once
 
-#include "object.h"
 #include "fwd.h"
+#include "object.h"
 
 namespace aspirin {
 

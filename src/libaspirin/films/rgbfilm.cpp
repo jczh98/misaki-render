@@ -8,7 +8,6 @@ namespace aspirin {
 
 class RGBFilm final : public Film {
 public:
-
     RGBFilm(const Properties &props) : Film(props) {
         m_storage = new ImageBlock(m_size, filter());
         m_storage->clear();

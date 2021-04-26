@@ -20,7 +20,6 @@ FileResolver *get_file_resolver() {
 
 void library_nop() {}
 
-
 Scene::Scene(const Properties &props) {
     for (auto &[name, obj] : props.objects()) {
         auto *shape      = dynamic_cast<Shape *>(obj.get());
@@ -61,15 +60,11 @@ Scene::Scene(const Properties &props) {
     }
 }
 
- Scene::~Scene() {
-    accel_release();
-}
-
+Scene::~Scene() { accel_release(); }
 
 std::pair<DirectionSample, Spectrum>
-Scene::sample_emitter_direction(const Interaction &ref,
-                                                 const Vector2 &sample_,
-                                                 bool test_visibility) const {
+Scene::sample_emitter_direction(const Interaction &ref, const Vector2 &sample_,
+                                bool test_visibility) const {
     DirectionSample ds;
     Spectrum spec;
     Vector2 sample(sample_);
@@ -83,7 +78,8 @@ Scene::sample_emitter_direction(const Interaction &ref,
                          (uint32_t) m_emitters.size() - 1);
             sample.x() =
                 (sample.x() - index * light_sel_pdf) * m_emitters.size();
-            std::tie(ds, spec) = m_emitters[index]->sample_direction(ref, sample);
+            std::tie(ds, spec) =
+                m_emitters[index]->sample_direction(ref, sample);
             ds.pdf *= light_sel_pdf;
             spec *= m_emitters.size();
         }
@@ -101,9 +97,8 @@ Scene::sample_emitter_direction(const Interaction &ref,
     return { ds, spec };
 }
 
-
-Float Scene::pdf_emitter_direction(
-    const Interaction &ref, const DirectionSample &ds) const {
+Float Scene::pdf_emitter_direction(const Interaction &ref,
+                                   const DirectionSample &ds) const {
     if (m_emitters.size() == 1) {
         return m_emitters[0]->pdf_direction(ref, ds);
     } else {
@@ -128,7 +123,6 @@ SurfaceInteraction::emitter(const Scene *scene) const {
 #include <embree3/rtcore.h>
 static RTCDevice __embree_device = nullptr;
 
-
 void Scene::accel_init(const Properties &props) {
     if (!__embree_device)
         __embree_device = rtcNewDevice("");
@@ -142,14 +136,9 @@ void Scene::accel_init(const Properties &props) {
     // Log(Info, "Embree ready.  (took {})", util::time_string(timer.value()));
 }
 
+void Scene::accel_release() { rtcReleaseScene((RTCScene) m_accel); }
 
-void Scene::accel_release() {
-    rtcReleaseScene((RTCScene) m_accel);
-}
-
-
-SurfaceInteraction
-Scene::ray_intersect(const Ray &ray) const {
+SurfaceInteraction Scene::ray_intersect(const Ray &ray) const {
     RTCIntersectContext context;
     rtcInitIntersectContext(&context);
     RTCRayHit rh;
@@ -186,7 +175,6 @@ Scene::ray_intersect(const Ray &ray) const {
     }
     return si;
 }
-
 
 bool Scene::ray_test(const Ray &ray) const {
     RTCIntersectContext context;

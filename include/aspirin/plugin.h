@@ -5,9 +5,10 @@
 namespace aspirin {
 
 namespace detail {
-extern void register_internal_plugin(const std::string &name, const std::string &plugin_name);
+extern void register_internal_plugin(const std::string &name,
+                                     const std::string &plugin_name);
 extern void clear_internal_plugins();
-}
+} // namespace detail
 
 class APR_EXPORT PluginManager {
 public:

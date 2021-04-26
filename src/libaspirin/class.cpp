@@ -1,23 +1,23 @@
 #include <aspirin/class.h>
-#include <aspirin/object.h>
 #include <aspirin/logger.h>
-#include <map>
+#include <aspirin/object.h>
 #include <iostream>
+#include <map>
 
 namespace aspirin {
 
 namespace xml::detail {
 void register_class(const Class *class_);
 void cleanup();
-}
+} // namespace xml::detail
 
 static std::map<std::string, Class *> *__classes;
 const Class *m_class = nullptr;
 
 Class::Class(const std::string &name, const std::string &parent,
              ConstructFunctor constr, const std::string &alias)
-    : m_name(name), m_parent_name(parent), m_alias(alias),
-      m_parent(nullptr), m_construct(constr) {
+    : m_name(name), m_parent_name(parent), m_alias(alias), m_parent(nullptr),
+      m_construct(constr) {
 
     if (m_alias.empty())
         m_alias = name;
@@ -61,9 +61,10 @@ void Class::initialize_once(Class *class_) {
         return;
     }
 
-    std::cerr << "Critical error during the static RTTI initialization: " << std::endl
-              << "Could not locate the base class '" << key << "' while initializing '"
-              << class_->name() << "'";
+    std::cerr << "Critical error during the static RTTI initialization: "
+              << std::endl
+              << "Could not locate the base class '" << key
+              << "' while initializing '" << class_->name() << "'";
 
     std::cerr << "!" << std::endl;
 }
@@ -71,7 +72,8 @@ void Class::initialize_once(Class *class_) {
 ref<Object> Class::construct(const Properties &props) const {
     if (!m_construct)
         Throw("RTTI error: Attempted to construct a "
-              "non-constructible class ({})!", name());
+              "non-constructible class ({})!",
+              name());
     return m_construct(props);
 }
 
@@ -88,9 +90,9 @@ void Class::static_shutdown() {
         delete pair.second;
     }
     delete __classes;
-    __classes = nullptr;
+    __classes        = nullptr;
     m_is_initialized = false;
     xml::detail::cleanup();
 }
 
-}
+} // namespace aspirin

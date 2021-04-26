@@ -54,11 +54,13 @@ protected:
 
 class APR_EXPORT BlockGenerator : public Object {
 public:
-    BlockGenerator(const Vector2i &size, const Vector2i &offset, int block_size);
+    BlockGenerator(const Vector2i &size, const Vector2i &offset,
+                   int block_size);
     size_t max_block_size() const { return m_block_size; }
     size_t block_count() const { return m_block_count; }
 
-    /// Reset the spiral to its initial state. Does not affect the number of passes.
+    /// Reset the spiral to its initial state. Does not affect the number of
+    /// passes.
     void reset();
 
     // Return the `offset` and `size`
@@ -66,22 +68,17 @@ public:
 
     APR_DECLARE_CLASS()
 protected:
-    enum class Direction {
-        Right = 0,
-        Down,
-        Left,
-        Up
-    };
+    enum class Direction { Right = 0, Down, Left, Up };
 
     size_t m_block_counter, //< Number of blocks generated so far
-    m_block_count,   //< Total number of blocks to be generated
-    m_block_size;    //< Size of the (square) blocks (in pixels)
+        m_block_count,      //< Total number of blocks to be generated
+        m_block_size;       //< Size of the (square) blocks (in pixels)
 
-    Vector2i m_size,        //< Size of the 2D image (in pixels).
-    m_offset,      //< Offset to the crop region on the sensor (pixels).
-    m_blocks;      //< Number of blocks in each direction.
+    Vector2i m_size, //< Size of the 2D image (in pixels).
+        m_offset,    //< Offset to the crop region on the sensor (pixels).
+        m_blocks;    //< Number of blocks in each direction.
 
-    Vector2i  m_position;    //< Relative position of the current block.
+    Vector2i m_position; //< Relative position of the current block.
     /// Direction where the spiral is currently headed.
     Direction m_current_direction;
     /// Step counters.

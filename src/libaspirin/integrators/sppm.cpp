@@ -106,7 +106,8 @@ public:
                                     sensor->sample_ray_differential(
                                         position_sample, sampler->next2d());
                                 ray.scale_differential(inv_sqrt_spp);
-                                SPPMPixel &pixel = pixels[pos.x() + pos.y() * film_size.x()];
+                                SPPMPixel &pixel =
+                                    pixels[pos.x() + pos.y() * film_size.x()];
                                 bool is_specular = false;
                                 SurfaceInteraction si =
                                     scene->ray_intersect(ray);
@@ -150,7 +151,7 @@ public:
                                                  BSDFFlags::Diffuse) ||
                                         (has_flag(bsdf->flags(),
                                                   BSDFFlags::Glossy) &&
-                                            depth == m_max_depth - 1)) {
+                                         depth == m_max_depth - 1)) {
                                         pixel.vp = VisiblePoint(si.p, -ray.d,
                                                                 bsdf, beta);
                                         break;
@@ -265,9 +266,8 @@ public:
                                             radius * radius)
                                             continue;
                                         Spectrum phi =
-                                            flux *
-                                            pixel.vp.bsdf->eval(
-                                                ctx, si, pixel.vp.wi);
+                                            flux * pixel.vp.bsdf->eval(
+                                                       ctx, si, pixel.vp.wi);
                                         for (int channel = 0; channel < 3;
                                              channel++) {
                                             pixel.atomic_add_phi(channel,

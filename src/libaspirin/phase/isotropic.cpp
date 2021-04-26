@@ -7,7 +7,6 @@ namespace aspirin {
 
 class IsotropicPhaseFunction final : public PhaseFunction {
 public:
-
     IsotropicPhaseFunction(const Properties &props) : PhaseFunction(props) {
         m_flags = +PhaseFunctionFlags::Isotropic;
     }

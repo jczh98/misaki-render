@@ -15,7 +15,8 @@ public:
     sample_ray(const Vector2 &pos_sample, const Vector2 &dir_sample) const;
 
     // Returns direction, weight
-    virtual std::pair<PositionSample, Spectrum> sample_position(const Vector2 &sample) const;
+    virtual std::pair<PositionSample, Spectrum>
+    sample_position(const Vector2 &sample) const;
     virtual std::pair<DirectionSample, Spectrum>
     sample_direction(const Interaction &ref, const Vector2 &sample) const;
 

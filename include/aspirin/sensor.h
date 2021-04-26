@@ -11,9 +11,9 @@ namespace aspirin {
 
 class APR_EXPORT Sensor : public Endpoint {
 public:
-
     virtual std::pair<RayDifferential, Spectrum>
-    sample_ray_differential(const Vector2 &sample2, const Vector2 &sample3) const;
+    sample_ray_differential(const Vector2 &sample2,
+                            const Vector2 &sample3) const;
 
     Film *film() { return m_film; }
     const Film *film() const { return m_film; }
