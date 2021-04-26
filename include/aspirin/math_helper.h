@@ -175,4 +175,28 @@ std::ostream &operator<<(std::ostream &os, const Eigen::Matrix<T, D, D> &m) {
     return os;
 }
 
+inline uint32_t float_to_bits(float f) {
+    uint32_t ui;
+    memcpy(&ui, &f, sizeof(float));
+    return ui;
+}
+
+inline float bits_to_float(uint32_t ui) {
+    float f;
+    memcpy(&f, &ui, sizeof(uint32_t));
+    return f;
+}
+
+inline uint64_t double_to_bits(double f) {
+    uint64_t ui;
+    memcpy(&ui, &f, sizeof(double));
+    return ui;
+}
+
+inline double bits_to_double(uint64_t ui) {
+    double f;
+    memcpy(&f, &ui, sizeof(uint64_t));
+    return f;
+}
+
 } // namespace aspirin

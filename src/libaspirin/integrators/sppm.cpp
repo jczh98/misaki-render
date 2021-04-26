@@ -10,6 +10,7 @@
 #include <aspirin/records.h>
 #include <aspirin/scene.h>
 #include <aspirin/sensor.h>
+#include <aspirin/thread.h>
 #include <aspirin/utils.h>
 #include <fstream>
 #include <tbb/parallel_for.h>
@@ -18,29 +19,23 @@ namespace aspirin {
 
 class SPPMIntegrator : public Integrator {
 public:
-    struct VisiblePoint {
-        VisiblePoint() {}
-        VisiblePoint(const Vector3 &p, const Vector3 &wi, const BSDF *bsdf,
-                     const Spectrum &beta)
-            : p(p), wi(wi), bsdf(bsdf), beta(beta) {}
-        Vector3 p;
-        Vector3 wi;
-        const BSDF *bsdf = nullptr;
-        Spectrum beta;
-    };
     struct SPPMPixel {
 
         Float radius = 0;
         Spectrum value;
 
-        VisiblePoint vp;
+        struct VisiblePoint {
+            VisiblePoint() {}
+            VisiblePoint(const Vector3 &p, const Vector3 &wi, const BSDF *bsdf,
+                         const Spectrum &beta)
+                : p(p), wi(wi), bsdf(bsdf), beta(beta) {}
+            Vector3 p;
+            Vector3 wi;
+            const BSDF *bsdf = nullptr;
+            Spectrum beta;
+        } vp;
 
-        void atomic_add_phi(uint32_t idx, Float v) {
-            auto current = phi[idx].load();
-            while (!phi[idx].compare_exchange_weak(current, current + v))
-                ;
-        }
-        std::atomic<Float> phi[3];
+        AtomicFloat<Float> phi[3];
         std::atomic<int> m;
         float n = 0;
         Spectrum tau;
@@ -152,8 +147,7 @@ public:
                                         (has_flag(bsdf->flags(),
                                                   BSDFFlags::Glossy) &&
                                          depth == m_max_depth - 1)) {
-                                        pixel.vp = VisiblePoint(si.p, -ray.d,
-                                                                bsdf, beta);
+                                        pixel.vp = { si.p, -ray.d, bsdf, beta };
                                         break;
                                     }
                                     if (depth < m_max_depth - 1) {
@@ -219,12 +213,12 @@ public:
                                     for (int x = pmin.x(); x <= pmax.x(); x++) {
                                         int h =
                                             hash(Vector3i(x, y, z), hash_size);
-                                        SPPMPixelListNode *node =
+                                        auto *node =
                                             new SPPMPixelListNode();
                                         node->pixel = &pixel;
                                         node->next  = grid[h];
-                                        while (grid[h].compare_exchange_weak(
-                                                   node->next, node) == false)
+                                        while (!grid[h].compare_exchange_weak(
+                                            node->next, node))
                                             ;
                                     }
                                 }
@@ -246,7 +240,7 @@ public:
                         const auto emitter = scene->emitters()[index];
                         auto [ray, flux]   = emitter->sample_ray(
                             sampler->next2d(), sampler->next2d());
-                        flux /= emitter_sel_pdf;
+                        flux /= emitter_sel_pdf * 10000;
                         SurfaceInteraction si = scene->ray_intersect(ray);
                         for (int depth = 0; depth < m_max_depth; depth++) {
                             if (!si.is_valid())
@@ -265,13 +259,13 @@ public:
                                         if ((pixel.vp.p - si.p).squaredNorm() >
                                             radius * radius)
                                             continue;
+                                        SurfaceInteraction si_bsdf = si;
+                                        si_bsdf.wi = si.to_local(pixel.vp.wi);
                                         Spectrum phi =
-                                            flux * pixel.vp.bsdf->eval(
-                                                       ctx, si, pixel.vp.wi);
+                                            flux * pixel.vp.bsdf->eval(ctx, si_bsdf, si.wi);
                                         for (int channel = 0; channel < 3;
                                              channel++) {
-                                            pixel.atomic_add_phi(channel,
-                                                                 phi[i]);
+                                            pixel.phi[channel].add(phi[channel]);
                                         }
                                         ++pixel.m;
                                     }
