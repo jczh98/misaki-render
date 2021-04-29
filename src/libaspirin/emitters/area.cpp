@@ -16,10 +16,10 @@ public:
     }
 
     virtual std::pair<Ray, Spectrum>
-    sample_ray(const Vector2 &sample, const Vector2 &) const override {
+    sample_ray(const Vector2 &sample, const Vector2 &sample2) const override {
         PositionSample ps = m_shape->sample_position(sample);
         SurfaceInteraction si(ps);
-        Vector3 local = warp::square_to_cosine_hemisphere(sample);
+        Vector3 local = warp::square_to_cosine_hemisphere(sample2);
 
         Spectrum power = m_radiance->eval_3(si) * math::Pi<Float> / ps.pdf;
 

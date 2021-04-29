@@ -57,13 +57,13 @@ public:
         }
     };
     using PhotonKDTree = nanoflann::KDTreeSingleIndexAdaptor<
-        nanoflann::L2_Simple_Adaptor<float, PhotonMap>, PhotonMap, 3>;
+        nanoflann::L2_Adaptor<float, PhotonMap>, PhotonMap, 3>;
 
     PhotonMapper(const Properties &props)
         : Integrator(props),
           m_global_photon_kdtree(3, m_global_photon_map,
                                  nanoflann::KDTreeSingleIndexAdaptorParams()) {
-        m_photon_count = props.int_("photon_count", 10000);
+        m_photon_count = props.int_("photon_count", 100000);
         m_radius       = props.float_("photon_radius", 35.f);
     }
 
