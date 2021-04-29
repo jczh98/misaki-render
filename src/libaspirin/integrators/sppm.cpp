@@ -213,8 +213,7 @@ public:
                                     for (int x = pmin.x(); x <= pmax.x(); x++) {
                                         int h =
                                             hash(Vector3i(x, y, z), hash_size);
-                                        auto *node =
-                                            new SPPMPixelListNode();
+                                        auto *node  = new SPPMPixelListNode();
                                         node->pixel = &pixel;
                                         node->next  = grid[h];
                                         while (!grid[h].compare_exchange_weak(
@@ -231,6 +230,9 @@ public:
                 [&](const tbb::blocked_range<size_t> &range) {
                     auto sampler = sensor->sampler()->clone();
                     for (int i = range.begin(); i < range.end(); i++) {
+                        uint64_t sampler_index =
+                            (uint64_t) iter * (uint64_t) m_photons + i;
+                        sampler->seed(sampler_index);
                         auto emitter_sel_pdf = 1.f / scene->emitters().size();
                         auto emitter_sample  = sampler->next1d();
                         auto index =
@@ -240,7 +242,7 @@ public:
                         const auto emitter = scene->emitters()[index];
                         auto [ray, flux]   = emitter->sample_ray(
                             sampler->next2d(), sampler->next2d());
-                        flux /= emitter_sel_pdf * 10000;
+                        flux /= emitter_sel_pdf;
                         SurfaceInteraction si = scene->ray_intersect(ray);
                         for (int depth = 0; depth < m_max_depth; depth++) {
                             if (!si.is_valid())
@@ -259,13 +261,18 @@ public:
                                         if ((pixel.vp.p - si.p).squaredNorm() >
                                             radius * radius)
                                             continue;
-                                        SurfaceInteraction si_bsdf = si;
-                                        si_bsdf.wi = si.to_local(pixel.vp.wi);
-                                        Spectrum phi =
-                                            flux * pixel.vp.bsdf->eval(ctx, si_bsdf, si.wi);
+                                        const auto wo =
+                                            si.to_local(pixel.vp.wi);
+                                        Spectrum bsdf_val =
+                                            pixel.vp.bsdf->eval(ctx, si, wo) /
+                                            Frame3 ::cos_theta(wo);
+                                        if (is_black(bsdf_val))
+                                            continue;
+                                        Spectrum phi = flux * bsdf_val;
                                         for (int channel = 0; channel < 3;
                                              channel++) {
-                                            pixel.phi[channel].add(phi[channel]);
+                                            pixel.phi[channel].add(
+                                                phi[channel]);
                                         }
                                         ++pixel.m;
                                     }
@@ -276,7 +283,7 @@ public:
                                 ctx, si, sampler->next1d(), sampler->next2d());
                             if (bs.pdf == 0.f || is_black(bsdf_val))
                                 break;
-                            Spectrum bnew = flux * bsdf_val / bs.pdf;
+                            Spectrum bnew = flux * bsdf_val;
                             Float q = std::min(bnew.maxCoeff(), Float(0.95));
                             if (sampler->next1d() >= q)
                                 break;
@@ -305,6 +312,8 @@ public:
                             p.n      = nnew;
                             p.radius = rnew;
                             p.m      = 0;
+                            for (int channel = 0; channel < 3; channel++)
+                                phi[channel] = 0;
                         }
                         p.vp.beta = Spectrum::Zero();
                         p.vp.bsdf = nullptr;
@@ -333,10 +342,10 @@ public:
 
     APR_DECLARE_CLASS()
 private:
-    Float m_initial_radius  = 20.f;
+    Float m_initial_radius  = 35.f;
     int m_iterations        = 1;
     int m_max_depth         = 5;
-    int m_photons           = 100;
+    int m_photons           = 10000;
     int m_develop_frequency = 1 << 31;
 };
 

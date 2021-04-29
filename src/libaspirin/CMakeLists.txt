@@ -41,6 +41,7 @@ add_library(aspirin-render SHARED
         # Integrators
         integrators/debug.cpp integrators/path.cpp
         integrators/volpath.cpp integrators/sppm.cpp
+        integrators/photonmapper.cpp
         # Phases
         phase/isotropic.cpp
         volume/constant3d.cpp
