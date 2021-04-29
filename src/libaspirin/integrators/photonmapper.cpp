@@ -20,23 +20,23 @@ namespace aspirin {
 class PhotonMapper : public Integrator {
 public:
     struct Photon {
-        struct PhotonData {
-            PhotonData(Vector3 p, Spectrum power, Vector3 wi)
-                : p(std::move(p)), power(std::move(power)), wi(std::move(wi)) {}
-            Vector3 p;
-            Spectrum power;
-            Vector3 wi;
-        };
+        Photon(Vector3 p, Spectrum power, Vector3 wi)
+            : p(std::move(p)), power(std::move(power)), wi(std::move(wi)) {}
+        Vector3 p;
+        Spectrum power;
+        Vector3 wi;
+    };
 
-        std::vector<PhotonData> photons;
+    struct PhotonMap {
+        std::vector<Photon> photons;
 
         inline size_t kdtree_get_point_count() const { return photons.size(); }
         inline float kdtree_distance(const float *p1, const size_t idx_p2,
-                                     size_t /*size*/) const {
+                                     size_t) const {
             const float d0 = p1[0] - photons[idx_p2].p.x();
             const float d1 = p1[1] - photons[idx_p2].p.y();
             const float d2 = p1[2] - photons[idx_p2].p.z();
-            return std::sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+            return d0 * d0 + d1 * d1 + d2 * d2;
         }
 
         inline float kdtree_get_pt(const size_t idx, int dim) const {
@@ -48,18 +48,23 @@ public:
                 return photons[idx].p.z();
         }
 
+        inline Photon &kdtree_get_data(const size_t idx) {
+            return photons[idx];
+        }
+
         template <class BBOX> bool kdtree_get_bbox(BBOX & /*bb*/) const {
             return false;
         }
     };
-    using PhotonMap = nanoflann::KDTreeSingleIndexAdaptor<
-        nanoflann::L2_Simple_Adaptor<float, Photon>, Photon, 3>;
+    using PhotonKDTree = nanoflann::KDTreeSingleIndexAdaptor<
+        nanoflann::L2_Simple_Adaptor<float, PhotonMap>, PhotonMap, 3>;
 
     PhotonMapper(const Properties &props)
         : Integrator(props),
-          m_global_map(3, m_global_photons,
-                       nanoflann::KDTreeSingleIndexAdaptorParams(10)) {
-        m_photon_count = props.int_("photon_count", 1000000);
+          m_global_photon_kdtree(3, m_global_photon_map,
+                                 nanoflann::KDTreeSingleIndexAdaptorParams()) {
+        m_photon_count = props.int_("photon_count", 10000);
+        m_radius = props.float_("photon_radius", 35.f);
     }
 
     bool render(Scene *scene, Sensor *sensor) override {
@@ -87,7 +92,7 @@ public:
                 }
             });
         // Build KDTree
-        m_global_map.buildIndex();
+        m_global_photon_kdtree.buildIndex();
         // Render from camera path
         int m_block_size = APR_BLOCK_SIZE;
         BlockGenerator gen(film_size, Vector2i::Zero(), m_block_size);
@@ -119,8 +124,8 @@ public:
             auto bsdf = si.bsdf(ray);
             if (has_flag(bsdf->flags(), BSDFFlags::Diffuse)) {
                 tbb::spin_mutex::scoped_lock lock(m_mutex);
-                Photon::PhotonData photon(si.p, throughput, -ray.d);
-                m_global_photons.photons.push_back(photon);
+                Photon photon(si.p, throughput, -ray.d);
+                m_global_photon_map.photons.push_back(photon);
             }
             BSDFContext ctx(TransportMode::Importance);
             auto [bs, bsdf_val] =
@@ -132,7 +137,7 @@ public:
                 break;
             throughput /= q;
             ray = si.spawn_ray(si.to_world(bs.wo));
-            si  = std::move(scene->ray_intersect(ray));
+            si  = scene->ray_intersect(ray);
         }
     }
 
@@ -205,13 +210,13 @@ public:
         Spectrum tau = Spectrum ::Zero();
         std::vector<std::pair<size_t, float>> matches;
         const float query_pt[3] = { si.p.x(), si.p.y(), si.p.z() };
-        auto search_result      = m_global_map.radiusSearch(
-            query_pt, m_radius, matches, nanoflann::SearchParams());
+        auto search_result      = m_global_photon_kdtree.radiusSearch(
+            query_pt, m_radius * m_radius, matches, nanoflann::SearchParams());
         for (int i = 0; i < search_result; i++) {
-            size_t idx                = matches[i].first;
-            Photon::PhotonData photon = m_global_photons.photons[idx];
-            auto bsdf                 = si.bsdf(ray);
-            const auto wo             = si.to_local(photon.wi);
+            size_t idx    = matches[i].first;
+            Photon photon = m_global_photon_map.photons[idx];
+            auto bsdf     = si.bsdf(ray);
+            const auto wo = si.to_local(photon.wi);
             tau +=
                 bsdf->eval(ctx, si, wo) / Frame3::cos_theta(wo) * photon.power;
         }
@@ -221,11 +226,11 @@ public:
 
     APR_DECLARE_CLASS()
 private:
-    PhotonMap m_global_map;
-    Photon m_global_photons;
+    PhotonKDTree m_global_photon_kdtree;
+    PhotonMap m_global_photon_map;
     int m_photon_count;
     int m_max_depth = 5;
-    float m_radius  = 35.f;
+    float m_radius;
     tbb::spin_mutex m_mutex;
 };
 
