@@ -64,7 +64,7 @@ public:
           m_global_photon_kdtree(3, m_global_photon_map,
                                  nanoflann::KDTreeSingleIndexAdaptorParams()) {
         m_photon_count = props.int_("photon_count", 10000);
-        m_radius = props.float_("photon_radius", 35.f);
+        m_radius       = props.float_("photon_radius", 35.f);
     }
 
     bool render(Scene *scene, Sensor *sensor) override {
@@ -72,6 +72,7 @@ public:
         auto film_size = film->size();
         auto sampler_  = PluginManager::instance()->create_object<Sampler>(
             Properties("independent"));
+        Log(Info, "Gathering photons from emitters...");
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_photon_count, 1),
             [&](const tbb::blocked_range<size_t> &range) {
@@ -93,10 +94,13 @@ public:
             });
         // Build KDTree
         m_global_photon_kdtree.buildIndex();
+        Log(Info, "Gathered {} photons and built KDTree.", m_photon_count);
         // Render from camera path
         int m_block_size = APR_BLOCK_SIZE;
         BlockGenerator gen(film_size, Vector2i::Zero(), m_block_size);
         size_t total_blocks = gen.block_count();
+        ProgressBar pbar(total_blocks, 70);
+        Timer timer;
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, total_blocks, 1),
             [&](const tbb::blocked_range<size_t> &range) {
@@ -109,8 +113,12 @@ public:
                     block->set_size(size);
                     render_block(scene, sensor, sampler, block);
                     film->put(block);
+                    pbar.update();
                 }
             });
+        pbar.done();
+        Log(Info, "Rendering finished. (took {})",
+            time_string(timer.value(), true));
     }
 
     void trace_photon(Scene *scene, Sampler *sampler, const Ray &ray_,
@@ -130,6 +138,8 @@ public:
             BSDFContext ctx(TransportMode::Importance);
             auto [bs, bsdf_val] =
                 bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
+            if (bs.pdf == 0.f || is_black(bsdf_val))
+                break;
             throughput *= bsdf_val;
             // Russian roulette
             Float q = std::min(throughput.maxCoeff(), Float(0.95));
