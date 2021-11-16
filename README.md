@@ -1,5 +1,5 @@
-# Aspirin
-Aspirin is a physically-based photorealistic global illumination renderer written in modular, plugin based architecture
+# misaki
+misaki is a physically-based photorealistic global illumination renderer written in modular, plugin based architecture
 
 (still working in progress)
 ## Prerequisite

@@ -20,5 +20,5 @@ function(set_output_dir target)
             )
 endfunction()
 
-add_subdirectory(libaspirin)
-add_subdirectory(aspirin)
+add_subdirectory(librender)
+add_subdirectory(apps)

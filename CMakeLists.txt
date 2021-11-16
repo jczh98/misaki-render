@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(aspirin)
+project(misaki-render)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -12,10 +12,10 @@ find_package(OpenImageIO CONFIG REQUIRED)
 find_package(embree 3 REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb.h")
 
-option(APR_ENABLE_EMBREE  "Use Embree for ray tracing intersection" ON)
+option(MSK_ENABLE_EMBREE  "Use Embree for ray tracing intersection" ON)
 
-if (APR_ENABLE_EMBREE)
-    add_compile_options(-DAPR_ENABLE_EMBREE)
+if (MSK_ENABLE_EMBREE)
+    add_compile_options(-DMSK_ENABLE_EMBREE)
 endif ()
 
 include_directories(${EIGEN3_INCLUDE_DIR})
