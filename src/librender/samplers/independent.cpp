@@ -25,14 +25,14 @@ public:
         m_rng->seed(seed_value, PCG32_DEFAULT_STREAM);
     }
 
-    Float next1d() {
-        if constexpr (std::is_same_v<Float, float>)
+    float next1d() {
+        if constexpr (std::is_same_v<float, float>)
             return m_rng->next_float32();
         else
             return m_rng->next_float64();
     }
 
-    Vector2 next2d() { return { next1d(), next1d() }; }
+    Eigen::Vector2f next2d() { return { next1d(), next1d() }; }
 
     std::string to_string() const override {
         std::ostringstream oss;
@@ -42,12 +42,12 @@ public:
         return oss.str();
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
     std::unique_ptr<math::PCG32> m_rng;
 };
 
-APR_IMPLEMENT_CLASS(IndependentSampler, Sampler)
-APR_INTERNAL_PLUGIN(IndependentSampler, "independent")
+MSK_IMPLEMENT_CLASS(IndependentSampler, Sampler)
+MSK_INTERNAL_PLUGIN(IndependentSampler, "independent")
 
 } // namespace misaki

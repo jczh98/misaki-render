@@ -29,14 +29,14 @@ public:
         Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(),
             film_size.y(), total_spp);
         int m_block_size = APR_BLOCK_SIZE;
-        BlockGenerator gen(film_size, Vector2i::Zero(), m_block_size);
+        BlockGenerator gen(film_size, Eigen::Vector2i::Zero(), m_block_size);
         size_t total_blocks = gen.block_count();
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, total_blocks, 1),
             [&](const tbb::blocked_range<size_t> &range) {
                 auto sampler = sensor->sampler()->clone();
                 auto block   = std::make_unique<ImageBlock>(
-                    Vector2i::Constant(m_block_size), film->filter());
+                    Eigen::Vector2i::Constant(m_block_size), film->filter());
                 for (auto i = range.begin(); i != range.end(); ++i) {
                     auto [offset, size, block_id] = gen.next_block();
                     block->set_offset(offset);
@@ -44,11 +44,11 @@ public:
                     block->clear();
                     for (int y = 0; y < size.y(); ++y) {
                         for (int x = 0; x < size.x(); ++x) {
-                            Vector2 pos = Vector2(x, y);
+                            auto pos = Eigen::Vector2i(x, y);
                             if (pos.x() >= size.x() || pos.y() >= size.y())
                                 continue;
-                            pos = pos + offset.template cast<Float>();
-                            auto position_sample   = pos + sampler->next2d();
+                            auto pos_ = (pos + offset).template cast<float>();
+                            auto position_sample   = pos_ + sampler->next2d();
                             auto [ray, ray_weight] = sensor->sample_ray(
                                 position_sample, sampler->next2d());
                             auto si = scene->ray_intersect(ray);
@@ -67,11 +67,11 @@ public:
         return true;
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
 };
 
-APR_IMPLEMENT_CLASS(DebugIntegrator, Integrator)
-APR_INTERNAL_PLUGIN(DebugIntegrator, "debug")
+MSK_IMPLEMENT_CLASS(DebugIntegrator, Integrator)
+MSK_INTERNAL_PLUGIN(DebugIntegrator, "debug")
 
 } // namespace misaki

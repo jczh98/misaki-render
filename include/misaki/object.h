@@ -7,7 +7,7 @@
 
 namespace misaki {
 
-class APR_EXPORT Object {
+class MSK_EXPORT Object {
 public:
     Object() {}
     Object(const Object &) {}
@@ -148,7 +148,7 @@ private:
 };
 
 // Prints the canonical string representation of an object instance
-APR_EXPORT std::ostream &operator<<(std::ostream &os, const Object *object);
+MSK_EXPORT std::ostream &operator<<(std::ostream &os, const Object *object);
 
 // Prints the canonical string representation of an object instance
 template <typename T>

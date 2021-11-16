@@ -29,6 +29,6 @@ std::ostream &operator<<(std::ostream &os, const Object *object) {
     return os;
 }
 
-APR_IMPLEMENT_CLASS(Object, )
+MSK_IMPLEMENT_CLASS(Object, )
 
 } // namespace misaki

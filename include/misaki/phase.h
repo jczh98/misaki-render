@@ -32,7 +32,7 @@ constexpr auto has_flag(UInt32 flags, PhaseFunctionFlags f) {
     return (flags & (uint32_t) f) != 0;
 }
 
-struct APR_EXPORT PhaseFunctionContext {
+struct MSK_EXPORT PhaseFunctionContext {
     TransportMode mode;
 
     Sampler *sampler;
@@ -44,20 +44,20 @@ struct APR_EXPORT PhaseFunctionContext {
     void reverse() { mode = (TransportMode)(1 - (int) mode); }
 };
 
-class APR_EXPORT PhaseFunction : public Object {
+class MSK_EXPORT PhaseFunction : public Object {
 public:
     /**
      * @brief Sample a phase function
      * @param sample
      * @return sampled direction, pdf, and phase value
      */
-    virtual std::tuple<Vector3, Float, Float>
+    virtual std::tuple<Eigen::Vector3f, float, float>
     sample(const PhaseFunctionContext &ctx, const MediumInteraction &mi,
-           const Vector2 &sample) const = 0;
+           const Eigen::Vector2f &sample) const = 0;
 
-    virtual Float eval(const PhaseFunctionContext &ctx,
+    virtual float eval(const PhaseFunctionContext &ctx,
                        const MediumInteraction &mi,
-                       const Vector3 &wo) const = 0;
+                       const Eigen::Vector3f &wo) const = 0;
 
     uint32_t flags() const { return m_flags; }
 
@@ -65,7 +65,7 @@ public:
 
     std::string to_string() const override = 0;
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     PhaseFunction(const Properties &props);
     virtual ~PhaseFunction();

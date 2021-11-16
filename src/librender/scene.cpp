@@ -63,18 +63,18 @@ Scene::Scene(const Properties &props) {
 Scene::~Scene() { accel_release(); }
 
 std::pair<DirectionSample, Spectrum>
-Scene::sample_emitter_direction(const Interaction &ref, const Vector2 &sample_,
+Scene::sample_emitter_direction(const Interaction &ref, const Eigen::Vector2f &sample_,
                                 bool test_visibility) const {
     DirectionSample ds;
     Spectrum spec;
-    Vector2 sample(sample_);
+    Eigen::Vector2f sample(sample_);
     if (!m_emitters.empty()) {
         if (m_emitters.size() == 1) {
             std::tie(ds, spec) = m_emitters[0]->sample_direction(ref, sample);
         } else {
             auto light_sel_pdf = 1.f / m_emitters.size();
             auto index =
-                std::min(uint32_t(sample.x() * (Float) m_emitters.size()),
+                std::min(uint32_t(sample.x() * (float) m_emitters.size()),
                          (uint32_t) m_emitters.size() - 1);
             sample.x() =
                 (sample.x() - index * light_sel_pdf) * m_emitters.size();
@@ -85,9 +85,9 @@ Scene::sample_emitter_direction(const Interaction &ref, const Vector2 &sample_,
         }
         if (test_visibility && ds.pdf != 0.f) {
             Ray ray(ref.p, ds.d,
-                    math::RayEpsilon<Float> *
+                    math::RayEpsilon<float> *
                         (1.f + ref.p.cwiseAbs().maxCoeff()),
-                    ds.dist * (1.f - math::ShadowEpsilon<Float>), 0);
+                    ds.dist * (1.f - math::ShadowEpsilon<float>), 0);
             if (ray_test(ray))
                 spec = Spectrum::Zero();
         }
@@ -97,7 +97,7 @@ Scene::sample_emitter_direction(const Interaction &ref, const Vector2 &sample_,
     return { ds, spec };
 }
 
-Float Scene::pdf_emitter_direction(const Interaction &ref,
+float Scene::pdf_emitter_direction(const Interaction &ref,
                                    const DirectionSample &ds) const {
     if (m_emitters.size() == 1) {
         return m_emitters[0]->pdf_direction(ref, ds);
@@ -119,7 +119,7 @@ SurfaceInteraction::emitter(const Scene *scene) const {
 
 /*------------------------Embree
  * specification---------------------------------*/
-#if defined(APR_ENABLE_EMBREE)
+#if defined(MSK_ENABLE_EMBREE)
 #include <embree3/rtcore.h>
 static RTCDevice __embree_device = nullptr;
 
@@ -166,12 +166,12 @@ SurfaceInteraction Scene::ray_intersect(const Ray &ray) const {
 
         pi.t          = rh.ray.tfar;
         pi.prim_index = prim_index;
-        pi.prim_uv    = Vector2(rh.hit.u, rh.hit.v);
+        pi.prim_uv    = Eigen::Vector2f(rh.hit.u, rh.hit.v);
 
         si = pi.compute_surface_interaction(ray);
     } else {
         si.wi = -ray.d;
-        si.t  = math::Infinity<Float>;
+        si.t  = math::Infinity<float>;
     }
     return si;
 }
@@ -198,6 +198,6 @@ bool Scene::ray_test(const Ray &ray) const {
 
 #endif
 
-APR_IMPLEMENT_CLASS(Scene, Object, "scene")
+MSK_IMPLEMENT_CLASS(Scene, Object, "scene")
 
 } // namespace misaki

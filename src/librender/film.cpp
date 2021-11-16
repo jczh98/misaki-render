@@ -28,13 +28,13 @@ Film::Film(const Properties &props) {
 
 Film::~Film() {}
 
-void Film::put(const ImageBlock *block) { APR_NOT_IMPLEMENTED("put"); }
+void Film::put(const ImageBlock *block) { MSK_NOT_IMPLEMENTED("put"); }
 
 void Film::set_destination_file(const fs::path &filename) {
-    APR_NOT_IMPLEMENTED("set_destination_file");
+    MSK_NOT_IMPLEMENTED("set_destination_file");
 }
 
-void Film::develop() { APR_NOT_IMPLEMENTED("develop"); }
+void Film::develop() { MSK_NOT_IMPLEMENTED("develop"); }
 
 std::string Film::to_string() const {
     std::ostringstream oss;
@@ -45,6 +45,6 @@ std::string Film::to_string() const {
     return oss.str();
 }
 
-APR_IMPLEMENT_CLASS(Film, Object, "film")
+MSK_IMPLEMENT_CLASS(Film, Object, "film")
 
 } // namespace misaki

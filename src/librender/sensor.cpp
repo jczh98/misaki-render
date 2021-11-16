@@ -28,22 +28,22 @@ Sensor::Sensor(const Properties &props) : Endpoint(props) {
         m_sampler = static_cast<Sampler *>(
             pmgr->create_object<Sampler>(Properties("independent")));
     }
-    m_aspect     = m_film->size().x() / (Float) m_film->size().y();
-    m_resolution = Vector2(m_film->size().x(), m_film->size().y());
+    m_aspect     = m_film->size().x() / (float) m_film->size().y();
+    m_resolution = Eigen::Vector2f(m_film->size().x(), m_film->size().y());
 }
 
 Sensor::~Sensor() {}
 
 std::pair<RayDifferential, Spectrum>
-Sensor::sample_ray_differential(const Vector2 &sample,
-                                const Vector2 &sample3) const {
+Sensor::sample_ray_differential(const Eigen::Vector2f &sample,
+                                const Eigen::Vector2f &sample3) const {
 
     auto [temp_ray, result_spec] = sample_ray(sample, sample3);
 
     RayDifferential result_ray(temp_ray);
 
-    Vector2 dx(1.f / m_resolution.x(), 0.f);
-    Vector2 dy(0.f, 1.f / m_resolution.y());
+    Eigen::Vector2f dx(1.f / m_resolution.x(), 0.f);
+    Eigen::Vector2f dy(0.f, 1.f / m_resolution.y());
 
     // Sample a result_ray for X+1
     std::tie(temp_ray, std::ignore) = sample_ray(sample + dx, sample3);
@@ -69,7 +69,7 @@ ProjectiveCamera::ProjectiveCamera(const Properties &props) : Sensor(props) {
 
 ProjectiveCamera::~ProjectiveCamera() {}
 
-APR_IMPLEMENT_CLASS(Sensor, Endpoint, "sensor")
-APR_IMPLEMENT_CLASS(ProjectiveCamera, Sensor)
+MSK_IMPLEMENT_CLASS(Sensor, Endpoint, "sensor")
+MSK_IMPLEMENT_CLASS(ProjectiveCamera, Sensor)
 
 } // namespace misaki

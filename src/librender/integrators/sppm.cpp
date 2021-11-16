@@ -341,7 +341,7 @@ public:
         return true;
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
     Float m_initial_radius  = 35.f;
     int m_iterations        = 1;

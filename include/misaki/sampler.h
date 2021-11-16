@@ -5,15 +5,15 @@
 
 namespace misaki {
 
-class APR_EXPORT Sampler : public Object {
+class MSK_EXPORT Sampler : public Object {
 public:
     virtual ref<Sampler> clone() = 0;
     virtual void seed(uint64_t seed_value);
-    virtual Float next1d();
-    virtual Vector2 next2d();
+    virtual float next1d();
+    virtual Eigen::Vector2f next2d();
     size_t sample_count() const { return m_sample_count; }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     Sampler(const Properties &props);
     virtual ~Sampler();

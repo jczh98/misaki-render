@@ -9,16 +9,16 @@ public:
     uint32_t vertex_count() const { return m_vertex_count; }
     uint32_t face_count() const { return m_face_count; }
 
-    Float *vertices() { return m_vertices.get(); }
-    const Float *vertices() const { return m_vertices.get(); }
+    float *vertices() { return m_vertices.get(); }
+    const float *vertices() const { return m_vertices.get(); }
 
     uint32_t *faces() { return m_faces.get(); }
     const uint32_t *faces() const { return m_faces.get(); }
 
-    MSK_INLINE Float *vertex(const uint32_t &index) {
+    MSK_INLINE float *vertex(const uint32_t &index) {
         return m_vertices.get() + m_vertex_size * index;
     }
-    MSK_INLINE const Float *vertex(const uint32_t &index) const {
+    MSK_INLINE const float *vertex(const uint32_t &index) const {
         return m_vertices.get() + m_vertex_size * index;
     }
 
@@ -29,23 +29,23 @@ public:
         return m_faces.get() + m_face_size * index;
     }
 
-    MSK_INLINE Vector3 face_indices(uint32_t index) const {
-        return Vector3(*(face(index)), *(face(index) + 1), *(face(index) + 2));
+    MSK_INLINE Eigen::Vector3f face_indices(uint32_t index) const {
+        return Eigen::Vector3f(*(face(index)), *(face(index) + 1), *(face(index) + 2));
     }
 
-    MSK_INLINE Vector3 vertex_position(uint32_t index) const {
-        return Vector3(*(vertex(index)), *(vertex(index) + 1),
+    MSK_INLINE Eigen::Vector3f vertex_position(uint32_t index) const {
+        return Eigen::Vector3f(*(vertex(index)), *(vertex(index) + 1),
                        *(vertex(index) + 2));
     }
 
-    MSK_INLINE Vector3 vertex_normal(uint32_t index) const {
+    MSK_INLINE Eigen::Vector3f vertex_normal(uint32_t index) const {
         auto normal = vertex(index) + m_normal_offset;
-        return Vector3(*normal, *(normal + 1), *(normal + 2));
+        return Eigen::Vector3f(*normal, *(normal + 1), *(normal + 2));
     }
 
-    MSK_INLINE Vector2 vertex_texcoord(uint32_t index) const {
+    MSK_INLINE Eigen::Vector2f vertex_texcoord(uint32_t index) const {
         auto texcoord = vertex(index) + m_texcoord_offset;
-        return Vector2(*texcoord, *(texcoord + 1));
+        return Eigen::Vector2f(*texcoord, *(texcoord + 1));
     }
 
     auto face_area(uint32_t index) const {
@@ -60,8 +60,8 @@ public:
     bool has_vertex_texcoords() const { return m_texcoord_offset != 0; }
 
     virtual PositionSample
-    sample_position(const Vector2 &sample) const override;
-    virtual Float pdf_position(const PositionSample &ps) const override;
+    sample_position(const Eigen::Vector2f &sample) const override;
+    virtual float pdf_position(const PositionSample &ps) const override;
 
     virtual SurfaceInteraction
     compute_surface_interaction(const Ray &ray,
@@ -70,30 +70,30 @@ public:
     void area_distr_build();
     void recompute_bbox();
 
-    BoundingBox3 bbox() const override;
-    BoundingBox3 bbox(uint32_t index) const override;
-    Float surface_area() const override;
+    BoundingBox3f bbox() const override;
+    BoundingBox3f bbox(uint32_t index) const override;
+    float surface_area() const override;
 
-#if defined(APR_ENABLE_EMBREE)
+#if defined(MSK_ENABLE_EMBREE)
     virtual RTCGeometry embree_geometry(RTCDevice device) const override;
 #endif
 
 protected:
     Mesh(const Properties &props);
     virtual ~Mesh();
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
-    std::unique_ptr<Float[]> m_vertices;
+    std::unique_ptr<float[]> m_vertices;
     std::unique_ptr<uint32_t[]> m_faces;
     uint32_t m_vertex_size = 0, m_face_size = 0;
     uint32_t m_normal_offset = 0, m_texcoord_offset = 0;
     uint32_t m_vertex_count = 0, m_face_count = 0;
 
     Distribution1D m_area_distr;
-    Float m_surface_area;
+    float m_surface_area;
     std::string m_name;
-    BoundingBox3 m_bbox;
-    Transform4 m_to_world;
+    BoundingBox3f m_bbox;
+    Transform4f m_to_world;
 };
 
 } // namespace misaki

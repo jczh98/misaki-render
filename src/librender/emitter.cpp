@@ -7,6 +7,6 @@ Emitter::Emitter(const Properties &props) : Endpoint(props) {}
 
 Emitter::~Emitter() {}
 
-APR_IMPLEMENT_CLASS(Emitter, Endpoint, "emitter")
+MSK_IMPLEMENT_CLASS(Emitter, Endpoint, "emitter")
 
 } // namespace misaki

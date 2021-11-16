@@ -3,20 +3,20 @@
 #include "fwd.h"
 #include "object.h"
 #include "records.h"
-#if defined(APR_ENABLE_EMBREE)
+#if defined(MSK_ENABLE_EMBREE)
 #include <embree3/rtcore.h>
 #endif
 
 namespace misaki {
 
-class APR_EXPORT Shape : public Object {
+class MSK_EXPORT Shape : public Object {
 public:
-    virtual PositionSample sample_position(const Vector2 &sample) const;
-    virtual Float pdf_position(const PositionSample &ps) const;
+    virtual PositionSample sample_position(const Eigen::Vector2f &sample) const;
+    virtual float pdf_position(const PositionSample &ps) const;
 
     virtual DirectionSample sample_direction(const Interaction &it,
-                                             const Vector2 &sample) const;
-    virtual Float pdf_direction(const Interaction &it,
+                                             const Eigen::Vector2f &sample) const;
+    virtual float pdf_direction(const Interaction &it,
                                 const DirectionSample &ds) const;
 
     virtual SurfaceInteraction
@@ -44,15 +44,15 @@ public:
     /// Return the medium that lies on the exterior of this shape
     const Medium *exterior_medium() const { return m_exterior_medium.get(); }
 
-    virtual BoundingBox3 bbox() const;
-    virtual BoundingBox3 bbox(uint32_t index) const;
-    virtual Float surface_area() const;
+    virtual BoundingBox3f bbox() const;
+    virtual BoundingBox3f bbox(uint32_t index) const;
+    virtual float surface_area() const;
 
-#if defined(APR_ENABLE_EMBREE)
+#if defined(MSK_ENABLE_EMBREE)
     virtual RTCGeometry embree_geometry(RTCDevice device) const;
 #endif
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     Shape(const Properties &props);
     void set_children();
@@ -62,7 +62,7 @@ protected:
     ref<BSDF> m_bsdf;
     ref<Medium> m_interior_medium;
     ref<Medium> m_exterior_medium;
-    Transform4 m_world_transform;
+    Transform4f m_world_transform;
     std::string m_id;
 
     bool m_is_mesh = false;

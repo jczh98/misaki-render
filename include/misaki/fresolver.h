@@ -9,7 +9,7 @@ namespace misaki {
 
 namespace fs = std::filesystem;
 
-class APR_EXPORT FileResolver {
+class MSK_EXPORT FileResolver {
 public:
     using iterator       = std::vector<fs::path>::iterator;
     using const_iterator = std::vector<fs::path>::const_iterator;

@@ -5,10 +5,10 @@
 namespace misaki {
 
 SurfaceInteraction::SurfaceInteraction(const PositionSample &ps)
-    : Interaction(0.f, ps.p), uv(ps.uv), n(ps.n), sh_frame(Frame3(ps.n)) {}
+    : Interaction(0.f, ps.p), uv(ps.uv), n(ps.n), sh_frame(Frame(ps.n)) {}
 
 SurfaceInteraction::MediumPtr
-SurfaceInteraction::target_medium(const Float &cos_theta) const {
+SurfaceInteraction::target_medium(const float &cos_theta) const {
     return cos_theta > 0 ? shape->exterior_medium() : shape->interior_medium();
 }
 
@@ -29,7 +29,7 @@ PreliminaryIntersection::compute_surface_interaction(const Ray &ray) {
         si.initialize_sh_frame();
         si.wi = si.to_local(-ray.d);
     } else {
-        si.t  = math::Infinity<Float>;
+        si.t  = math::Infinity<float>;
         si.wi = -ray.d;
     }
     return si;

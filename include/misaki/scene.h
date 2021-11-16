@@ -10,7 +10,7 @@
 
 namespace misaki {
 
-class APR_EXPORT Scene : public Object {
+class MSK_EXPORT Scene : public Object {
 public:
     Scene(const Properties &props);
 
@@ -20,9 +20,10 @@ public:
     void accel_release();
 
     std::pair<DirectionSample, Spectrum>
-    sample_emitter_direction(const Interaction &ref, const Vector2 &sample,
+    sample_emitter_direction(const Interaction &ref,
+                             const Eigen::Vector2f &sample,
                              bool test_visibility = true) const;
-    Float pdf_emitter_direction(const Interaction &ref,
+    float pdf_emitter_direction(const Interaction &ref,
                                 const DirectionSample &ds) const;
 
     const Sensor *sensor() const { return m_sensor; }
@@ -39,9 +40,9 @@ public:
     const std::vector<ref<Shape>> &shapes() const { return m_shapes; }
     std::vector<ref<Shape>> &shapes() { return m_shapes; }
 
-    const BoundingBox3 &bbox() const { return m_bbox; }
+    const BoundingBox3f &bbox() const { return m_bbox; }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     ~Scene();
 
@@ -52,9 +53,9 @@ protected:
     std::vector<ref<Shape>> m_shapes;
     std::vector<ref<Emitter>> m_emitters;
     ref<Emitter> m_environment;
-    BoundingBox3 m_bbox;
+    BoundingBox3f m_bbox;
 };
 
-extern APR_EXPORT void library_nop();
+extern MSK_EXPORT void library_nop();
 
 } // namespace misaki

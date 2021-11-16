@@ -7,19 +7,19 @@
 
 namespace misaki {
 
-class APR_EXPORT ReconstructionFilter : public Object {
+class MSK_EXPORT ReconstructionFilter : public Object {
 public:
-    virtual Float eval(Float x) const;
-    Float radius() const { return m_radius; }
+    virtual float eval(float x) const;
+    float radius() const { return m_radius; }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     ReconstructionFilter(const Properties &props);
     virtual ~ReconstructionFilter();
 
 protected:
-    std::vector<Float> m_values;
-    Float m_radius;
+    std::vector<float> m_values;
+    float m_radius;
 };
 
 } // namespace misaki

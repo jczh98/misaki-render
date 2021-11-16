@@ -11,12 +11,12 @@ Sampler::Sampler(const Properties &props) {
 
 Sampler::~Sampler() {}
 
-void Sampler::seed(uint64_t seed_value) { APR_NOT_IMPLEMENTED("seed"); }
+void Sampler::seed(uint64_t seed_value) { MSK_NOT_IMPLEMENTED("seed"); }
 
-Float Sampler::next1d() { APR_NOT_IMPLEMENTED("next1d"); }
+float Sampler::next1d() { MSK_NOT_IMPLEMENTED("next1d"); }
 
-Vector2 Sampler::next2d() { APR_NOT_IMPLEMENTED("next2d"); }
+Eigen::Vector2f Sampler::next2d() { MSK_NOT_IMPLEMENTED("next2d"); }
 
-APR_IMPLEMENT_CLASS(Sampler, Object, "sampler")
+MSK_IMPLEMENT_CLASS(Sampler, Object, "sampler")
 
 } // namespace misaki

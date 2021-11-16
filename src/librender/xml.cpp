@@ -43,9 +43,9 @@ static void check_whitespace_only(const std::string &s, size_t offset) {
     }
 }
 
-static Float stof(const std::string &s) {
+static float stof(const std::string &s) {
     size_t offset = 0;
-    Float result  = std::stof(s, &offset);
+    float result  = std::stof(s, &offset);
     check_whitespace_only(s, offset);
     return result;
 }
@@ -179,7 +179,7 @@ enum class ColorMode { RGB, Spectral };
 
 struct XMLParseContext {
     std::unordered_map<std::string, XMLObject> instances;
-    Transform4 transform;
+    Transform4f transform;
     size_t id_counter = 0;
 
     XMLParseContext() {}
@@ -226,7 +226,7 @@ void expand_value_to_xyz(XMLSource &src, pugi::xml_node &node) {
     }
 }
 
-Vector3 parse_named_vector(XMLSource &src, pugi::xml_node &node,
+Eigen::Vector3f parse_named_vector(XMLSource &src, pugi::xml_node &node,
                            const std::string &attr_name) {
     auto vec_str = node.attribute(attr_name.c_str()).value();
     auto list    = string::tokenize(vec_str);
@@ -234,7 +234,7 @@ Vector3 parse_named_vector(XMLSource &src, pugi::xml_node &node,
         src.throw_error(node, "\"{}\" attribute must have exactly 3 elements",
                         attr_name);
     try {
-        return Vector3(detail::stof(list[0]), detail::stof(list[1]),
+        return Eigen::Vector3f(detail::stof(list[0]), detail::stof(list[1]),
                        detail::stof(list[2]));
     } catch (...) {
         src.throw_error(node, "could not parse floating point values in \"{}\"",
@@ -242,11 +242,11 @@ Vector3 parse_named_vector(XMLSource &src, pugi::xml_node &node,
     }
 }
 
-Vector3 parse_vector(XMLSource &src, pugi::xml_node &node,
-                     Float def_val = 0.f) {
+Eigen::Vector3f parse_vector(XMLSource &src, pugi::xml_node &node,
+                     float def_val = 0.f) {
     std::string value;
     try {
-        Float x = def_val, y = def_val, z = def_val;
+        float x = def_val, y = def_val, z = def_val;
         value = node.attribute("x").value();
         if (!value.empty())
             x = detail::stof(value);
@@ -256,7 +256,7 @@ Vector3 parse_vector(XMLSource &src, pugi::xml_node &node,
         value = node.attribute("z").value();
         if (!value.empty())
             z = detail::stof(value);
-        return Vector3(x, y, z);
+        return Eigen::Vector3f(x, y, z);
     } catch (...) {
         src.throw_error(node, "could not parse floating point value \"{}\"",
                         value);
@@ -316,7 +316,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
         if (std::string(node.name()) == "scene") {
             node.append_attribute("type") = "scene";
         } else if (tag == Tag::Transform)
-            ctx.transform = Transform4();
+            ctx.transform = Transform4f();
         if (node.attribute("name")) {
             auto name = node.attribute("name").value();
             if (string::starts_with(name, "_"))
@@ -390,7 +390,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
             case Tag::Float: {
                 check_attributes(src, node, { "name", "value" });
                 std::string value = node.attribute("value").value();
-                Float value_float;
+                float value_float;
                 try {
                     value_float = detail::stof(value);
                 } catch (...) {
@@ -424,7 +424,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                     string::tokenize(node.attribute("value").value(), " ");
                 if (tokens.size() != 16)
                     Throw("matrix: expected 16 values");
-                Matrix4 matrix;
+                Eigen::Matrix4f matrix;
                 for (int i = 0; i < 4; ++i) {
                     for (int j = 0; j < 4; ++j) {
                         try {
@@ -437,7 +437,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                         }
                     }
                 }
-                ctx.transform = Transform4(matrix) * ctx.transform;
+                ctx.transform = Transform4f(matrix) * ctx.transform;
                 break;
             }
             case Tag::RGB: {
@@ -468,7 +468,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
             } break;
             case Tag::Transform: {
                 check_attributes(src, node, { "name" });
-                ctx.transform = Transform4();
+                ctx.transform = Transform4f();
             } break;
             case Tag::LookAt: {
                 check_attributes(src, node, { "origin", "target", "up" });
@@ -477,7 +477,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                 auto target = parse_named_vector(src, node, "target");
                 auto up     = parse_named_vector(src, node, "up");
 
-                auto result = Transform4::lookat(origin, target, up);
+                auto result = Transform4f::lookat(origin, target, up);
                 if (result.matrix().hasNaN())
                     src.throw_error(node, "invalid lookat transformation");
                 ctx.transform = result * ctx.transform;
@@ -486,13 +486,13 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                 detail::expand_value_to_xyz(src, node);
                 check_attributes(src, node, { "x", "y", "z" }, false);
                 auto vec      = detail::parse_vector(src, node);
-                ctx.transform = Transform4::translate(vec) * ctx.transform;
+                ctx.transform = Transform4f::translate(vec) * ctx.transform;
             } break;
             case Tag::Scale: {
                 detail::expand_value_to_xyz(src, node);
                 check_attributes(src, node, { "x", "y", "z" }, false);
                 auto vec      = detail::parse_vector(src, node, 1.f);
-                ctx.transform = Transform4::scale(vec) * ctx.transform;
+                ctx.transform = Transform4f::scale(vec) * ctx.transform;
             } break;
         }
         for (pugi::xml_node &ch : node.children())

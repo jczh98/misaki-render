@@ -5,13 +5,13 @@
 
 namespace misaki {
 
-class APR_EXPORT Texture : public Object {
+class MSK_EXPORT Texture : public Object {
 public:
-    virtual Float eval_1(const SurfaceInteraction &si) const;
+    virtual float eval_1(const SurfaceInteraction &si) const;
     virtual Color3 eval_3(const SurfaceInteraction &si) const;
-    virtual Float mean() const;
+    virtual float mean() const;
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     Texture(const Properties &props);
     virtual ~Texture();

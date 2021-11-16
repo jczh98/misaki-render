@@ -37,8 +37,6 @@ set(CORE_SRCS
 
 set(BSDF_SRCS
         bsdfs/diffuse.cpp
-        bsdfs/twosided.cpp
-        bsdfs/dielectric.cpp
 )
 
 set(SAMPLER_SRCS
@@ -55,7 +53,8 @@ set(SHAPE_SRCS
 )
 
 set(EMITTER_SRCS
-        emitters/area.cpp emitters/constant.cpp
+        emitters/area.cpp 
+        emitters/constant.cpp
 )
 
 set(SENSOR_SRCS
@@ -71,9 +70,11 @@ set(FILM_SRCS
 )
 
 set(INTEGRATOR_SRCS
-        integrators/debug.cpp integrators/path.cpp
-        integrators/volpath.cpp integrators/sppm.cpp
-        integrators/photonmapper.cpp
+        integrators/debug.cpp 
+        #integrators/path.cpp
+        #integrators/volpath.cpp 
+        #integrators/sppm.cpp
+        #integrators/photonmapper.cpp
 )
 
 set(PHASE_SRCS

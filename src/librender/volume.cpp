@@ -4,13 +4,13 @@
 namespace misaki {
 
 Volume::Volume(const Properties &props) {
-    m_world_to_local = props.transform("to_world", Transform4()).inverse();
+    m_world_to_local = props.transform("to_world", Transform4f()).inverse();
 }
 
 Spectrum Volume::eval(const Interaction &) const {
-    APR_NOT_IMPLEMENTED("eval");
+    MSK_NOT_IMPLEMENTED("eval");
 }
 
-APR_IMPLEMENT_CLASS(Volume, Object, "volume")
+MSK_IMPLEMENT_CLASS(Volume, Object, "volume")
 
 } // namespace misaki

@@ -48,7 +48,7 @@ template <typename UInt32> constexpr auto has_flag(UInt32 flags, BSDFFlags f) {
     return (flags & (uint32_t) f) != 0u;
 }
 
-struct APR_EXPORT BSDFContext {
+struct MSK_EXPORT BSDFContext {
     TransportMode mode;
     uint32_t type_mask = +BSDFFlags::All;
     uint32_t component = (uint32_t) -1;
@@ -66,37 +66,37 @@ struct APR_EXPORT BSDFContext {
 };
 
 struct BSDFSample {
-    Vector3 wo;
-    Float pdf;
-    Float eta;
+    Eigen::Vector3f wo;
+    float pdf;
+    float eta;
     uint32_t sampled_type;
     uint32_t sampled_component;
 
     BSDFSample()
-        : wo(Vector3::Zero()), pdf(0.f), eta(1.f), sampled_type(0),
+        : wo(Eigen::Vector3f::Zero()), pdf(0.f), eta(1.f), sampled_type(0),
           sampled_component(-1u) {}
-    BSDFSample(const Vector3 &wo)
+    BSDFSample(const Eigen::Vector3f &wo)
         : wo(wo), pdf(0.f), eta(1.f), sampled_type(0), sampled_component(-1u) {}
 };
 
-class APR_EXPORT BSDF : public Object {
+class MSK_EXPORT BSDF : public Object {
 public:
     // Sample BSDF * cos(theta) and returns sampled bsdf information with BSDF *
     // cos(theta) divided by pdf
     virtual std::pair<BSDFSample, Spectrum>
     sample(const BSDFContext &ctx, const SurfaceInteraction &si,
-           Float sample1, // For selecting different bsdf lobe
-           const Vector2 &sample) const = 0;
+           float sample1, // For selecting different bsdf lobe
+           const Eigen::Vector2f &sample) const = 0;
 
     // Returns evaluated BSDF * cos(theta)
     virtual Spectrum eval(const BSDFContext &ctx, const SurfaceInteraction &si,
-                          const Vector3 &wo) const = 0;
+                          const Eigen::Vector3f &wo) const = 0;
 
     virtual Spectrum eval_null_transmission(const SurfaceInteraction &si) const;
 
     // Returns pdf of BSDF * cos(theta)
-    virtual Float pdf(const BSDFContext &ctx, const SurfaceInteraction &si,
-                      const Vector3 &wo) const = 0;
+    virtual float pdf(const BSDFContext &ctx, const SurfaceInteraction &si,
+                      const Eigen::Vector3f &wo) const = 0;
 
     /// Does the implementation require access to texture-space differentials?
     bool needs_differentials() const {
@@ -116,7 +116,7 @@ public:
 
     std::string to_string() const override = 0;
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     BSDF(const Properties &props);
     virtual ~BSDF();

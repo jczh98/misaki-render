@@ -6,12 +6,12 @@
 
 namespace misaki {
 
-class APR_EXPORT Medium : public Object {
+class MSK_EXPORT Medium : public Object {
 
 public:
     /// Sample a free-flight distance in the medium.
-    virtual std::pair<MediumInteraction, Float>
-    sample_interaction(const Ray &ray, Float sample,
+    virtual std::pair<MediumInteraction, float>
+    sample_interaction(const Ray &ray, float sample,
                        uint32_t channel) const = 0;
 
     /// Compute the transmittance and PDF
@@ -25,7 +25,7 @@ public:
     std::string id() const override { return m_id; }
     std::string to_string() const override = 0;
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     Medium();
     Medium(const Properties &props);

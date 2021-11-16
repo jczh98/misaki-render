@@ -8,6 +8,6 @@ PhaseFunction::PhaseFunction(const Properties &props)
 
 PhaseFunction::~PhaseFunction() {}
 
-APR_IMPLEMENT_CLASS(PhaseFunction, Object, "phase")
+MSK_IMPLEMENT_CLASS(PhaseFunction, Object, "phase")
 
 } // namespace misaki

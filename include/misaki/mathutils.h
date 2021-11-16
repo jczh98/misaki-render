@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Core>
+#include "platform.h"
 
 namespace misaki {
 
@@ -40,6 +41,10 @@ template <int N, typename T> T power(const T &x) {
 
 template <typename T> T clamp(T value, T vmin, T vmax) {
     return value < vmin ? vmin : (value > vmax ? vmax : value);
+}
+
+MSK_INLINE Eigen::VectorXf clamp(const Eigen::VectorXf &v, float vmin, float vmax) {
+    return v.cwiseMin(vmax).cwiseMax(vmin);
 }
 
 template <typename T> inline T sqr(const T &a) { return a * a; }
@@ -91,10 +96,11 @@ struct PCG32 {
         next_uint32();
     }
     uint32_t next_uint32() {
-        uint64_t oldstate   = state;
-        state               = oldstate * PCG32_MULT + inc;
-        uint32_t xorshifted = (uint32_t)(((oldstate >> 18u) ^ oldstate) >> 27u);
-        uint32_t rot        = (uint32_t)(oldstate >> 59u);
+        uint64_t oldstate = state;
+        state             = oldstate * PCG32_MULT + inc;
+        uint32_t xorshifted =
+            (uint32_t) (((oldstate >> 18u) ^ oldstate) >> 27u);
+        uint32_t rot = (uint32_t) (oldstate >> 59u);
         return (xorshifted >> rot) | (xorshifted << ((~rot + 1u) & 31));
     }
 
@@ -146,6 +152,14 @@ Eigen::Matrix<int, D, 1> floor2int(const Eigen::Matrix<T, D, 1> &vec) {
     return vec.array().floor().matrix().template cast<int>();
 }
 
+MSK_INLINE Eigen::RowVectorXi ceil2int(const Eigen::RowVectorXf &vec) {
+    return vec.array().ceil().matrix().template cast<int>();
+}
+
+MSK_INLINE Eigen::RowVectorXi floor2int(const Eigen::RowVectorXf &vec) {
+    return vec.array().floor().matrix().template cast<int>();
+}
+
 } // namespace math
 
 template <typename Float>
@@ -154,6 +168,15 @@ coordinate_system(const Eigen::Matrix<Float, 3, 1> &n) {
     Float sign    = std::copysign(1.f, n.z());
     const Float a = -1.f / (sign + n.z());
     const Float b = n.x() * n.y() * a;
+    return { { 1.f + sign * n.x() * n.x() * a, sign * b, -sign * n.x() },
+             { b, sign + n.y() * n.y() * a, -n.y() } };
+}
+
+MSK_INLINE std::pair<Eigen::Vector3f, Eigen::Vector3f>
+coordinate_system(const Eigen::Vector3f &n) {
+    float sign    = std::copysign(1.f, n.z());
+    const float a = -1.f / (sign + n.z());
+    const float b = n.x() * n.y() * a;
     return { { 1.f + sign * n.x() * n.x() * a, sign * b, -sign * n.x() },
              { b, sign + n.y() * n.y() * a, -n.y() } };
 }

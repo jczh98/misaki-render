@@ -4,28 +4,55 @@
 
 namespace misaki {
 
-template <typename Value_, int Size_> struct BoundingSphere {
-    using Value     = Value_;
-    using PointType = Eigen::Matrix<Value_, Size_, 1>;
-    PointType center;
-    Value radius;
-    BoundingSphere() : center(PointType::Constant(0.f)), radius(0.f) {}
-    BoundingSphere(const PointType &center, const Value &radius)
+struct BoundingSphere2f {
+    Eigen::Vector2f center;
+    float radius;
+    BoundingSphere2f()
+        : center(Eigen::Vector2f::Constant(0.f)), radius(0.f) {}
+    BoundingSphere2f(const Eigen::Vector2f &center, const float &radius)
         : center(center), radius(radius) {}
 
-    bool operator==(const BoundingSphere &bsphere) const {
+    bool operator==(const BoundingSphere2f &bsphere) const {
         return center == bsphere.center && radius == bsphere.radius;
     }
 
-    bool operator!=(const BoundingSphere &bsphere) const {
+    bool operator!=(const BoundingSphere2f &bsphere) const {
         return center != bsphere.center || radius != bsphere.radius;
     }
 
     bool empty() const { return radius <= 0.f; }
-    void expand(const PointType &p) {
-        radius = std::max<Value>(radius, (p - center).norm());
+    void expand(const Eigen::Vector2f &p) {
+        radius = std::max<float>(radius, (p - center).norm());
     }
-    bool contains(const PointType &p, bool strict = false) const {
+    bool contains(const Eigen::Vector2f &p, bool strict = false) const {
+        if (strict)
+            return (p - center).squaredNorm() < radius * radius;
+        else
+            return (p - center).squaredNorm() <= radius * radius;
+    }
+};
+
+struct BoundingSphere3f {
+    Eigen::Vector3f center;
+    float radius;
+    BoundingSphere3f()
+        : center(Eigen::Vector3f::Constant(0.f)), radius(0.f) {}
+    BoundingSphere3f(const Eigen::Vector3f &center, const float &radius)
+        : center(center), radius(radius) {}
+
+    bool operator==(const BoundingSphere3f &bsphere) const {
+        return center == bsphere.center && radius == bsphere.radius;
+    }
+
+    bool operator!=(const BoundingSphere3f &bsphere) const {
+        return center != bsphere.center || radius != bsphere.radius;
+    }
+
+    bool empty() const { return radius <= 0.f; }
+    void expand(const Eigen::Vector3f &p) {
+        radius = std::max<float>(radius, (p - center).norm());
+    }
+    bool contains(const Eigen::Vector3f &p, bool strict = false) const {
         if (strict)
             return (p - center).squaredNorm() < radius * radius;
         else

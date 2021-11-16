@@ -7,13 +7,13 @@ namespace misaki {
 namespace detail {
 
 #define APR_EXTERN_CLASS(Name)                                                 \
-    extern template class APR_EXPORT Name<float, Color<float, 3>>;
+    extern template class MSK_EXPORT Name<float, Color<float, 3>>;
 
 #define APR_INSTANTIATE_CLASS(Name)                                            \
-    template class APR_EXPORT Name<float, Color<float, 3>>;
+    template class MSK_EXPORT Name<float, Color<float, 3>>;
 
 #define APR_INSTANTIATE_STRUCT(Name)                                           \
-    template struct APR_EXPORT Name<float, Color<float, 3>>;
+    template struct MSK_EXPORT Name<float, Color<float, 3>>;
 
 #define APR_INVOKE_VARIANT(variant, func, ...)                                 \
     [&]() {                                                                    \

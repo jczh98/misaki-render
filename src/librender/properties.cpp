@@ -43,9 +43,9 @@ DEFINE_PROPERTY_ACCESSOR(bool, boolean, set_bool, bool_)
 DEFINE_PROPERTY_ACCESSOR(int, integer, set_int, int_)
 DEFINE_PROPERTY_ACCESSOR(float, float, set_float, float_)
 DEFINE_PROPERTY_ACCESSOR(std::string, string, set_string, string)
-DEFINE_PROPERTY_ACCESSOR(Vector3, vector, set_vector3, vector3)
+DEFINE_PROPERTY_ACCESSOR(Eigen::Vector3f, vector, set_vector3, vector3)
 DEFINE_PROPERTY_ACCESSOR(Color3, color, set_color, color)
-DEFINE_PROPERTY_ACCESSOR(Transform4, transform, set_transform, transform)
+DEFINE_PROPERTY_ACCESSOR(Transform4f, transform, set_transform, transform)
 DEFINE_PROPERTY_ACCESSOR(NamedReference, ref, set_named_reference,
                          named_reference)
 DEFINE_PROPERTY_ACCESSOR(ref<Object>, object, set_object, object)
@@ -77,10 +77,10 @@ struct PropertyTypeVisitor {
     }
     Type operator()(const bool &) { return Type::Bool; }
     Type operator()(const int &) { return Type::Int; }
-    Type operator()(const Float &) { return Type::Float; }
-    Type operator()(const Vector3 &) { return Type::Vector3; }
+    Type operator()(const float &) { return Type::Float; }
+    Type operator()(const Eigen::Vector3f &) { return Type::Vector3; }
     Type operator()(const std::string &) { return Type::String; }
-    Type operator()(const Transform4 &) { return Type::Transform; }
+    Type operator()(const Transform4f &) { return Type::Transform; }
     Type operator()(const Color3 &) { return Type::Color; }
     Type operator()(const NamedReference &) { return Type::NamedReference; }
     Type operator()(const ref<Object> &) { return Type::Object; }
@@ -95,10 +95,10 @@ struct StreamVisitor {
     }
     void operator()(const bool &b) { os << (b ? "true" : "false"); }
     void operator()(const int &i) { os << i; }
-    void operator()(const Float &f) { os << f; }
-    void operator()(const Vector3 &t) { os << t; }
+    void operator()(const float &f) { os << f; }
+    void operator()(const Eigen::Vector3f &t) { os << t; }
     void operator()(const std::string &s) { os << "\"" << s << "\""; }
-    void operator()(const Transform4 &t) { os << t; }
+    void operator()(const Transform4f &t) { os << t; }
     void operator()(const Color3 &t) { os << t; }
     void operator()(const NamedReference &nr) {
         os << "\"" << (const std::string &) nr << "\"";

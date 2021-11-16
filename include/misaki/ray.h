@@ -5,25 +5,27 @@
 namespace misaki {
 
 struct Ray {
-    Vector3 o, d;
-    Float mint = math::RayEpsilon<Float>;
-    Float maxt = math::Infinity<Float>;
-    Float time = 0.f;
-    Vector3 d_rcp;
+    Eigen::Vector3f o, d;
+    float mint = math::RayEpsilon<float>;
+    float maxt = math::Infinity<float>;
+    float time = 0.f;
+    Eigen::Vector3f d_rcp;
 
     Ray() {}
 
-    Ray(const Vector3 &o, const Vector3 &d, Float time)
+    Ray(const Eigen::Vector3f &o, const Eigen::Vector3f &d, float time)
         : o(o), d(d), time(time) {
         update();
     }
 
-    Ray(const Vector3 &o, const Vector3 &d, Float mint, Float maxt, Float time)
+    Ray(const Eigen::Vector3f &o, const Eigen::Vector3f &d, float mint,
+        float maxt,
+        float time)
         : o(o), d(d), mint(mint), maxt(maxt), time(time) {
         update();
     }
 
-    Vector3 operator()(Float t) const { return o + d * t; }
+    Eigen::Vector3f operator()(float t) const { return o + d * t; }
 
     void update() { d_rcp = d.cwiseInverse(); }
 
@@ -41,10 +43,10 @@ struct Ray {
 };
 
 struct RayDifferential : public Ray {
-    Vector3 o_x, o_y, d_x, d_y;
+    Eigen::Vector3f o_x, o_y, d_x, d_y;
     bool has_differentials = false;
 
-    void scale_differential(Float amount) {
+    void scale_differential(float amount) {
         o_x = (o_x - this->o) * amount + this->o;
         o_y = (o_y - this->o) * amount + this->o;
         d_x = (d_x - this->d) * amount + this->d;

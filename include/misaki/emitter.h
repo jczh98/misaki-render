@@ -33,7 +33,7 @@ constexpr auto has_flag(UInt32 flags, EmitterFlags f) {
     return (flags & (uint32_t) f) != 0u;
 }
 
-class APR_EXPORT Emitter : public Endpoint {
+class MSK_EXPORT Emitter : public Endpoint {
 public:
     bool is_environment() const {
         return has_flag(m_flags, EmitterFlags::Infinite) &&
@@ -41,7 +41,7 @@ public:
     }
     uint32_t flags() const { return m_flags; }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     Emitter(const Properties &props);
     virtual ~Emitter();

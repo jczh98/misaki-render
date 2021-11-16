@@ -16,26 +16,26 @@ public:
         m_scale          = props.float_("scale", 1.0f);
     }
 
-    std::pair<MediumInteraction, Float>
-    sample_interaction(const Ray &ray, Float sample,
+    std::pair<MediumInteraction, float>
+    sample_interaction(const Ray &ray, float sample,
                        uint32_t channel) const override {
-        Float sampled_distance = -std::log(1 - sample) / m_sigma_t[channel];
+        float sampled_distance = -std::log(1 - sample) / m_sigma_t[channel];
 
         MediumInteraction mi;
-        Float pdf;
+        float pdf;
         if (sampled_distance < ray.maxt - ray.mint) {
             mi.t       = sampled_distance + ray.mint;
             mi.p       = ray(mi.t);
             mi.sigma_a = m_sigma_a;
             mi.sigma_s = m_sigma_s;
             if (mi.p == ray.o) {
-                mi.t = math::Infinity<Float>;
+                mi.t = math::Infinity<float>;
                 pdf  = (m_sigma_t * (-sampled_distance)).exp().mean();
             } else
                 pdf = ((m_sigma_t * (-sampled_distance)).exp() * m_sigma_t)
                           .mean();
         } else {
-            mi.t             = math::Infinity<Float>;
+            mi.t             = math::Infinity<float>;
             sampled_distance = ray.maxt - ray.mint;
             pdf              = (m_sigma_t * (-sampled_distance)).exp().mean();
         }
@@ -47,7 +47,7 @@ public:
     }
 
     Spectrum eval_transmittance(const Ray &ray) const override {
-        Float neg_length = ray.mint - ray.maxt;
+        float neg_length = ray.mint - ray.maxt;
         return (m_sigma_t * neg_length).exp();
     }
 
@@ -61,13 +61,13 @@ public:
         return oss.str();
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
     Spectrum m_sigma_s, m_sigma_a, m_sigma_t;
-    Float m_scale;
+    float m_scale;
 };
 
-APR_IMPLEMENT_CLASS(HomogeneousMedium, Medium)
-APR_INTERNAL_PLUGIN(HomogeneousMedium, "homogeneous")
+MSK_IMPLEMENT_CLASS(HomogeneousMedium, Medium)
+MSK_INTERNAL_PLUGIN(HomogeneousMedium, "homogeneous")
 
 } // namespace misaki

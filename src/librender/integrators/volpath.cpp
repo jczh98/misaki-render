@@ -325,7 +325,7 @@ public:
         return pdf_a > 0.f ? pdf_a / (pdf_a + pdf_b) : 0.f;
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
     int m_max_depth = -1, m_rr_depth = 5;
     bool m_hide_emitter = false;

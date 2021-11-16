@@ -16,7 +16,7 @@ enum LogLevel : int {
     Error = 400  // Error message, causes an exception to be thrown
 };
 
-class APR_EXPORT Logger {
+class MSK_EXPORT Logger {
 public:
     Logger(LogLevel log_level = Debug);
     ~Logger();
@@ -35,7 +35,7 @@ private:
     LogLevel m_log_level, m_error_level;
 };
 
-APR_EXPORT Logger *get_instanced_logger();
+MSK_EXPORT Logger *get_instanced_logger();
 
 class Formatter {
     friend class Logger;
@@ -58,11 +58,11 @@ private:
 
 namespace detail {
 
-[[noreturn]] extern APR_EXPORT void Throw(LogLevel level, const char *file,
+[[noreturn]] extern MSK_EXPORT void Throw(LogLevel level, const char *file,
                                           int line, const std::string &msg);
 
 template <typename... Args>
-APR_INLINE static void Log(LogLevel level, const char *filename, int line,
+MSK_INLINE static void Log(LogLevel level, const char *filename, int line,
                            Args &&...args) {
     auto logger = get_instanced_logger();
     if (logger && level >= logger->log_level())
@@ -83,7 +83,7 @@ APR_INLINE static void Log(LogLevel level, const char *filename, int line,
                                fmt::format(__VA_ARGS__));                      \
     } while (0)
 
-#define APR_NOT_IMPLEMENTED(Name)                                              \
+#define MSK_NOT_IMPLEMENTED(Name)                                              \
     Throw("{}::" Name "(): not implemented!", __FILE__)
 
 } // namespace misaki

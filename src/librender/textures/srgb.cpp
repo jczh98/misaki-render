@@ -9,7 +9,7 @@ public:
         m_value = props.color("color");
     }
 
-    Float eval_1(const SurfaceInteraction &si) const override {
+    float eval_1(const SurfaceInteraction &si) const override {
         return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
     }
 
@@ -17,7 +17,7 @@ public:
         return m_value;
     }
 
-    Float mean() const override {
+    float mean() const override {
         return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
     }
 
@@ -29,12 +29,12 @@ public:
         return oss.str();
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
     Color3 m_value;
 };
 
-APR_IMPLEMENT_CLASS(SRGBTexture, Texture)
-APR_INTERNAL_PLUGIN(SRGBTexture, "srgb")
+MSK_IMPLEMENT_CLASS(SRGBTexture, Texture)
+MSK_INTERNAL_PLUGIN(SRGBTexture, "srgb")
 
 } // namespace misaki

@@ -5,7 +5,7 @@
 
 namespace misaki {
 
-class APR_EXPORT Integrator : public Object {
+class MSK_EXPORT Integrator : public Object {
 public:
     enum RadianceQuery {
         /// Emitted radiance from a luminaire intersected by the ray
@@ -62,7 +62,7 @@ public:
 
     virtual bool render(Scene *scene, Sensor *sensor);
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     Integrator(const Properties &props);
     virtual ~Integrator();

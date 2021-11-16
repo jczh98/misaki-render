@@ -235,7 +235,7 @@ public:
                (math::sqr(m_radius) * m_photon_count);
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
     PhotonKDTree m_global_photon_kdtree;
     PhotonMap m_global_photon_map;

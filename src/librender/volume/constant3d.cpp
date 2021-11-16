@@ -17,9 +17,9 @@ public:
         return eval_impl(it);
     }
 
-    APR_INLINE Spectrum eval_impl(const Interaction &it) const {
+    MSK_INLINE Spectrum eval_impl(const Interaction &it) const {
         SurfaceInteraction si;
-        si.uv       = Vector2(0.f, 0.f);
+        si.uv       = Eigen::Vector2f(0.f, 0.f);
         auto result = m_color->eval_3(si);
         return result;
     }
@@ -33,12 +33,12 @@ public:
         return oss.str();
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     ref<Texture> m_color;
 };
 
-APR_IMPLEMENT_CLASS(ConstVolume, Volume)
-APR_INTERNAL_PLUGIN(ConstVolume, "constvolume")
+MSK_IMPLEMENT_CLASS(ConstVolume, Volume)
+MSK_INTERNAL_PLUGIN(ConstVolume, "constvolume")
 
 } // namespace misaki

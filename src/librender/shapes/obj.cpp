@@ -71,9 +71,9 @@ public:
             fail("file not found");
         }
 
-        std::vector<Vector3> vertices;
-        std::vector<Vector3> normals;
-        std::vector<Vector2> texcoords;
+        std::vector<Eigen::Vector3f> vertices;
+        std::vector<Eigen::Vector3f> normals;
+        std::vector<Eigen::Vector2f> texcoords;
         std::vector<uint32_t> triangles;
         std::vector<OBJVertex> obj_vertices;
         std::unordered_map<OBJVertex, uint32_t, OBJVertexHash> vertex_map;
@@ -85,19 +85,19 @@ public:
             std::string prefix;
             line >> prefix;
             if (prefix == "v") {
-                Vector3 p;
+                Eigen::Vector3f p;
                 line >> p.x() >> p.y() >> p.z();
                 p = m_to_world.apply_point(p);
                 m_bbox.expand(p);
                 vertices.emplace_back(p);
             } else if (prefix == "vt") {
-                Vector2 tc;
+                Eigen::Vector2f tc;
                 line >> tc.x() >> tc.y();
                 if (filp_tex_coords)
                     tc.y() = 1.f - tc.y();
                 texcoords.emplace_back(tc);
             } else if (prefix == "vn") {
-                Vector3 n;
+                Eigen::Vector3f n;
                 line >> n.x() >> n.y() >> n.z();
                 n = (m_to_world.apply_normal(n)).normalized();
                 normals.push_back(n);
@@ -140,8 +140,8 @@ public:
         m_texcoord_offset = texcoords.empty() ? 0 : 6;
         m_vertex_size     = 3 + 3 + 2;
         m_face_size       = 3;
-        m_vertices        = std::unique_ptr<Float[]>(
-            new Float[(m_vertex_count + 1) * m_vertex_size]);
+        m_vertices        = std::unique_ptr<float[]>(
+            new float[(m_vertex_count + 1) * m_vertex_size]);
         m_faces = std::unique_ptr<uint32_t[]>(
             new uint32_t[(m_face_count + 1) * m_face_size]);
         memcpy(m_faces.get(), triangles.data(),
@@ -179,10 +179,10 @@ public:
             m_vertex_count);
         area_distr_build();
     }
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 };
 
-APR_IMPLEMENT_CLASS(OBJMesh, Mesh)
-APR_INTERNAL_PLUGIN(OBJMesh, "obj")
+MSK_IMPLEMENT_CLASS(OBJMesh, Mesh)
+MSK_INTERNAL_PLUGIN(OBJMesh, "obj")
 
 } // namespace misaki

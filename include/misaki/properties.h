@@ -24,7 +24,7 @@ private:
     std::string m_value;
 };
 
-class APR_EXPORT Properties {
+class MSK_EXPORT Properties {
 public:
     enum class Type {
         Bool,
@@ -61,7 +61,7 @@ public:
     }
 
     std::string to_string() const;
-    APR_EXPORT friend std::ostream &operator<<(std::ostream &os,
+    MSK_EXPORT friend std::ostream &operator<<(std::ostream &os,
                                                const Properties &p);
 
 public:
@@ -77,9 +77,9 @@ public:
     DEFINE_PROPERTY_METHODS(std::string, set_string, string)
     DEFINE_PROPERTY_METHODS(NamedReference, set_named_reference,
                             named_reference)
-    DEFINE_PROPERTY_METHODS(Vector3, set_vector3, vector3)
+    DEFINE_PROPERTY_METHODS(Eigen::Vector3f, set_vector3, vector3)
     DEFINE_PROPERTY_METHODS(Color3, set_color, color)
-    DEFINE_PROPERTY_METHODS(Transform4, set_transform, transform)
+    DEFINE_PROPERTY_METHODS(Transform4f, set_transform, transform)
     DEFINE_PROPERTY_METHODS(ref<Object>, set_object, object)
     DEFINE_PROPERTY_METHODS(void *const, set_pointer, pointer)
 #undef DEFINE_PROPERTY_METHODS
@@ -93,7 +93,7 @@ public:
         auto p_type = type(name);
         if (p_type == Properties::Type::Object) {
             ref<Object> object = find_object(name);
-            if (!object->clazz()->derives_from(APR_CLASS(Texture)))
+            if (!object->clazz()->derives_from(MSK_CLASS(Texture)))
                 Throw("The property \"{}\" has the wrong type (expected "
                       " <spectrum> or <texture>).",
                       name);
@@ -126,7 +126,7 @@ public:
     }
 
     template <typename Texture>
-    ref<Texture> texture(const std::string &name, Float def_val) const {
+    ref<Texture> texture(const std::string &name, float def_val) const {
         if (!has_property(name)) {
             Properties props("srgb");
             props.set_color("color", Color3::Constant(def_val));
@@ -147,13 +147,13 @@ public:
         auto p_type = type(name);
         if (p_type == Properties::Type::Object) {
             ref<Object> object = find_object(name);
-            if (!object->clazz()->derives_from(APR_CLASS(Volume::Texture)) &&
-                !object->clazz()->derives_from(APR_CLASS(Volume)))
+            if (!object->clazz()->derives_from(MSK_CLASS(Volume::Texture)) &&
+                !object->clazz()->derives_from(MSK_CLASS(Volume)))
                 Throw("The property \"{}\" has the wrong type (expected "
                       " <spectrum>, <texture>. or <volume>).",
                       name);
 
-            if (object->clazz()->derives_from(APR_CLASS(Volume))) {
+            if (object->clazz()->derives_from(MSK_CLASS(Volume))) {
                 return (Volume *) object.get();
             } else {
                 Properties props("constvolume");
@@ -184,7 +184,7 @@ public:
     }
 
     template <typename Volume>
-    ref<Volume> volume(const std::string &name, Float def_val) const {
+    ref<Volume> volume(const std::string &name, float def_val) const {
         if (!has_property(name)) {
             Properties props("constvolume");
             props.set_float("color", def_val);
@@ -199,7 +199,8 @@ private:
     ref<Object> find_object(const std::string &name) const;
 
     struct Entry {
-        std::variant<bool, int, Float, std::string, Vector3, Transform4, Color3,
+        std::variant<bool, int, float, std::string, Eigen::Vector3f,
+                     Transform4f, Color3,
                      NamedReference, ref<Object>, const void *>
             data;
     };

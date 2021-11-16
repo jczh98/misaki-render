@@ -8,8 +8,8 @@ ReconstructionFilter::ReconstructionFilter(const Properties &props) {}
 
 ReconstructionFilter::~ReconstructionFilter() {}
 
-Float ReconstructionFilter::eval(Float x) const { APR_NOT_IMPLEMENTED("eval"); }
+float ReconstructionFilter::eval(float x) const { MSK_NOT_IMPLEMENTED("eval"); }
 
-APR_IMPLEMENT_CLASS(ReconstructionFilter, Object, "rfilter")
+MSK_IMPLEMENT_CLASS(ReconstructionFilter, Object, "rfilter")
 
 } // namespace misaki

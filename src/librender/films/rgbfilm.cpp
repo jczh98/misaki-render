@@ -45,14 +45,14 @@ public:
         m_dest_file = filename;
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
     ref<ImageBlock> m_storage;
     fs::path m_dest_file;
     tbb::spin_mutex m_mutex;
 };
 
-APR_IMPLEMENT_CLASS(RGBFilm, Film)
-APR_INTERNAL_PLUGIN(RGBFilm, "rgbfilm")
+MSK_IMPLEMENT_CLASS(RGBFilm, Film)
+MSK_INTERNAL_PLUGIN(RGBFilm, "rgbfilm")
 
 } // namespace misaki

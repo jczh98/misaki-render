@@ -8,16 +8,16 @@ Texture::Texture(const Properties &props) : m_id(props.id()) {}
 
 Texture::~Texture() {}
 
-Float Texture::eval_1(const SurfaceInteraction &si) const {
-    APR_NOT_IMPLEMENTED("eval_1");
+float Texture::eval_1(const SurfaceInteraction &si) const {
+    MSK_NOT_IMPLEMENTED("eval_1");
 }
 
 Color3 Texture::eval_3(const SurfaceInteraction &si) const {
-    APR_NOT_IMPLEMENTED("eval_3");
+    MSK_NOT_IMPLEMENTED("eval_3");
 }
 
-Float Texture::mean() const { APR_NOT_IMPLEMENTED("mean"); }
+float Texture::mean() const { MSK_NOT_IMPLEMENTED("mean"); }
 
-APR_IMPLEMENT_CLASS(Texture, Object, "texture")
+MSK_IMPLEMENT_CLASS(Texture, Object, "texture")
 
 } // namespace misaki

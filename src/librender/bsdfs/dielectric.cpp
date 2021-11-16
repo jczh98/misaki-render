@@ -92,7 +92,7 @@ public:
         return oss.str();
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
     Float m_eta;
     ref<Texture> m_specular_reflectance, m_specular_transmittance;

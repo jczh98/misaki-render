@@ -5,18 +5,18 @@
 
 namespace misaki {
 
-class APR_EXPORT Volume : public Object {
+class MSK_EXPORT Volume : public Object {
 public:
     virtual Spectrum eval(const Interaction &si) const;
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 protected:
     Volume(const Properties &props);
     virtual ~Volume() {}
 
 protected:
-    Transform4 m_world_to_local;
-    BoundingBox3 m_bbox;
+    Transform4f m_world_to_local;
+    BoundingBox3f m_bbox;
 };
 
 } // namespace misaki

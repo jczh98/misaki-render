@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math_helper.h"
+#include "mathutils.h"
 #include <Eigen/Core>
 #include <algorithm>
 #include <numeric>

@@ -25,6 +25,6 @@ const BSDF *SurfaceInteraction::bsdf(const RayDifferential &ray) {
     return bsdf;
 }
 
-APR_IMPLEMENT_CLASS(BSDF, Object, "bsdf")
+MSK_IMPLEMENT_CLASS(BSDF, Object, "bsdf")
 
 } // namespace misaki

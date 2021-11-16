@@ -105,7 +105,7 @@ public:
         return oss.str();
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
     ref<BSDF> m_brdf[2];
 };

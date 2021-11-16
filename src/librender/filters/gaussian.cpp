@@ -12,16 +12,16 @@ public:
         m_bias   = std::exp(m_alpha * m_radius * m_radius);
     }
 
-    Float eval(Float x) const override {
+    float eval(float x) const override {
         return std::max(0.f, std::exp(m_alpha * x * x) - m_bias);
     }
 
-    APR_DECLARE_CLASS()
+    MSK_DECLARE_CLASS()
 private:
-    Float m_stddev, m_alpha, m_bias;
+    float m_stddev, m_alpha, m_bias;
 };
 
-APR_IMPLEMENT_CLASS(GaussianFilter, ReconstructionFilter)
-APR_INTERNAL_PLUGIN(GaussianFilter, "gaussian")
+MSK_IMPLEMENT_CLASS(GaussianFilter, ReconstructionFilter)
+MSK_INTERNAL_PLUGIN(GaussianFilter, "gaussian")
 
 } // namespace misaki

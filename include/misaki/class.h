@@ -6,7 +6,7 @@
 
 namespace misaki {
 
-class APR_EXPORT Class {
+class MSK_EXPORT Class {
 public:
     using ConstructFunctor = std::function<Object *(const Properties &)>;
 
@@ -43,24 +43,24 @@ private:
     inline static bool m_is_initialized = false;
 };
 
-#define APR_CLASS(x) x::m_class
+#define MSK_CLASS(x) x::m_class
 
-extern APR_EXPORT const Class *m_class;
+extern MSK_EXPORT const Class *m_class;
 
-#define APR_DECLARE_CLASS()                                                    \
+#define MSK_DECLARE_CLASS()                                                    \
     virtual const Class *clazz() const override;                               \
                                                                                \
 public:                                                                        \
     static Class *m_class;
 
-#define APR_IMPLEMENT_CLASS(Name, Parent, ...)                                 \
+#define MSK_IMPLEMENT_CLASS(Name, Parent, ...)                                 \
     Class *Name::m_class = new Class(                                          \
         #Name, #Parent, ::misaki::detail::get_construct_functor<Name>(),      \
         ##__VA_ARGS__);                                                        \
     const Class *Name::clazz() const { return m_class; }
 
-#define APR_INTERNAL_PLUGIN(Class, PluginName)                                 \
-    APR_EXPORT struct Plugin_##Class {                                         \
+#define MSK_INTERNAL_PLUGIN(Class, PluginName)                                 \
+    MSK_EXPORT struct Plugin_##Class {                                         \
         Plugin_##Class() {                                                     \
             detail::register_internal_plugin(#Class, PluginName);              \
         }                                                                      \

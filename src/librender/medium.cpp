@@ -29,6 +29,6 @@ Medium::Medium(const Properties &props) : m_id(props.id()) {
 
 Medium::~Medium() {}
 
-APR_IMPLEMENT_CLASS(Medium, Object, "medium")
+MSK_IMPLEMENT_CLASS(Medium, Object, "medium")
 
 } // namespace misaki
