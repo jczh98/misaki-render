@@ -4,6 +4,10 @@ cmake-build-release
 cmake-build-relwithdebinfo
 build
 .vscode
+
+results/assets
+results/*/*.png
+
 assets/*/*
 !assets/gallery/*
 !assets/*/*.xml

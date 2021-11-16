@@ -26,7 +26,7 @@ public:
         Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(),
             film_size.y(), total_spp);
         int m_block_size = APR_BLOCK_SIZE;
-        BlockGenerator gen(film_size, Vector2i::Zero(), m_block_size);
+        BlockGenerator gen(film_size, Eigen::Vector2i::Zero(), m_block_size);
         size_t total_blocks = gen.block_count();
         ProgressBar pbar(total_blocks, 70);
         Timer timer;
@@ -35,7 +35,7 @@ public:
             [&](const tbb::blocked_range<size_t> &range) {
                 auto sampler          = sensor->sampler()->clone();
                 ref<ImageBlock> block = new ImageBlock(
-                    Vector2i::Constant(m_block_size), film->filter());
+                    Eigen::Vector2i::Constant(m_block_size), film->filter());
                 for (auto i = range.begin(); i != range.end(); ++i) {
                     auto [offset, size, block_id] = gen.next_block();
                     block->set_offset(offset);
@@ -57,13 +57,13 @@ public:
         block->clear();
         auto &size              = block->size();
         auto &offset            = block->offset();
-        Float diff_scale_factor = Float(1) / std::sqrt(sample_count);
+        float diff_scale_factor = float(1) / std::sqrt(sample_count);
         for (int y = 0; y < size.y(); ++y) {
             for (int x = 0; x < size.x(); ++x) {
-                Vector2 pos = Vector2(x, y);
+                Eigen::Vector2f pos = Eigen::Vector2f(x, y);
                 if (pos.x() >= size.x() || pos.y() >= size.y())
                     continue;
-                pos = pos + offset.template cast<Float>();
+                pos = pos + offset.template cast<float>();
                 for (int s = 0; s < sample_count; ++s) {
                     render_sample(scene, sensor, sampler, block, pos,
                                   diff_scale_factor);
@@ -73,8 +73,8 @@ public:
     }
 
     void render_sample(const Scene *scene, const Sensor *sensor,
-                       Sampler *sampler, ImageBlock *block, const Vector2 &pos,
-                       Float diff_scale_factor) const {
+                       Sampler *sampler, ImageBlock *block, const Eigen::Vector2f &pos,
+                       float diff_scale_factor) const {
         auto position_sample = pos + sampler->next2d();
         auto [ray, ray_weight] =
             sensor->sample_ray_differential(position_sample, sampler->next2d());
@@ -89,7 +89,7 @@ public:
         RayDifferential ray   = ray_;
         Spectrum throughput   = Spectrum::Constant(1.f),
                  result       = Spectrum::Zero();
-        Float eta             = 1.f;
+        float eta             = 1.f;
         bool scattered        = false;
         SurfaceInteraction si = scene->ray_intersect(ray);
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
@@ -122,8 +122,8 @@ public:
                 if (ds.pdf != 0.f) {
                     auto wo           = si.to_local(ds.d);
                     Spectrum bsdf_val = bsdf->eval(ctx, si, wo);
-                    Float bsdf_pdf    = bsdf->pdf(ctx, si, wo);
-                    Float weight      = mis_weight(ds.pdf, bsdf_pdf);
+                    float bsdf_pdf    = bsdf->pdf(ctx, si, wo);
+                    float weight      = mis_weight(ds.pdf, bsdf_pdf);
                     result += throughput * emitter_val * bsdf_val * weight;
                 }
             }
@@ -179,8 +179,8 @@ public:
 
             // Russian roulette
             if (depth + 1 >= m_rr_depth) {
-                Float q =
-                    std::min(throughput.maxCoeff() * eta * eta, Float(0.95));
+                float q =
+                    std::min(throughput.maxCoeff() * eta * eta, float(0.95));
                 if (sampler->next1d() >= q)
                     break;
                 throughput /= q;
@@ -189,7 +189,7 @@ public:
         return result;
     }
 
-    Float mis_weight(Float pdf_a, Float pdf_b) const {
+    float mis_weight(float pdf_a, float pdf_b) const {
         pdf_a *= pdf_a;
         pdf_b *= pdf_b;
         return pdf_a > 0.f ? pdf_a / (pdf_a + pdf_b) : 0.f;
@@ -202,7 +202,7 @@ private:
     std::mutex m_mutex;
 };
 
-APR_IMPLEMENT_CLASS(PathTracer, Integrator)
-APR_INTERNAL_PLUGIN(PathTracer, "path")
+MSK_IMPLEMENT_CLASS(PathTracer, Integrator)
+MSK_INTERNAL_PLUGIN(PathTracer, "path")
 
 } // namespace misaki

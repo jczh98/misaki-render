@@ -28,7 +28,7 @@
         <rgb name="intensity" value="100000, 100000, 100000"/>
     </light> -->
     <shape type="obj">
-        <string name="filename" value="meshes/cbox_luminaire.obj"/>
+        <string name="filename" value="../assets/cbox/cbox_luminaire.obj"/>
         <transform name="to_world">
             <translate x="0" y="-0.5" z="0"/>
         </transform>
@@ -40,43 +40,43 @@
         </emitter>
     </shape>
     <shape type="obj">
-        <string name="filename" value="meshes/cbox_floor.obj"/>
+        <string name="filename" value="../assets/cbox/cbox_floor.obj"/>
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>
         </bsdf>
     </shape>
     <shape type="obj">
-        <string name="filename" value="meshes/cbox_ceiling.obj"/>
+        <string name="filename" value="../assets/cbox/cbox_ceiling.obj"/>
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>
         </bsdf>
     </shape>
     <shape type="obj">
-        <string name="filename" value="meshes/cbox_back.obj"/>
+        <string name="filename" value="../assets/cbox/cbox_back.obj"/>
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.885809, 0.698859, 0.666422"/>
         </bsdf>
     </shape>
     <shape type="obj">
-        <string name="filename" value="meshes/cbox_greenwall.obj"/>
+        <string name="filename" value="../assets/cbox/cbox_greenwall.obj"/>
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.105421, 0.37798, 0.076425"/>
         </bsdf>
     </shape>
     <shape type="obj">
-        <string name="filename" value="meshes/cbox_redwall.obj"/>
+        <string name="filename" value="../assets/cbox/cbox_redwall.obj"/>
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.570068, 0.0430135, 0.0443706"/>
         </bsdf>
     </shape>
     <shape type="obj">
-        <string name="filename" value="meshes/cbox_smallbox.obj"/>
+        <string name="filename" value="../assets/cbox/cbox_smallbox.obj"/>
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.45, 0.30, 0.90"/>
         </bsdf>
     </shape>
     <shape type="obj">
-        <string name="filename" value="meshes/cbox_largebox.obj"/>
+        <string name="filename" value="../assets/cbox/cbox_largebox.obj"/>
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.45, 0.30, 0.90"/>
         </bsdf>
