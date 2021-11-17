@@ -1,5 +1,5 @@
 #include <misaki/logger.h>
-#include <misaki/plugin.h>
+#include <misaki/manager.h>
 #include <misaki/properties.h>
 #include <misaki/sensor.h>
 
@@ -19,14 +19,14 @@ Sensor::Sensor(const Properties &props) : Endpoint(props) {
             m_sampler = sampler;
         }
     }
-    auto pmgr = PluginManager::instance();
+    auto imgr = InstanceManager::get();
     if (!m_film) {
         m_film = static_cast<Film *>(
-            pmgr->create_object<Film>(Properties("rgbfilm")));
+            imgr->create_instance<Film>(Properties("rgbfilm")));
     }
     if (!m_sampler) {
         m_sampler = static_cast<Sampler *>(
-            pmgr->create_object<Sampler>(Properties("independent")));
+            imgr->create_instance<Sampler>(Properties("independent")));
     }
     m_aspect     = m_film->size().x() / (float) m_film->size().y();
     m_resolution = Eigen::Vector2f(m_film->size().x(), m_film->size().y());

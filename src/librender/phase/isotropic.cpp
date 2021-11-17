@@ -1,6 +1,7 @@
 #include <misaki/interaction.h>
 #include <misaki/phase.h>
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/warp.h>
 
 namespace misaki {
@@ -33,5 +34,5 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(IsotropicPhaseFunction, PhaseFunction)
-MSK_INTERNAL_PLUGIN(IsotropicPhaseFunction, "isotropic")
+MSK_REGISTER_INSTANCE(IsotropicPhaseFunction, "isotropic")
 } // namespace misaki

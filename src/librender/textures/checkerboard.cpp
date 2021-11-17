@@ -1,5 +1,6 @@
 #include <misaki/interaction.h>
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/texture.h>
 
 namespace misaki {
@@ -7,8 +8,8 @@ namespace misaki {
 class CheckerboardTexture final : public Texture {
 public:
     CheckerboardTexture(const Properties &props) : Texture(props) {
-        m_color0    = props.texture<Texture>("color0", .4f);
-        m_color1    = props.texture<Texture>("color1", .2f);
+        m_color0    = props.texture("color0", .4f);
+        m_color1    = props.texture("color1", .2f);
         m_transform = props.transform("to_uv", Transform4f()).extract();
     }
     float eval_1(const SurfaceInteraction &si) const override {
@@ -40,6 +41,6 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(CheckerboardTexture, Texture)
-MSK_INTERNAL_PLUGIN(CheckerboardTexture, "checkerboard")
+MSK_REGISTER_INSTANCE(CheckerboardTexture, "checkerboard")
 
 } // namespace misaki

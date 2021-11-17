@@ -1,5 +1,6 @@
 #include <misaki/logger.h>
 #include <misaki/properties.h>
+#include <misaki/texture.h>
 
 #include <sstream>
 #include <unordered_map>
@@ -53,9 +54,9 @@ DEFINE_PROPERTY_ACCESSOR(const void *, pointer, set_pointer, pointer)
 
 Properties::Properties() : d(new PropertiesPrivate()) {}
 
-Properties::Properties(const std::string &plugin_name)
+Properties::Properties(const std::string &instance_name)
     : d(new PropertiesPrivate()) {
-    d->plugin_name = plugin_name;
+    d->instance_name = instance_name;
 }
 
 Properties::Properties(const Properties &props)
@@ -116,10 +117,12 @@ Properties::Type Properties::type(const std::string &name) const {
     return std::visit(PropertyTypeVisitor(), it->second.data);
 }
 
-const std::string &Properties::plugin_name() const { return d->plugin_name; }
+const std::string &Properties::instance_name() const {
+    return d->instance_name;
+}
 
-void Properties::set_plugin_name(const std::string &name) {
-    d->plugin_name = name;
+void Properties::set_instance_name(const std::string &name) {
+    d->instance_name = name;
 }
 
 const std::string &Properties::id() const { return d->id; }
@@ -160,7 +163,7 @@ std::vector<std::pair<std::string, ref<Object>>> Properties::objects() const {
 }
 
 bool Properties::operator==(const Properties &p) const {
-    if (d->plugin_name != p.d->plugin_name || d->id != p.d->id ||
+    if (d->instance_name != p.d->instance_name || d->id != p.d->id ||
         d->entries.size() != p.d->entries.size())
         return false;
 
@@ -173,6 +176,44 @@ bool Properties::operator==(const Properties &p) const {
     }
 
     return true;
+}
+
+ref<Texture> Properties::texture(const std::string &name) const {
+    if (!has_property(name)) {
+        Throw(R"(Property {} has not been specified!)", name);
+    }
+    auto p_type = type(name);
+    if (p_type == Properties::Type::Object) {
+        ref<Object> object = find_object(name);
+        if (!object->clazz()->derives_from(MSK_CLASS(Texture)))
+            Throw("The property \"{}\" has the wrong type (expected "
+                  " <spectrum> or <texture>).",
+                  name);
+        return (Texture *) object.get();
+    } else if (p_type == Properties::Type::Color) {
+        return static_cast<Texture *>(new ConstantSpectrumTexture(color(name)));
+    } else if (p_type == Properties::Type::Float) {
+        return static_cast<Texture *>(
+            new ConstantSpectrumTexture(Color3::Constant(float_(name))));
+    } else {
+        Throw("The property \"{}\" has the wrong type (expected "
+              " <spectrum> or <texture>).",
+              name);
+    }
+}
+
+ref<Texture> Properties::texture(const std::string &name,
+                                 ref<Texture> &def_val) const {
+    if (!has_property(name))
+        return def_val;
+    return texture(name);
+}
+ref<Texture> Properties::texture(const std::string &name, float def_val) const {
+    if (!has_property(name)) {
+        return static_cast<Texture *>(
+            new ConstantSpectrumTexture(Color3::Constant(def_val)));
+    }
+    return texture(name);
 }
 
 ref<Object> Properties::find_object(const std::string &name) const {
@@ -191,7 +232,7 @@ std::string Properties::to_string() const {
     auto it = d->entries.begin();
 
     os << "Properties[" << std::endl
-       << "  plugin_name = \"" << (d->plugin_name) << "\"," << std::endl
+       << "  instance_name = \"" << (d->instance_name) << "\"," << std::endl
        << "  id = \"" << d->id << "\"," << std::endl
        << "  elements = (" << std::endl;
     while (it != d->entries.end()) {
@@ -210,7 +251,7 @@ std::ostream &operator<<(std::ostream &os, const Properties &p) {
     auto it = p.d->entries.begin();
 
     os << "Properties[" << std::endl
-       << "  plugin_name = \"" << (p.d->plugin_name) << "\"," << std::endl
+       << "  instance_name = \"" << (p.d->instance_name) << "\"," << std::endl
        << "  id = \"" << p.d->id << "\"," << std::endl
        << "  elements = (" << std::endl;
     while (it != p.d->entries.end()) {

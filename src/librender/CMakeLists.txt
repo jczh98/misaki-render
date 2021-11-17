@@ -9,7 +9,6 @@ set(CORE_SRCS
         string.cpp
         class.cpp
         object.cpp
-        plugin.cpp
         properties.cpp
         logger.cpp
         imageblock.cpp
@@ -33,6 +32,7 @@ set(CORE_SRCS
         volume.cpp
         medium.cpp
         interaction.cpp
+        manager.cpp
 )
 
 set(BSDF_SRCS
@@ -44,7 +44,6 @@ set(SAMPLER_SRCS
 )
 
 set(TEXTURE_SRCS
-        textures/srgb.cpp 
         textures/checkerboard.cpp
 )
 

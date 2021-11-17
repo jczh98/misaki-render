@@ -59,13 +59,6 @@ public:                                                                        \
         ##__VA_ARGS__);                                                        \
     const Class *Name::clazz() const { return m_class; }
 
-#define MSK_INTERNAL_PLUGIN(Class, PluginName)                                 \
-    MSK_EXPORT struct Plugin_##Class {                                         \
-        Plugin_##Class() {                                                     \
-            detail::register_internal_plugin(#Class, PluginName);              \
-        }                                                                      \
-    } plugin_##Class;
-
 namespace detail {
 template <typename, typename Arg, typename = void>
 struct is_constructiblee : std::false_type {};

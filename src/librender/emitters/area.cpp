@@ -1,6 +1,7 @@
 #include <misaki/emitter.h>
 #include <misaki/mesh.h>
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/records.h>
 #include <misaki/texture.h>
 #include <misaki/warp.h>
@@ -10,7 +11,7 @@ namespace misaki {
 class AreaLight final : public Emitter {
 public:
     AreaLight(const Properties &props) : Emitter(props) {
-        m_radiance = props.texture<Texture>("radiance", 1.f);
+        m_radiance = props.texture("radiance", 1.f);
 
         m_flags = +EmitterFlags::Surface;
     }
@@ -57,6 +58,6 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(AreaLight, Emitter)
-MSK_INTERNAL_PLUGIN(AreaLight, "area")
+MSK_REGISTER_INSTANCE(AreaLight, "area")
 
 } // namespace misaki

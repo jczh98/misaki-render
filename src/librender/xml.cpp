@@ -1,6 +1,6 @@
 #include <misaki/logger.h>
 #include <misaki/object.h>
-#include <misaki/plugin.h>
+#include <misaki/manager.h>
 #include <misaki/properties.h>
 #include <misaki/xml.h>
 
@@ -533,12 +533,12 @@ static ref<Object> instantiate_node(XMLParseContext &ctx,
     }
     try {
         inst.object =
-            PluginManager::instance()->create_object(props, inst.clazz);
+            InstanceManager::get()->create_instance(props, inst.clazz);
     } catch (const std::exception &e) {
         Throw("Error while loading \"{}\" (near {}): could not instantiate "
-              "{} plugin of type \"{}\": {}",
+              "{} instance of type \"{}\": {}",
               inst.src_id, inst.offset(inst.location),
-              string::to_lower(inst.clazz->name()), props.plugin_name(),
+              string::to_lower(inst.clazz->name()), props.instance_name(),
               e.what());
     }
     return inst.object;

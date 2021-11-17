@@ -1,6 +1,7 @@
 #include <misaki/medium.h>
 #include <misaki/phase.h>
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/scene.h>
 #include <misaki/volume.h>
 
@@ -22,7 +23,7 @@ Medium::Medium(const Properties &props) : m_id(props.id()) {
     if (!m_phase_function) {
         // Create a default isotropic phase function
         m_phase_function =
-            PluginManager::instance()->create_object<PhaseFunction>(
+            InstanceManager::get()->create_instance<PhaseFunction>(
                 Properties("isotropic"));
     }
 }

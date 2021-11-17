@@ -3,6 +3,7 @@
 #include <misaki/object.h>
 #include <misaki/scene.h>
 #include <misaki/sensor.h>
+#include <misaki/manager.h>
 #include <misaki/xml.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -33,6 +34,7 @@ bool render(Object *scene_, fs::path filename) {
 
 int main(int argc, char **argv) {
     Class::static_initialization();
+    InstanceManager::static_initialization();
     library_nop();
     fs::path path = "../../../results/Figure_1_Pathtrace/scene.xml";
     get_file_resolver()->append(fs::path(argv[0]).parent_path());
@@ -43,6 +45,7 @@ int main(int argc, char **argv) {
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
     }
+    InstanceManager::static_shutdown();
     Class::static_shutdown();
     return 0;
 }

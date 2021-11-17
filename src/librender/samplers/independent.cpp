@@ -1,5 +1,5 @@
-#include <misaki/plugin.h>
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/sampler.h>
 
 namespace misaki {
@@ -48,6 +48,6 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(IndependentSampler, Sampler)
-MSK_INTERNAL_PLUGIN(IndependentSampler, "independent")
+MSK_REGISTER_INSTANCE(IndependentSampler, "independent")
 
 } // namespace misaki

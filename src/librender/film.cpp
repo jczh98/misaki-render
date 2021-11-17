@@ -1,7 +1,7 @@
 #include <misaki/film.h>
 #include <misaki/imageblock.h>
 #include <misaki/logger.h>
-#include <misaki/plugin.h>
+#include <misaki/manager.h>
 #include <misaki/properties.h>
 
 namespace misaki {
@@ -21,7 +21,7 @@ Film::Film(const Properties &props) {
     }
     if (!m_filter) {
         m_filter =
-            PluginManager::instance()->create_object<ReconstructionFilter>(
+            InstanceManager::get()->create_instance<ReconstructionFilter>(
                 Properties("gaussian"));
     }
 }

@@ -1,4 +1,5 @@
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/rfilter.h>
 
 namespace misaki {
@@ -22,6 +23,6 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(GaussianFilter, ReconstructionFilter)
-MSK_INTERNAL_PLUGIN(GaussianFilter, "gaussian")
+MSK_REGISTER_INSTANCE(GaussianFilter, "gaussian")
 
 } // namespace misaki

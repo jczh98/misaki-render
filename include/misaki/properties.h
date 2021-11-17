@@ -3,7 +3,6 @@
 #include "fwd.h"
 #include "logger.h"
 #include "object.h"
-#include "plugin.h"
 #include <map>
 #include <variant>
 
@@ -39,13 +38,13 @@ public:
         Pointer
     };
     Properties();
-    explicit Properties(const std::string &plugin_name);
+    explicit Properties(const std::string &instance_name);
     Properties(const Properties &props);
     void operator=(const Properties &props);
     ~Properties();
 
-    const std::string &plugin_name() const;
-    void set_plugin_name(const std::string &name);
+    const std::string &instance_name() const;
+    void set_instance_name(const std::string &name);
     bool has_property(const std::string &name) const;
     Type type(const std::string &name) const;
     const std::string &id() const;
@@ -85,6 +84,11 @@ public:
 #undef DEFINE_PROPERTY_METHODS
 
     // Texture
+    ref<Texture> texture(const std::string &name) const;
+    ref<Texture> texture(const std::string &name,
+                         ref<Texture> &def_val) const;
+    ref<Texture> texture(const std::string &name, float def_val) const;
+    /*
     template <typename Texture>
     ref<Texture> texture(const std::string &name) const {
         if (!has_property(name)) {
@@ -194,7 +198,7 @@ public:
         }
         return volume<Volume>(name);
     }
-
+    */
 private:
     ref<Object> find_object(const std::string &name) const;
 
@@ -206,7 +210,7 @@ private:
     };
     struct PropertiesPrivate {
         std::map<std::string, Entry> entries;
-        std::string id, plugin_name;
+        std::string id, instance_name;
     };
     std::unique_ptr<PropertiesPrivate> d;
 };

@@ -2,6 +2,7 @@
 
 #include <misaki/interaction.h>
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/texture.h>
 #include <misaki/volume.h>
 
@@ -10,7 +11,7 @@ namespace misaki {
 class ConstVolume final : public Volume {
 public:
     ConstVolume(const Properties &props) : Volume(props) {
-        m_color = props.texture<Texture>("color", 1.f);
+        m_color = props.texture("color", 1.f);
     }
 
     Spectrum eval(const Interaction &it) const override {
@@ -39,6 +40,6 @@ protected:
 };
 
 MSK_IMPLEMENT_CLASS(ConstVolume, Volume)
-MSK_INTERNAL_PLUGIN(ConstVolume, "constvolume")
+MSK_REGISTER_INSTANCE(ConstVolume, "constvolume")
 
 } // namespace misaki

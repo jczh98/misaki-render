@@ -19,5 +19,6 @@ Color3 Texture::eval_3(const SurfaceInteraction &si) const {
 float Texture::mean() const { MSK_NOT_IMPLEMENTED("mean"); }
 
 MSK_IMPLEMENT_CLASS(Texture, Object, "texture")
+MSK_IMPLEMENT_CLASS(ConstantSpectrumTexture, Texture)
 
 } // namespace misaki

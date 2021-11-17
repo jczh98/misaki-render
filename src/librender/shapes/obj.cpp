@@ -1,7 +1,7 @@
 #include <misaki/logger.h>
 #include <misaki/mesh.h>
 #include <misaki/properties.h>
-
+#include <misaki/manager.h>
 #include <fstream>
 #include <iostream>
 
@@ -183,6 +183,6 @@ public:
 };
 
 MSK_IMPLEMENT_CLASS(OBJMesh, Mesh)
-MSK_INTERNAL_PLUGIN(OBJMesh, "obj")
+MSK_REGISTER_INSTANCE(OBJMesh, "obj")
 
 } // namespace misaki

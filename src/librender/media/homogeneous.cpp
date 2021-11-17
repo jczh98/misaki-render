@@ -1,6 +1,7 @@
 #include <misaki/interaction.h>
 #include <misaki/medium.h>
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/texture.h>
 #include <misaki/volume.h>
 #include <iostream>
@@ -68,6 +69,6 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(HomogeneousMedium, Medium)
-MSK_INTERNAL_PLUGIN(HomogeneousMedium, "homogeneous")
+MSK_REGISTER_INSTANCE(HomogeneousMedium, "homogeneous")
 
 } // namespace misaki

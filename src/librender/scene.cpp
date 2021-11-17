@@ -2,7 +2,7 @@
 #include <misaki/integrator.h>
 #include <misaki/interaction.h>
 #include <misaki/logger.h>
-#include <misaki/plugin.h>
+#include <misaki/manager.h>
 #include <misaki/properties.h>
 #include <misaki/ray.h>
 #include <misaki/records.h>
@@ -51,7 +51,7 @@ Scene::Scene(const Properties &props) {
     }
     if (!m_integrator) {
         Log(Warn, "No integrator found! Instantiating a path tracer..");
-        m_integrator = PluginManager::instance()->create_object<Integrator>(
+        m_integrator = InstanceManager::get()->create_instance<Integrator>(
             Properties("path"));
     }
     accel_init(props);

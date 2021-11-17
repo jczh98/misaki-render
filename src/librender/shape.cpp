@@ -3,7 +3,7 @@
 #include <misaki/interaction.h>
 #include <misaki/logger.h>
 #include <misaki/medium.h>
-#include <misaki/plugin.h>
+#include <misaki/manager.h>
 #include <misaki/properties.h>
 #include <misaki/records.h>
 #include <misaki/shape.h>
@@ -43,7 +43,7 @@ Shape::Shape(const Properties &props) : m_id(props.id()) {
         }
     }
     if (!m_bsdf)
-        m_bsdf = PluginManager::instance()->create_object<BSDF>(
+        m_bsdf = InstanceManager::get()->create_instance<BSDF>(
             Properties("diffuse"));
 }
 

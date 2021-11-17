@@ -6,6 +6,7 @@
 #include <misaki/logger.h>
 #include <misaki/mesh.h>
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/records.h>
 #include <misaki/scene.h>
 #include <misaki/sensor.h>
@@ -203,6 +204,6 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(PathTracer, Integrator)
-MSK_INTERNAL_PLUGIN(PathTracer, "path")
+MSK_REGISTER_INSTANCE(PathTracer, "path")
 
 } // namespace misaki

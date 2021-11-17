@@ -1,7 +1,7 @@
 #include <misaki/film.h>
 #include <misaki/imageblock.h>
 #include <misaki/properties.h>
-
+#include <misaki/manager.h>
 #include <fstream>
 
 namespace misaki {
@@ -53,6 +53,6 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(RGBFilm, Film)
-MSK_INTERNAL_PLUGIN(RGBFilm, "rgbfilm")
+MSK_REGISTER_INSTANCE(RGBFilm, "rgbfilm")
 
 } // namespace misaki

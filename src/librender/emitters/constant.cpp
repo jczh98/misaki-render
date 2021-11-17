@@ -1,6 +1,7 @@
 #include <misaki/emitter.h>
 #include <misaki/mesh.h>
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/records.h>
 #include <misaki/scene.h>
 #include <misaki/texture.h>
@@ -12,7 +13,7 @@ class ConstantBackgroundEmitter final : public Emitter {
 public:
     ConstantBackgroundEmitter(const Properties &props) : Emitter(props) {
         m_bsphere  = BoundingSphere3f(Eigen::Vector3f::Constant(0.f), 1.f);
-        m_radiance = props.texture<Texture>("radiance", 1.f);
+        m_radiance = props.texture("radiance", 1.f);
 
         m_flags = +EmitterFlags::Infinite;
     }
@@ -85,6 +86,6 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(ConstantBackgroundEmitter, Emitter)
-MSK_INTERNAL_PLUGIN(ConstantBackgroundEmitter, "constant")
+MSK_REGISTER_INSTANCE(ConstantBackgroundEmitter, "constant")
 
 } // namespace misaki

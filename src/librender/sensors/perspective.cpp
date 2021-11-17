@@ -1,4 +1,5 @@
 #include <misaki/properties.h>
+#include <misaki/manager.h>
 #include <misaki/sensor.h>
 
 namespace misaki {
@@ -38,6 +39,6 @@ private:
 };
 
 MSK_IMPLEMENT_CLASS(PerspectiveCamera, ProjectiveCamera)
-MSK_INTERNAL_PLUGIN(PerspectiveCamera, "perspective")
+MSK_REGISTER_INSTANCE(PerspectiveCamera, "perspective")
 
 } // namespace misaki
