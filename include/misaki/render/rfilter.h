@@ -1,7 +1,7 @@
 #pragma once
 
-#include "fwd.h"
-#include "object.h"
+#include "misaki/core/fwd.h"
+#include "misaki/core/object.h"
 
 #define APR_FILTER_RESOLUTION 32
 

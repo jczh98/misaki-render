@@ -1,9 +1,9 @@
-#include <misaki/bsdf.h>
-#include <misaki/logger.h>
-#include <misaki/manager.h>
-#include <misaki/properties.h>
-#include <misaki/texture.h>
-#include <misaki/warp.h>
+#include <misaki/render/bsdf.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/texture.h>
+#include <misaki/core/warp.h>
 
 namespace misaki {
 

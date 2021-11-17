@@ -1,7 +1,7 @@
 #pragma once
 
-#include "fwd.h"
-#include "object.h"
+#include "misaki/core/fwd.h"
+#include "misaki/core/object.h"
 #include "records.h"
 #if defined(MSK_ENABLE_EMBREE)
 #include <embree3/rtcore.h>

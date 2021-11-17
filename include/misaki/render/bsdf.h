@@ -1,7 +1,7 @@
 #pragma once
 
 #include "interaction.h"
-#include "object.h"
+#include <misaki/core/object.h>
 
 namespace misaki {
 

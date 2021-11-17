@@ -1,5 +1,5 @@
-#include <misaki/emitter.h>
-#include <misaki/properties.h>
+#include <misaki/render/emitter.h>
+#include <misaki/core/properties.h>
 
 namespace misaki {
 

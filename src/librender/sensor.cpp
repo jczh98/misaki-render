@@ -1,7 +1,7 @@
-#include <misaki/logger.h>
-#include <misaki/manager.h>
-#include <misaki/properties.h>
-#include <misaki/sensor.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/sensor.h>
 
 namespace misaki {
 

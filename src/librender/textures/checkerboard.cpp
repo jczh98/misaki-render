@@ -1,7 +1,7 @@
-#include <misaki/interaction.h>
-#include <misaki/properties.h>
-#include <misaki/manager.h>
-#include <misaki/texture.h>
+#include <misaki/render/interaction.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/manager.h>
+#include <misaki/render/texture.h>
 
 namespace misaki {
 

@@ -1,6 +1,6 @@
-#include <misaki/interaction.h>
-#include <misaki/records.h>
-#include <misaki/shape.h>
+#include <misaki/render/interaction.h>
+#include <misaki/render/records.h>
+#include <misaki/render/shape.h>
 
 namespace misaki {
 

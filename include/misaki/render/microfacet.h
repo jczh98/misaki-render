@@ -1,8 +1,8 @@
 #pragma once
 
 #include "fresnel.h"
-#include "fwd.h"
-#include "properties.h"
+#include "misaki/core/fwd.h"
+#include "misaki/core/properties.h"
 
 namespace misaki {
 

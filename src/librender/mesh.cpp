@@ -1,9 +1,9 @@
-#include <misaki/emitter.h>
-#include <misaki/interaction.h>
-#include <misaki/logger.h>
-#include <misaki/mesh.h>
-#include <misaki/properties.h>
-#include <misaki/warp.h>
+#include <misaki/render/emitter.h>
+#include <misaki/render/interaction.h>
+#include <misaki/core/logger.h>
+#include <misaki/render/mesh.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/warp.h>
 #include <iostream>
 
 namespace misaki {

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <misaki/core/fwd.h>
 #include "endpoint.h"
-#include "fwd.h"
 
 namespace misaki {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fwd.h"
+#include "misaki/core/fwd.h"
 #include "interaction.h"
 
 namespace misaki {

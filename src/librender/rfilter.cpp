@@ -1,6 +1,6 @@
-#include <misaki/logger.h>
-#include <misaki/properties.h>
-#include <misaki/rfilter.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/rfilter.h>
 
 namespace misaki {
 

@@ -1,5 +1,5 @@
-#include <misaki/phase.h>
-#include <misaki/properties.h>
+#include <misaki/render/phase.h>
+#include <misaki/core/properties.h>
 
 namespace misaki {
 

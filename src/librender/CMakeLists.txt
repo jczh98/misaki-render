@@ -1,8 +1,12 @@
 
 set(INC_DIR ../../include/misaki)
 
-file(GLOB_RECURSE HEADERS 
-        ${INC_DIR}/*.h
+file(GLOB_RECURSE CORE_HDRS
+        ${INC_DIR}/core/*.h
+)
+
+file(GLOB_RECURSE RENDER_HDRS
+        ${INC_DIR}/render/*.h
 )
 
 set(CORE_SRCS
@@ -88,7 +92,8 @@ set(MEDIUM_SRCS
         media/homogeneous.cpp
 )
 
-source_group("Headers" FILES ${HEADERS})
+source_group("Headers/Core" FILES ${CORE_HDRS})
+source_group("Headers/Render" FILES ${RENDER_HDRS})
 source_group("Sources/Core" FILES ${CORE_SRCS})
 source_group("Sources/Samplers" FILES ${SAMPLER_SRCS})
 source_group("Sources/BSDFs" FILES ${BSDF_SRCS})
@@ -104,7 +109,8 @@ source_group("Sources/Volumes" FILES ${VOLUME_SRCS})
 source_group("Sources/Media" FILES ${MEDIUM_SRCS})
 
 add_library(misaki-render SHARED
-        ${HEADERS}
+        ${CORE_HDRS}
+        ${RENDER_HDRS}
         ${CORE_SRCS}
         ${SAMPLER_SRCS}
         ${BSDF_SRCS}

@@ -1,9 +1,9 @@
-#include <misaki/medium.h>
-#include <misaki/phase.h>
-#include <misaki/properties.h>
-#include <misaki/manager.h>
-#include <misaki/scene.h>
-#include <misaki/volume.h>
+#include <misaki/render/medium.h>
+#include <misaki/render/phase.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/manager.h>
+#include <misaki/render/scene.h>
+#include <misaki/render/volume.h>
 
 namespace misaki {
 

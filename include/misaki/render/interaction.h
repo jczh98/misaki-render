@@ -1,7 +1,7 @@
 #pragma once
 
-#include "fwd.h"
-#include "ray.h"
+#include "misaki/core/fwd.h"
+#include "misaki/core/ray.h"
 
 namespace misaki {
 

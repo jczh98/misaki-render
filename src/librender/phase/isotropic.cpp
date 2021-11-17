@@ -1,8 +1,8 @@
-#include <misaki/interaction.h>
-#include <misaki/phase.h>
-#include <misaki/properties.h>
-#include <misaki/manager.h>
-#include <misaki/warp.h>
+#include <misaki/render/interaction.h>
+#include <misaki/render/phase.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/warp.h>
 
 namespace misaki {
 

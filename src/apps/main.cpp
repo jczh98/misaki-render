@@ -1,10 +1,10 @@
-#include <misaki/integrator.h>
-#include <misaki/logger.h>
-#include <misaki/object.h>
-#include <misaki/scene.h>
-#include <misaki/sensor.h>
-#include <misaki/manager.h>
-#include <misaki/xml.h>
+#include <misaki/render/integrator.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/object.h>
+#include <misaki/render/scene.h>
+#include <misaki/render/sensor.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/xml.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include <tbb/task_scheduler_init.h>

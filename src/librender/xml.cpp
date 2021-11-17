@@ -1,8 +1,8 @@
-#include <misaki/logger.h>
-#include <misaki/object.h>
-#include <misaki/manager.h>
-#include <misaki/properties.h>
-#include <misaki/xml.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/object.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/xml.h>
 
 #include <fstream>
 #include <iostream>

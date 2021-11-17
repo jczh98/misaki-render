@@ -1,7 +1,7 @@
-#include <misaki/logger.h>
-#include <misaki/mesh.h>
-#include <misaki/properties.h>
-#include <misaki/manager.h>
+#include <misaki/core/logger.h>
+#include <misaki/render/mesh.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/manager.h>
 #include <fstream>
 #include <iostream>
 

@@ -1,12 +1,12 @@
-#include <misaki/bsdf.h>
-#include <misaki/emitter.h>
-#include <misaki/interaction.h>
-#include <misaki/logger.h>
-#include <misaki/medium.h>
-#include <misaki/manager.h>
-#include <misaki/properties.h>
-#include <misaki/records.h>
-#include <misaki/shape.h>
+#include <misaki/render/bsdf.h>
+#include <misaki/render/emitter.h>
+#include <misaki/render/interaction.h>
+#include <misaki/core/logger.h>
+#include <misaki/render/medium.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/records.h>
+#include <misaki/render/shape.h>
 #include <iostream>
 
 namespace misaki {

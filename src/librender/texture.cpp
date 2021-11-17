@@ -1,6 +1,6 @@
-#include <misaki/logger.h>
-#include <misaki/properties.h>
-#include <misaki/texture.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/texture.h>
 
 namespace misaki {
 

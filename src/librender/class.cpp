@@ -1,6 +1,6 @@
-#include <misaki/class.h>
-#include <misaki/logger.h>
-#include <misaki/object.h>
+#include <misaki/core/class.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/object.h>
 #include <iostream>
 #include <map>
 

@@ -1,6 +1,6 @@
-#include <misaki/logger.h>
-#include <misaki/manager.h>
-#include <misaki/properties.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
 
 #include <iostream>
 #include <mutex>

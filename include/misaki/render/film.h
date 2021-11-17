@@ -1,8 +1,8 @@
 #pragma once
 
-#include "bitmap.h"
+#include "misaki/core/bitmap.h"
 #include "imageblock.h"
-#include "object.h"
+#include "misaki/core/object.h"
 #include "rfilter.h"
 
 namespace misaki {

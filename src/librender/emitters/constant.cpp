@@ -1,11 +1,11 @@
-#include <misaki/emitter.h>
-#include <misaki/mesh.h>
-#include <misaki/properties.h>
-#include <misaki/manager.h>
-#include <misaki/records.h>
-#include <misaki/scene.h>
-#include <misaki/texture.h>
-#include <misaki/warp.h>
+#include <misaki/render/emitter.h>
+#include <misaki/render/mesh.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/manager.h>
+#include <misaki/render/records.h>
+#include <misaki/render/scene.h>
+#include <misaki/render/texture.h>
+#include <misaki/core/warp.h>
 
 namespace misaki {
 

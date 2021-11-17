@@ -1,6 +1,6 @@
-#include <misaki/properties.h>
-#include <misaki/manager.h>
-#include <misaki/sensor.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/manager.h>
+#include <misaki/render/sensor.h>
 
 namespace misaki {
 

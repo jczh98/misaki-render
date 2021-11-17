@@ -1,7 +1,7 @@
-#include <misaki/imageblock.h>
-#include <misaki/integrator.h>
-#include <misaki/logger.h>
-#include <misaki/properties.h>
+#include <misaki/render/imageblock.h>
+#include <misaki/render/integrator.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/properties.h>
 
 namespace misaki {
 

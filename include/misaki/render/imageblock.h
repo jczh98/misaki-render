@@ -2,7 +2,7 @@
 
 #include <tbb/spin_mutex.h>
 
-#include "object.h"
+#include "misaki/core/object.h"
 #include "rfilter.h"
 
 #define APR_BLOCK_SIZE 32

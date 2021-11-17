@@ -1,7 +1,7 @@
-#include <misaki/film.h>
-#include <misaki/imageblock.h>
-#include <misaki/properties.h>
-#include <misaki/manager.h>
+#include <misaki/render/film.h>
+#include <misaki/render/imageblock.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/manager.h>
 #include <fstream>
 
 namespace misaki {

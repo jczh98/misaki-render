@@ -1,14 +1,14 @@
-#include <misaki/emitter.h>
-#include <misaki/integrator.h>
-#include <misaki/interaction.h>
-#include <misaki/logger.h>
-#include <misaki/manager.h>
-#include <misaki/properties.h>
-#include <misaki/ray.h>
-#include <misaki/records.h>
-#include <misaki/scene.h>
-#include <misaki/sensor.h>
-#include <misaki/shape.h>
+#include <misaki/render/emitter.h>
+#include <misaki/render/integrator.h>
+#include <misaki/render/interaction.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/ray.h>
+#include <misaki/render/records.h>
+#include <misaki/render/scene.h>
+#include <misaki/render/sensor.h>
+#include <misaki/render/shape.h>
 #include <iostream>
 
 namespace misaki {

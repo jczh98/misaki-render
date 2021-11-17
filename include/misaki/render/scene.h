@@ -3,9 +3,9 @@
 #include <optional>
 
 #include "emitter.h"
-#include "fwd.h"
-#include "object.h"
-#include "ray.h"
+#include "misaki/core/fwd.h"
+#include "misaki/core/object.h"
+#include "misaki/core/ray.h"
 #include "sensor.h"
 
 namespace misaki {

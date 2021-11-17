@@ -1,5 +1,5 @@
-#include <misaki/properties.h>
-#include <misaki/volume.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/volume.h>
 
 namespace misaki {
 

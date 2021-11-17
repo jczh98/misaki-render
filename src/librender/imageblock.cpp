@@ -1,6 +1,6 @@
 #include <iostream>
-#include <misaki/imageblock.h>
-#include <misaki/logger.h>
+#include <misaki/render/imageblock.h>
+#include <misaki/core/logger.h>
 #include <sstream>
 #include <tbb/spin_mutex.h>
 

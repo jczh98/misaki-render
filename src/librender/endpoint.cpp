@@ -1,8 +1,8 @@
-#include <misaki/endpoint.h>
-#include <misaki/logger.h>
-#include <misaki/medium.h>
-#include <misaki/properties.h>
-#include <misaki/records.h>
+#include <misaki/render/endpoint.h>
+#include <misaki/core/logger.h>
+#include <misaki/render/medium.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/records.h>
 
 namespace misaki {
 

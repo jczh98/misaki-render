@@ -2,8 +2,8 @@
 
 #include <optional>
 
-#include "fwd.h"
-#include "object.h"
+#include "misaki/core/fwd.h"
+#include "misaki/core/object.h"
 #include "records.h"
 
 namespace misaki {

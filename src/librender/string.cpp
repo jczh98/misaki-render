@@ -1,4 +1,4 @@
-#include <misaki/string.h>
+#include <misaki/core/string.h>
 
 namespace misaki::string {
 

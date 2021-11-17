@@ -1,7 +1,7 @@
-#include <misaki/bsdf.h>
-#include <misaki/logger.h>
-#include <misaki/properties.h>
-#include <misaki/shape.h>
+#include <misaki/render/bsdf.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/shape.h>
 
 namespace misaki {
 
