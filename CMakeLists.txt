@@ -10,6 +10,8 @@ find_package(pugixml CONFIG REQUIRED)
 find_package(TBB CONFIG REQUIRED)
 find_package(OpenImageIO CONFIG REQUIRED)
 find_package(embree 3 REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb.h")
 
 option(MSK_ENABLE_EMBREE  "Use Embree for ray tracing intersection" ON)

@@ -9,6 +9,10 @@ file(GLOB_RECURSE RENDER_HDRS
         ${INC_DIR}/render/*.h
 )
 
+file(GLOB_RECURSE UI_HDRS
+        ${INC_DIR}/ui/*.h
+)
+
 set(CORE_SRCS
         string.cpp
         class.cpp
@@ -37,6 +41,17 @@ set(CORE_SRCS
         medium.cpp
         interaction.cpp
         manager.cpp
+)
+
+set(UI_SRCS
+        ui/viewer.cpp
+        ui/imgui.cpp
+        ui/imgui_demo.cpp
+        ui/imgui_draw.cpp
+        ui/imgui_tables.cpp
+        ui/imgui_widgets.cpp
+        ui/imgui_impl_opengl3.cpp
+        ui/imgui_impl_glfw.cpp
 )
 
 set(BSDF_SRCS
@@ -94,7 +109,11 @@ set(MEDIUM_SRCS
 
 source_group("Headers/Core" FILES ${CORE_HDRS})
 source_group("Headers/Render" FILES ${RENDER_HDRS})
+source_group("Headers/UI" FILES ${UI_HDRS})
+
 source_group("Sources/Core" FILES ${CORE_SRCS})
+source_group("Sources/UI" FILES ${UI_SRCS})
+
 source_group("Sources/Samplers" FILES ${SAMPLER_SRCS})
 source_group("Sources/BSDFs" FILES ${BSDF_SRCS})
 source_group("Sources/Textures" FILES ${TEXTURE_SRCS})
@@ -111,7 +130,11 @@ source_group("Sources/Media" FILES ${MEDIUM_SRCS})
 add_library(misaki-render SHARED
         ${CORE_HDRS}
         ${RENDER_HDRS}
+        ${UI_HDRS}
+
         ${CORE_SRCS}
+        ${UI_SRCS}
+
         ${SAMPLER_SRCS}
         ${BSDF_SRCS}
         ${TEXTURE_SRCS}
@@ -133,6 +156,8 @@ target_link_libraries(misaki-render PUBLIC
         TBB::tbb
         OpenImageIO::OpenImageIO OpenImageIO::OpenImageIO_Util
         embree
+        glfw
+        OpenGL::GL
         ${STB_INCLUDE_DIRS}
         )
 

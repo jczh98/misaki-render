@@ -1,15 +1,18 @@
-#include <misaki/render/integrator.h>
+#include <iostream>
 #include <misaki/core/logger.h>
+#include <misaki/core/manager.h>
 #include <misaki/core/object.h>
+#include <misaki/core/xml.h>
+#include <misaki/render/integrator.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/sensor.h>
-#include <misaki/core/manager.h>
-#include <misaki/core/xml.h>
-#include <iostream>
+#include <misaki/ui/viewer.h>
 #include <spdlog/spdlog.h>
 #include <tbb/task_scheduler_init.h>
 
 using namespace misaki;
+
+const bool gui = true;
 
 bool render(Object *scene_, fs::path filename) {
     auto *scene = dynamic_cast<Scene *>(scene_);
@@ -23,13 +26,33 @@ bool render(Object *scene_, fs::path filename) {
     auto integrator = scene->integrator();
     if (!integrator)
         Throw("No integrator specified for scene");
-    bool success = integrator->render(scene, sensor);
-    if (success) {
-        film->develop();
-    } else {
-        Log(Warn, "Rendering failed, result not saved.");
+
+    ui::Viewer viewer(film);
+
+    if (gui) {
+        viewer.init();
     }
-    return success;
+
+    std::thread render_thread([&] {
+        bool success = integrator->render(scene, sensor);
+        if (success) {
+            film->develop();
+        } else {
+            Log(Warn, "Rendering failed, result not saved.");
+        }
+    });
+
+    if (gui) {
+        viewer.mainloop();
+    }
+
+    render_thread.join();
+
+    if (gui) {
+        viewer.shutdown();
+    }
+
+    return true;
 }
 
 int main(int argc, char **argv) {
