@@ -19,20 +19,21 @@ public:
     virtual std::pair<Ray, Spectrum>
     sample_ray(const Eigen::Vector2f &sample,
                const Eigen::Vector2f &sample2) const override {
-        PositionSample ps = m_shape->sample_position(sample);
-        SurfaceInteraction si(ps);
-        Eigen::Vector3f local = warp::square_to_cosine_hemisphere(sample2);
+        //PositionSample ps = m_shape->sample_position(sample);
+        //SceneInteraction si(ps);
+        //Eigen::Vector3f local = warp::square_to_cosine_hemisphere(sample2);
 
-        Spectrum power = m_radiance->eval_3(si) * math::Pi<float> / ps.pdf;
+        //Spectrum power = m_radiance->eval_3(si) * math::Pi<float> / ps.pdf;
 
-        return { Ray(ps.p, si.to_world(local), 0), power };
+        //return { Ray(ps.p, si.to_world(local), 0), power };
+        MSK_NOT_IMPLEMENTED("sample_ray");
     }
 
-    std::pair<DirectionSample, Spectrum>
-    sample_direction(const Interaction &it,
-                     const Eigen::Vector2f &sample) const override {
-        auto ds = m_shape->sample_direction(it, sample);
-        SurfaceInteraction si(ds);
+    std::pair<DirectIllumSample, Spectrum>
+    sample_direct(const SceneInteraction &ref,
+                  const Eigen::Vector2f &sample) const override {
+        auto ds = m_shape->sample_direct(ref, sample);
+        SceneInteraction si(ds);
         ds.object = this;
         if (ds.d.dot(ds.n) < 0.f && ds.pdf != 0.f) {
             return { ds, m_radiance->eval_3(si) / ds.pdf };
@@ -42,12 +43,11 @@ public:
         }
     }
 
-    float pdf_direction(const Interaction &ref,
-                        const DirectionSample &ds) const override {
-        return m_shape->pdf_direction(ref, ds);
+    float pdf_direct(const DirectIllumSample &ds) const override {
+        return m_shape->pdf_direct(ds);
     }
 
-    Spectrum eval(const SurfaceInteraction &si) const override {
+    Spectrum eval(const SceneInteraction &si) const override {
         return Frame::cos_theta(si.wi) > 0.f ? m_radiance->eval_3(si)
                                               : Spectrum::Zero();
     }

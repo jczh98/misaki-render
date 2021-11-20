@@ -12,7 +12,7 @@ public:
         m_color1    = props.texture("color1", .2f);
         m_transform = props.transform("to_uv", Transform4f()).extract();
     }
-    float eval_1(const SurfaceInteraction &si) const override {
+    float eval_1(const SceneInteraction &si) const override {
         const auto uv = m_transform.transform_affine_point(si.uv);
         const auto u  = uv.x() - std::floor(uv.x());
         const auto v  = uv.y() - std::floor(uv.y());
@@ -22,7 +22,7 @@ public:
             return m_color1->eval_1(si);
     }
 
-    Color3 eval_3(const SurfaceInteraction &si) const override {
+    Color3 eval_3(const SceneInteraction &si) const override {
         const auto uv = m_transform.transform_affine_point(si.uv);
         const auto u  = uv.x() - std::floor(uv.x());
         const auto v  = uv.y() - std::floor(uv.y());

@@ -36,17 +36,27 @@ float Endpoint::pdf_position(const PositionSample &ps) const {
 }
 
 std::pair<DirectionSample, Spectrum>
-Endpoint::sample_direction(const Interaction &ref,
+Endpoint::sample_direction(const PositionSample &ps,
                            const Eigen::Vector2f &sample) const {
     MSK_NOT_IMPLEMENTED("sample_direction");
 }
 
-float Endpoint::pdf_direction(const Interaction &ref,
+float Endpoint::pdf_direction(const PositionSample &ps,
                               const DirectionSample &ds) const {
     MSK_NOT_IMPLEMENTED("pdf_direction");
 }
 
-Spectrum Endpoint::eval(const SurfaceInteraction &si) const {
+std::pair<DirectIllumSample, Spectrum>
+Endpoint::sample_direct(const SceneInteraction &ref,
+                        const Eigen::Vector2f &sample) const {
+    MSK_NOT_IMPLEMENTED("sample_direct");
+}
+
+float Endpoint::pdf_direct(const DirectIllumSample &dis) const {
+    MSK_NOT_IMPLEMENTED("pdf_direct");
+}
+
+Spectrum Endpoint::eval(const SceneInteraction &si) const {
     MSK_NOT_IMPLEMENTED("eval");
 }
 

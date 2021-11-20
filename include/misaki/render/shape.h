@@ -14,13 +14,12 @@ public:
     virtual PositionSample sample_position(const Eigen::Vector2f &sample) const;
     virtual float pdf_position(const PositionSample &ps) const;
 
-    virtual DirectionSample sample_direction(const Interaction &it,
+    virtual DirectIllumSample sample_direct(const SceneInteraction &si,
                                              const Eigen::Vector2f &sample) const;
-    virtual float pdf_direction(const Interaction &it,
-                                const DirectionSample &ds) const;
+    virtual float pdf_direct(const DirectIllumSample &ds) const;
 
-    virtual SurfaceInteraction
-    compute_surface_interaction(const Ray &ray,
+    virtual SceneInteraction
+    compute_scene_interaction(const Ray &ray,
                                 PreliminaryIntersection pi) const;
 
     bool is_mesh() const { return m_is_mesh; }

@@ -11,6 +11,8 @@ namespace misaki {
 struct Frame {
     Eigen::Vector3f s, t, n;
 
+    Frame() {}
+
     Frame(const Eigen::Vector3f &v) : n(v) {
         std::tie(s, t) = coordinate_system<float>(v);
     }

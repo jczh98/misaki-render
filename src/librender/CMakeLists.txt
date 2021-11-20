@@ -41,6 +41,7 @@ set(CORE_SRCS
         medium.cpp
         interaction.cpp
         manager.cpp
+        records.cpp
 )
 
 set(UI_SRCS
@@ -100,7 +101,7 @@ set(PHASE_SRCS
 )
 
 set(VOLUME_SRCS
-        volume/constant3d.cpp
+        #volume/constant3d.cpp
 )
 
 set(MEDIUM_SRCS

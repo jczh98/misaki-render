@@ -1,11 +1,11 @@
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/warp.h>
 #include <misaki/render/emitter.h>
 #include <misaki/render/mesh.h>
-#include <misaki/core/properties.h>
-#include <misaki/core/manager.h>
 #include <misaki/render/records.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/texture.h>
-#include <misaki/core/warp.h>
 
 namespace misaki {
 
@@ -30,32 +30,35 @@ public:
     virtual std::pair<Ray, Spectrum>
     sample_ray(const Eigen::Vector2f &sample2,
                const Eigen::Vector2f &sample3) const override {
-        const Eigen::Vector3f v0 = warp::square_to_uniform_sphere(sample2);
-        const Eigen::Vector3f origin = m_bsphere.center + v0 * m_bsphere.radius;
+        // const Eigen::Vector3f v0 = warp::square_to_uniform_sphere(sample2);
+        // const Eigen::Vector3f origin = m_bsphere.center + v0 *
+        // m_bsphere.radius;
 
-        const Eigen::Vector3f v1 = warp::square_to_cosine_hemisphere(sample3);
-        const Eigen::Vector3f direction = Frame(-v0).to_world(v1);
+        // const Eigen::Vector3f v1 =
+        // warp::square_to_cosine_hemisphere(sample3); const Eigen::Vector3f
+        // direction = Frame(-v0).to_world(v1);
 
-        SurfaceInteraction si;
-        si.t  = 0.f;
-        si.p  = origin;
-        si.uv = sample2;
-        si.wi = direction; // Points toward the scene
+        // SurfaceInteraction si;
+        // si.t  = 0.f;
+        // si.p  = origin;
+        // si.uv = sample2;
+        // si.wi = direction; // Points toward the scene
 
-        Spectrum power =
-            m_radiance->eval_3(si) * m_surface_area * math::Pi<float>;
+        // Spectrum power =
+        //    m_radiance->eval_3(si) * m_surface_area * math::Pi<float>;
 
-        return { Ray(origin, direction, 0), power };
+        // return { Ray(origin, direction, 0), power };
+        MSK_NOT_IMPLEMENTED("sample_ray");
     }
 
-    std::pair<DirectionSample, Spectrum>
-    sample_direction(const Interaction &it,
-                     const Eigen::Vector2f &sample) const override {
+    std::pair<DirectIllumSample, Spectrum>
+    sample_direct(const SceneInteraction &ref,
+                  const Eigen::Vector2f &sample) const override {
         Eigen::Vector3f d = warp::square_to_uniform_sphere(sample);
-        float dist = 2.f * m_bsphere.radius;
+        float dist        = 2.f * m_bsphere.radius;
 
-        DirectionSample ds;
-        ds.p      = it.p + d * dist;
+        DirectIllumSample ds;
+        ds.p      = ref.p + d * dist;
         ds.n      = -d;
         ds.uv     = Eigen::Vector2f(0.f, 0.f);
         ds.pdf    = warp::square_to_uniform_sphere_pdf(d);
@@ -64,17 +67,16 @@ public:
         ds.d      = d;
         ds.dist   = dist;
 
-        SurfaceInteraction si;
+        SceneInteraction si;
 
         return { ds, m_radiance->eval_3(si) / ds.pdf };
     }
 
-    float pdf_direction(const Interaction &ref,
-                        const DirectionSample &ds) const override {
+    float pdf_direct(const DirectIllumSample &ds) const override {
         return warp::square_to_uniform_sphere_pdf(ds.d);
     }
 
-    Spectrum eval(const SurfaceInteraction &si) const override {
+    Spectrum eval(const SceneInteraction &si) const override {
         return m_radiance->eval_3(si);
     }
 

@@ -1,15 +1,15 @@
-#include <misaki/render/emitter.h>
-#include <misaki/render/integrator.h>
-#include <misaki/render/interaction.h>
+#include <iostream>
 #include <misaki/core/logger.h>
 #include <misaki/core/manager.h>
 #include <misaki/core/properties.h>
 #include <misaki/core/ray.h>
+#include <misaki/render/emitter.h>
+#include <misaki/render/integrator.h>
+#include <misaki/render/interaction.h>
 #include <misaki/render/records.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/sensor.h>
 #include <misaki/render/shape.h>
-#include <iostream>
 
 namespace misaki {
 
@@ -62,15 +62,16 @@ Scene::Scene(const Properties &props) {
 
 Scene::~Scene() { accel_release(); }
 
-std::pair<DirectionSample, Spectrum>
-Scene::sample_emitter_direction(const Interaction &ref, const Eigen::Vector2f &sample_,
-                                bool test_visibility) const {
-    DirectionSample ds;
+std::pair<DirectIllumSample, Spectrum>
+Scene::sample_emitter_direct(const SceneInteraction &ref,
+                             const Eigen::Vector2f &sample_,
+                             bool test_visibility) const {
+    DirectIllumSample ds;
     Spectrum spec;
     Eigen::Vector2f sample(sample_);
     if (!m_emitters.empty()) {
         if (m_emitters.size() == 1) {
-            std::tie(ds, spec) = m_emitters[0]->sample_direction(ref, sample);
+            std::tie(ds, spec) = m_emitters[0]->sample_direct(ref, sample);
         } else {
             auto light_sel_pdf = 1.f / m_emitters.size();
             auto index =
@@ -79,7 +80,7 @@ Scene::sample_emitter_direction(const Interaction &ref, const Eigen::Vector2f &s
             sample.x() =
                 (sample.x() - index * light_sel_pdf) * m_emitters.size();
             std::tie(ds, spec) =
-                m_emitters[index]->sample_direction(ref, sample);
+                m_emitters[index]->sample_direct(ref, sample);
             ds.pdf *= light_sel_pdf;
             spec *= m_emitters.size();
         }
@@ -97,13 +98,11 @@ Scene::sample_emitter_direction(const Interaction &ref, const Eigen::Vector2f &s
     return { ds, spec };
 }
 
-float Scene::pdf_emitter_direction(const Interaction &ref,
-                                   const DirectionSample &ds) const {
+float Scene::pdf_emitter_direct(const DirectIllumSample &ds) const {
     if (m_emitters.size() == 1) {
-        return m_emitters[0]->pdf_direction(ref, ds);
+        return m_emitters[0]->pdf_direct(ds);
     } else {
-        return reinterpret_cast<const Emitter *>(ds.object)->pdf_direction(ref,
-                                                                           ds) *
+        return reinterpret_cast<const Emitter *>(ds.object)->pdf_direct(ds) *
                (1.f / m_emitters.size());
     }
 }
@@ -111,6 +110,14 @@ float Scene::pdf_emitter_direction(const Interaction &ref,
 // See interaction.h
 SurfaceInteraction::EmitterPtr
 SurfaceInteraction::emitter(const Scene *scene) const {
+    if (is_valid())
+        return shape->emitter();
+    else
+        return scene->environment();
+}
+
+const Emitter *
+SceneInteraction::emitter(const Scene *scene) const {
     if (is_valid())
         return shape->emitter();
     else
@@ -138,7 +145,7 @@ void Scene::accel_init(const Properties &props) {
 
 void Scene::accel_release() { rtcReleaseScene((RTCScene) m_accel); }
 
-SurfaceInteraction Scene::ray_intersect(const Ray &ray) const {
+SceneInteraction Scene::ray_intersect(const Ray &ray) const {
     RTCIntersectContext context;
     rtcInitIntersectContext(&context);
     RTCRayHit rh;
@@ -155,7 +162,7 @@ SurfaceInteraction Scene::ray_intersect(const Ray &ray) const {
     rh.ray.id    = 0;
     rh.ray.flags = 0;
     rtcIntersect1((RTCScene) m_accel, &context, &rh);
-    SurfaceInteraction si;
+    SceneInteraction si;
     if (rh.ray.tfar != ray.maxt) {
         uint32_t shape_index = rh.hit.geomID;
         uint32_t prim_index  = rh.hit.primID;
@@ -168,7 +175,7 @@ SurfaceInteraction Scene::ray_intersect(const Ray &ray) const {
         pi.prim_index = prim_index;
         pi.prim_uv    = Eigen::Vector2f(rh.hit.u, rh.hit.v);
 
-        si = pi.compute_surface_interaction(ray);
+        si = pi.compute_scene_interaction(ray);
     } else {
         si.wi = -ray.d;
         si.t  = math::Infinity<float>;

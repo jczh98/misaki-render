@@ -16,7 +16,7 @@ public:
     }
 
     std::pair<BSDFSample, Spectrum>
-    sample(const BSDFContext &ctx, const SurfaceInteraction &si, float sample1,
+    sample(const BSDFContext &ctx, const SceneInteraction &si, float sample1,
            const Eigen::Vector2f &sample) const override {
         float cos_theta_i = Frame::cos_theta(si.wi);
         BSDFSample bs;
@@ -31,7 +31,7 @@ public:
                  bs.pdf > 0.f ? m_reflectance->eval_3(si) : Spectrum::Zero() };
     }
 
-    Spectrum eval(const BSDFContext &ctx, const SurfaceInteraction &si,
+    Spectrum eval(const BSDFContext &ctx, const SceneInteraction &si,
                   const Eigen::Vector3f &wo) const override {
         if (!ctx.is_enabled(BSDFFlags::DiffuseReflection))
             return Spectrum::Zero();
@@ -45,7 +45,7 @@ public:
         }
     }
 
-    float pdf(const BSDFContext &ctx, const SurfaceInteraction &si,
+    float pdf(const BSDFContext &ctx, const SceneInteraction &si,
               const Eigen::Vector3f &wo) const override {
         if (!ctx.is_enabled(BSDFFlags::DiffuseReflection))
             return 0.f;

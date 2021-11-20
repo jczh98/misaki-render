@@ -92,7 +92,7 @@ public:
                  result       = Spectrum::Zero();
         float eta             = 1.f;
         bool scattered        = false;
-        SurfaceInteraction si = scene->ray_intersect(ray);
+        SceneInteraction si = scene->ray_intersect(ray);
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
             if (!si.is_valid()) {
                 // If no intersection, compute the environment illumination
@@ -115,10 +115,12 @@ public:
              * Direct illumination sampling
              */
             BSDFContext ctx;
+            DirectIllumSample ds;
             auto bsdf = si.bsdf(ray);
             if ((type & RadianceQuery::DirectSurfaceRadiance) &&
                 has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
-                auto [ds, emitter_val] = scene->sample_emitter_direction(
+                Spectrum emitter_val;
+                std::tie(ds, emitter_val) = scene->sample_emitter_direct(
                     si, sampler->next2d(), true);
                 if (ds.pdf != 0.f) {
                     auto wo           = si.to_local(ds.d);
@@ -140,12 +142,13 @@ public:
             Spectrum value   = Spectrum::Zero();
 
             ray                        = si.spawn_ray(wo);
-            SurfaceInteraction si_bsdf = scene->ray_intersect(ray);
+            SceneInteraction si_bsdf = scene->ray_intersect(ray);
 
             if (si_bsdf.is_valid()) {
                 emitter = si_bsdf.shape->emitter();
                 if (emitter != nullptr) {
                     value       = emitter->eval(si_bsdf);
+                    ds.set_query(ray, si_bsdf);
                     hit_emitter = true;
                 }
             } else {
@@ -163,9 +166,8 @@ public:
 
             // If an emitter was hit, estimate the illumination
             if (hit_emitter && (type & RadianceQuery::DirectSurfaceRadiance)) {
-                DirectionSample ds(si_bsdf, si);
                 auto emitter_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta)
-                                       ? scene->pdf_emitter_direction(si, ds)
+                                       ? scene->pdf_emitter_direct(ds)
                                        : 0.f;
                 result += throughput * value * mis_weight(bs.pdf, emitter_pdf);
             }

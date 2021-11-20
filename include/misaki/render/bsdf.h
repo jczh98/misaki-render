@@ -84,18 +84,16 @@ public:
     // Sample BSDF * cos(theta) and returns sampled bsdf information with BSDF *
     // cos(theta) divided by pdf
     virtual std::pair<BSDFSample, Spectrum>
-    sample(const BSDFContext &ctx, const SurfaceInteraction &si,
+    sample(const BSDFContext &ctx, const SceneInteraction &si,
            float sample1, // For selecting different bsdf lobe
            const Eigen::Vector2f &sample) const = 0;
 
     // Returns evaluated BSDF * cos(theta)
-    virtual Spectrum eval(const BSDFContext &ctx, const SurfaceInteraction &si,
+    virtual Spectrum eval(const BSDFContext &ctx, const SceneInteraction &si,
                           const Eigen::Vector3f &wo) const = 0;
 
-    virtual Spectrum eval_null_transmission(const SurfaceInteraction &si) const;
-
     // Returns pdf of BSDF * cos(theta)
-    virtual float pdf(const BSDFContext &ctx, const SurfaceInteraction &si,
+    virtual float pdf(const BSDFContext &ctx, const SceneInteraction &si,
                       const Eigen::Vector3f &wo) const = 0;
 
     /// Does the implementation require access to texture-space differentials?

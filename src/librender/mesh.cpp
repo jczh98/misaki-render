@@ -47,8 +47,8 @@ void Mesh::area_distr_build() {
     m_area_distr.init(table.data(), static_cast<int>(table.size()));
 }
 
-SurfaceInteraction
-Mesh::compute_surface_interaction(const Ray &ray,
+SceneInteraction
+Mesh::compute_scene_interaction(const Ray &ray,
                                   PreliminaryIntersection pi) const {
     float b1 = pi.prim_uv.x(), b2 = pi.prim_uv.y(), b0 = 1.f - b1 - b2;
     auto fi    = face_indices(pi.prim_index);
@@ -56,7 +56,7 @@ Mesh::compute_surface_interaction(const Ray &ray,
             p2  = vertex_position(fi[2]);
     Eigen::Vector3f dp0 = p1 - p0, dp1 = p2 - p0;
 
-    SurfaceInteraction si;
+    SceneInteraction si;
     if (!pi.is_valid()) {
         si.t = math::Infinity<float>;
         return si;

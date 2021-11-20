@@ -61,10 +61,10 @@ float Shape::pdf_position(const PositionSample &ps) const {
     MSK_NOT_IMPLEMENTED("pdf_position");
 }
 
-DirectionSample Shape::sample_direction(const Interaction &it,
+DirectIllumSample Shape::sample_direct(const SceneInteraction &si,
                                         const Eigen::Vector2f &sample) const {
-    DirectionSample ds(sample_position(sample));
-    ds.d = ds.p - it.p;
+    DirectIllumSample ds(sample_position(sample));
+    ds.d = ds.p - si.p;
 
     float dist_squared = ds.d.squaredNorm();
     ds.dist            = std::sqrt(dist_squared);
@@ -77,8 +77,7 @@ DirectionSample Shape::sample_direction(const Interaction &it,
     return ds;
 }
 
-float Shape::pdf_direction(const Interaction &it,
-                           const DirectionSample &ds) const {
+float Shape::pdf_direct(const DirectIllumSample &ds) const {
     float pdf = pdf_position(ds), dp = std::abs(ds.d.dot(ds.n));
 
     pdf *= (dp != 0.f) ? (ds.dist * ds.dist) / dp : 0.f;
@@ -92,8 +91,8 @@ BoundingBox3f Shape::bbox(uint32_t index) const { MSK_NOT_IMPLEMENTED("bbox"); }
 
 float Shape::surface_area() const { MSK_NOT_IMPLEMENTED("surface_area"); }
 
-SurfaceInteraction
-Shape::compute_surface_interaction(const Ray &ray,
+SceneInteraction
+Shape::compute_scene_interaction(const Ray &ray,
                                    PreliminaryIntersection pi) const {
     MSK_NOT_IMPLEMENTED("compute_surface_point");
 }

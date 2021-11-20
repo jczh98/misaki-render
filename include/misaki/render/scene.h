@@ -15,16 +15,15 @@ public:
     Scene(const Properties &props);
 
     bool ray_test(const Ray &ray) const;
-    SurfaceInteraction ray_intersect(const Ray &ray) const;
+    SceneInteraction ray_intersect(const Ray &ray) const;
     void accel_init(const Properties &props);
     void accel_release();
 
-    std::pair<DirectionSample, Spectrum>
-    sample_emitter_direction(const Interaction &ref,
+    std::pair<DirectIllumSample, Spectrum>
+    sample_emitter_direct(const SceneInteraction &ref,
                              const Eigen::Vector2f &sample,
                              bool test_visibility = true) const;
-    float pdf_emitter_direction(const Interaction &ref,
-                                const DirectionSample &ds) const;
+    float pdf_emitter_direct(const DirectIllumSample &ds) const;
 
     const Sensor *sensor() const { return m_sensor; }
     Sensor *sensor() { return m_sensor; }

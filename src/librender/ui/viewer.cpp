@@ -70,7 +70,22 @@ void Viewer::mainloop() {
         ImGui::NewFrame();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        const auto bitmap = m_film->bitmap()->colwise().reverse().eval();
+        auto bitmap = m_film->bitmap()->colwise().reverse().eval();
+        auto to_srgb      = [&](Color<float, 3> value) {
+            Color<float, 3> ret;
+            for (int i = 0; i < 3; i++) {
+                if (value.coeff(i) <= 0.0031308f)
+                    ret.coeffRef(i) = 12.92f * value.coeff(i);
+                else
+                    ret.coeffRef(i) = (1.0f + 0.055f) * std::pow(value.coeff(i),
+                                                                 1.0f / 2.4f) -
+                                      0.055f;
+            }
+            return ret;
+        };
+        for (int y = 0; y < bitmap.rows(); ++y)
+            for (int x = 0; x < bitmap.cols(); ++x)
+                bitmap.coeffRef(y, x) = to_srgb(bitmap.coeff(y, x));
         glDrawPixels(static_cast<GLsizei>(m_width), static_cast<GLsizei>(m_height), GL_RGB, GL_FLOAT,
                      bitmap.data());
 

@@ -7,8 +7,8 @@ namespace misaki {
 
 class MSK_EXPORT Texture : public Object {
 public:
-    virtual float eval_1(const SurfaceInteraction &si) const;
-    virtual Color3 eval_3(const SurfaceInteraction &si) const;
+    virtual float eval_1(const SceneInteraction &si) const;
+    virtual Color3 eval_3(const SceneInteraction &si) const;
     virtual float mean() const;
 
     MSK_DECLARE_CLASS()
@@ -22,19 +22,14 @@ protected:
 
 class MSK_EXPORT ConstantSpectrumTexture : public Texture {
 public:
-    ConstantSpectrumTexture(const Color3 &value) : Texture(Properties()), m_value(value) {}
+    ConstantSpectrumTexture(const Color3 &value)
+        : Texture(Properties()), m_value(value) {}
 
-    float eval_1(const SurfaceInteraction &si) const override {
-        return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
-    }
+    float eval_1(const SceneInteraction &si) const override;
 
-    Color3 eval_3(const SurfaceInteraction &si) const override {
-        return m_value;
-    }
+    Color3 eval_3(const SceneInteraction &si) const override;
 
-    float mean() const override {
-        return (m_value.x() + m_value.y() + m_value.z()) / 3.f;
-    }
+    float mean() const override;
 
     std::string to_string() const override {
         std::ostringstream oss;

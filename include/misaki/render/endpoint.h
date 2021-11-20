@@ -14,19 +14,22 @@ public:
     virtual std::pair<Ray, Spectrum>
     sample_ray(const Eigen::Vector2f &pos_sample,
                const Eigen::Vector2f &dir_sample) const;
+    
+    virtual Spectrum eval(const SceneInteraction &si) const;
 
     // Returns direction, weight
     virtual std::pair<PositionSample, Spectrum>
     sample_position(const Eigen::Vector2f &sample) const;
     virtual std::pair<DirectionSample, Spectrum>
-    sample_direction(const Interaction &ref,
+    sample_direction(const PositionSample &ps,
                      const Eigen::Vector2f &sample) const;
+    virtual std::pair<DirectIllumSample, Spectrum>
+    sample_direct(const SceneInteraction &ref, const Eigen::Vector2f &sample) const;
 
     virtual float pdf_position(const PositionSample &ps) const;
-    virtual float pdf_direction(const Interaction &ref,
+    virtual float pdf_direction(const PositionSample &ps,
                                 const DirectionSample &ds) const;
-
-    virtual Spectrum eval(const SurfaceInteraction &si) const;
+    virtual float pdf_direct(const DirectIllumSample &ds) const;
 
     virtual void set_shape(Shape *shape);
     virtual void set_scene(const Scene *scene);

@@ -63,8 +63,8 @@ public:
     sample_position(const Eigen::Vector2f &sample) const override;
     virtual float pdf_position(const PositionSample &ps) const override;
 
-    virtual SurfaceInteraction
-    compute_surface_interaction(const Ray &ray,
+    virtual SceneInteraction
+    compute_scene_interaction(const Ray &ray,
                                 PreliminaryIntersection pi) const override;
 
     void area_distr_build();
