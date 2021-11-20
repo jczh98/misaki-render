@@ -29,7 +29,7 @@ public:
         auto total_spp = sensor->sampler()->sample_count();
         Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(),
             film_size.y(), total_spp);
-        int m_block_size = APR_BLOCK_SIZE;
+        int m_block_size = MSK_BLOCK_SIZE;
         BlockGenerator gen(film_size, Eigen::Vector2i::Zero(), m_block_size);
         size_t total_blocks = gen.block_count();
         tbb::parallel_for(

@@ -5,7 +5,7 @@
 #include "misaki/core/object.h"
 #include "rfilter.h"
 
-#define APR_BLOCK_SIZE 32
+constexpr auto MSK_BLOCK_SIZE = 32;
 
 namespace misaki {
 

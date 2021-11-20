@@ -16,77 +16,12 @@
 
 namespace misaki {
 
-class PathTracer final : public Integrator {
+class PathTracer final : public MonteCarloIntegrator {
 public:
-    PathTracer(const Properties &props) : Integrator(props) {}
+    PathTracer(const Properties &props) : MonteCarloIntegrator(props) {}
 
-    bool render(Scene *scene, Sensor *sensor) {
-        auto film      = sensor->film();
-        auto film_size = film->size();
-        auto total_spp = sensor->sampler()->sample_count();
-        Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(),
-            film_size.y(), total_spp);
-        int m_block_size = APR_BLOCK_SIZE;
-        BlockGenerator gen(film_size, Eigen::Vector2i::Zero(), m_block_size);
-        size_t total_blocks = gen.block_count();
-        ProgressBar pbar(total_blocks, 70);
-        Timer timer;
-        tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, total_blocks, 1),
-            [&](const tbb::blocked_range<size_t> &range) {
-                auto sampler          = sensor->sampler()->clone();
-                ref<ImageBlock> block = new ImageBlock(
-                    Eigen::Vector2i::Constant(m_block_size), film->filter());
-                for (auto i = range.begin(); i != range.end(); ++i) {
-                    auto [offset, size, block_id] = gen.next_block();
-                    block->set_offset(offset);
-                    block->set_size(size);
-                    render_block(scene, sensor, sampler, block, total_spp);
-                    film->put(block);
-                    pbar.update();
-                }
-            });
-        pbar.done();
-        Log(Info, "Rendering finished. (took {})",
-            time_string(timer.value(), true));
-        return true;
-    }
-
-    void render_block(const Scene *scene, const Sensor *sensor,
-                      Sampler *sampler, ImageBlock *block,
-                      size_t sample_count) const {
-        block->clear();
-        auto &size              = block->size();
-        auto &offset            = block->offset();
-        float diff_scale_factor = float(1) / std::sqrt(sample_count);
-        for (int y = 0; y < size.y(); ++y) {
-            for (int x = 0; x < size.x(); ++x) {
-                Eigen::Vector2f pos = Eigen::Vector2f(x, y);
-                if (pos.x() >= size.x() || pos.y() >= size.y())
-                    continue;
-                pos = pos + offset.template cast<float>();
-                for (int s = 0; s < sample_count; ++s) {
-                    render_sample(scene, sensor, sampler, block, pos,
-                                  diff_scale_factor);
-                }
-            }
-        }
-    }
-
-    void render_sample(const Scene *scene, const Sensor *sensor,
-                       Sampler *sampler, ImageBlock *block, const Eigen::Vector2f &pos,
-                       float diff_scale_factor) const {
-        auto position_sample = pos + sampler->next2d();
-        auto [ray, ray_weight] =
-            sensor->sample_ray_differential(position_sample, sampler->next2d());
-        ray.scale_differential(diff_scale_factor);
-        auto result = sample(scene, sampler, ray);
-        block->put(position_sample, result);
-    }
-
-    Spectrum sample(const Scene *scene, Sampler *sampler,
-                    const RayDifferential &ray_) const {
-        RadianceQuery type    = RadianceQuery::Radiance;
+    virtual Spectrum sample(const Scene *scene, Sampler *sampler,
+                    const RayDifferential &ray_) const override {
         RayDifferential ray   = ray_;
         Spectrum throughput   = Spectrum::Constant(1.f),
                  result       = Spectrum::Zero();
@@ -96,7 +31,7 @@ public:
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
             if (!si.is_valid()) {
                 // If no intersection, compute the environment illumination
-                if ((type & RadianceQuery::EmittedRadiance) &&
+                if (depth == 1 &&
                     (!m_hide_emitter || scattered)) {
                     if (scene->environment() != nullptr)
                         result += throughput * scene->environment()->eval(si);
@@ -105,7 +40,7 @@ public:
             }
             auto emitter = si.shape->emitter();
             // Compute emitted radiance
-            if (emitter != nullptr && (type & RadianceQuery::EmittedRadiance) &&
+            if (emitter != nullptr && depth == 1 &&
                 (!m_hide_emitter || scattered)) {
                 result += throughput * emitter->eval(si);
             }
@@ -117,8 +52,7 @@ public:
             BSDFContext ctx;
             DirectIllumSample ds;
             auto bsdf = si.bsdf(ray);
-            if ((type & RadianceQuery::DirectSurfaceRadiance) &&
-                has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
+            if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
                 Spectrum emitter_val;
                 std::tie(ds, emitter_val) = scene->sample_emitter_direct(
                     si, sampler->next2d(), true);
@@ -165,18 +99,15 @@ public:
             eta *= bs.eta;
 
             // If an emitter was hit, estimate the illumination
-            if (hit_emitter && (type & RadianceQuery::DirectSurfaceRadiance)) {
+            if (hit_emitter) {
                 auto emitter_pdf = !has_flag(bs.sampled_type, BSDFFlags::Delta)
                                        ? scene->pdf_emitter_direct(ds)
                                        : 0.f;
                 result += throughput * value * mis_weight(bs.pdf, emitter_pdf);
             }
             // Indirect illumination
-            if (!si.is_valid() ||
-                !(type & RadianceQuery::IndirectSurfaceRadiance))
+            if (!si.is_valid())
                 break;
-
-            type = RadianceQuery::RadianceNoEmission;
 
             si = std::move(si_bsdf);
 
@@ -202,10 +133,9 @@ public:
 private:
     int m_max_depth = -1, m_rr_depth = 5;
     bool m_hide_emitter = false;
-    std::mutex m_mutex;
 };
 
-MSK_IMPLEMENT_CLASS(PathTracer, Integrator)
+MSK_IMPLEMENT_CLASS(PathTracer, MonteCarloIntegrator)
 MSK_REGISTER_INSTANCE(PathTracer, "path")
 
 } // namespace misaki

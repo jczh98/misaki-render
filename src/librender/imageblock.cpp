@@ -60,14 +60,14 @@ bool ImageBlock::put(const Eigen::Vector2f &pos_, const Spectrum &val) {
                      pos + Eigen::Vector2f::Constant(m_filter_radius)))
                  .cwiseMin(m_size +
                            Eigen::Vector2i::Constant(2 * m_border_size - 1));
-    for (uint32_t x = lo.x(), idx = 0; x <= hi.x(); ++x)
+    for (int x = lo.x(), idx = 0; x <= hi.x(); ++x)
         m_weight_x[idx++] =
             m_filter_weights[(int) (std::abs(x - pos.x()) * m_lookup_factor)];
-    for (uint32_t y = lo.y(), idx = 0; y <= hi.y(); ++y)
+    for (int y = lo.y(), idx = 0; y <= hi.y(); ++y)
         m_weight_y[idx++] =
             m_filter_weights[(int) (std::abs(y - pos.y()) * m_lookup_factor)];
-    for (uint32_t y = lo.y(), yr = 0; y <= hi.y(); ++y, ++yr)
-        for (uint32_t x = lo.x(), xr = 0; x <= hi.x(); ++x, ++xr) {
+    for (int y = lo.y(), yr = 0; y <= hi.y(); ++y, ++yr)
+        for (int x = lo.x(), xr = 0; x <= hi.x(); ++x, ++xr) {
             m_buffer.coeffRef(y, x) += Color4(val.r(), val.g(), val.b(), 1.f) *
                                        m_weight_x[xr] * m_weight_y[yr];
         }
