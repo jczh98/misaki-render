@@ -31,7 +31,7 @@ public:
                  result      = Spectrum::Zero();
         float eta            = 1.f;
         const Medium *medium = initial_medium;
-        bool scattered = false, null_chain = true;
+        bool scattered = false, null_chain = true, emitted_radiance = true;
         SceneInteraction si = scene->ray_intersect(ray);
         MediumSample ms;
         uint32_t channel = std::min<uint32_t>(sampler->next1d() * 3, 3 - 1);
@@ -49,7 +49,7 @@ public:
                         throughput * spec * phase->eval(phase_ctx, ms, ds.d);
                 }
 
-                if ((depth >= m_max_depth && m_max_depth > 0))
+                if ((depth + 1>= m_max_depth && m_max_depth > 0))
                     break;
 
                 /**
@@ -74,7 +74,7 @@ public:
                  * Sample surface integral
                  */
                 if (!si.is_valid()) {
-                    if (depth == 1 && (!m_hide_emitter || scattered)) {
+                    if (emitted_radiance && (!m_hide_emitter || scattered)) {
                         Spectrum value =
                             throughput * ((scene->environment() != nullptr)
                                               ? scene->environment()->eval(si)
@@ -86,7 +86,7 @@ public:
                     break;
                 }
                 // Compute emitted radiance
-                if (si.shape->emitter() != nullptr && depth == 1 &&
+                if (si.shape->emitter() != nullptr && emitted_radiance &&
                     (!m_hide_emitter || scattered)) {
                     result += throughput * si.shape->emitter()->eval(si);
                 }
@@ -116,15 +116,26 @@ public:
                 if (is_black(bsdf_val))
                     break;
 
+                emitted_radiance = false;
+                // Recursively gather indirect illumination 
+                bool recursive = false;
+                if (depth + 1 < m_max_depth || m_max_depth < 0)
+                    recursive = true;
+
                 // Recursively gather direct illumination
                 if ((depth < m_max_depth || m_max_depth < 0) &&
                     has_flag(bs.sampled_type, BSDFFlags::Delta) &&
                     (!has_flag(bs.sampled_type, BSDFFlags::Null) ||
                      null_chain)) {
+                    emitted_radiance = true;
+                    recursive  = true;
                     null_chain = true;
                 } else {
                     null_chain &= has_flag(bs.sampled_type, BSDFFlags::Null);
                 }
+
+                if (!recursive)
+                    break;
 
                 const auto wo = si.to_world(bs.wo);
 
