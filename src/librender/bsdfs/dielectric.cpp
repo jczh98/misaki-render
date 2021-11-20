@@ -1,33 +1,36 @@
-#include <misaki/bsdf.h>
-#include <misaki/fresnel.h>
-#include <misaki/properties.h>
-#include <misaki/texture.h>
+#include <misaki/render/bsdf.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/texture.h>
+#include <misaki/render/fresnel.h>
+#include <misaki/core/warp.h>
 
 namespace misaki {
 
 class SmoothDielectric final : public BSDF {
 public:
     SmoothDielectric(const Properties &props) : BSDF(props) {
-        Float int_ior = props.float_("int_ior", 1.49);
-        Float ext_ior = props.float_("ext_ior", 1.00028);
+        float int_ior = props.float_("int_ior", 1.49);
+        float ext_ior = props.float_("ext_ior", 1.00028);
         m_eta         = int_ior / ext_ior;
         m_specular_reflectance =
-            props.texture<Texture>("specular_reflectance", 1.f);
+            props.texture("specular_reflectance", 1.f);
         m_specular_transmittance =
-            props.texture<Texture>("specular_transmittance", 1.f);
+            props.texture("specular_transmittance", 1.f);
         m_components.push_back(+BSDFFlags::DeltaReflection);
         m_components.push_back(+BSDFFlags::DeltaTransmission);
         m_flags = m_components[0] | m_components[1];
     }
 
     std::pair<BSDFSample, Spectrum>
-    sample(const BSDFContext &ctx, const SurfaceInteraction &si, Float sample1,
-           const Vector2 &sample) const override {
+    sample(const BSDFContext &ctx, const SceneInteraction &si, float sample1,
+           const Eigen::Vector2f &sample) const override {
         bool has_reflection   = ctx.is_enabled(BSDFFlags::DeltaReflection, 0),
              has_transmission = ctx.is_enabled(BSDFFlags::DeltaTransmission, 1);
-        Float cos_theta_i     = Frame3::cos_theta(si.wi);
+        float cos_theta_i     = Frame::cos_theta(si.wi);
         auto [r_i, cos_theta_t, eta_it, eta_ti] = fresnel(cos_theta_i, m_eta);
-        Float t_i                               = 1.f - r_i;
+        float t_i                               = 1.f - r_i;
         BSDFSample bs;
         bool selected_r;
         if (has_reflection && has_transmission) {
@@ -62,19 +65,19 @@ public:
         if (selected_r)
             weight *= reflectance;
         if (!selected_r) {
-            Float factor = (ctx.mode == TransportMode::Radiance) ? eta_ti : 1.f;
+            float factor = (ctx.mode == TransportMode::Radiance) ? eta_ti : 1.f;
             weight *= transmittance * factor * factor;
         }
         return { bs, weight };
     }
 
-    Spectrum eval(const BSDFContext &ctx, const SurfaceInteraction &si,
-                  const Vector3 &wo) const override {
+    Spectrum eval(const BSDFContext &ctx, const SceneInteraction &si,
+                  const Eigen::Vector3f &wo) const override {
         return Spectrum::Zero();
     }
 
-    Float pdf(const BSDFContext &ctx, const SurfaceInteraction &si,
-              const Vector3 &wo) const override {
+    float pdf(const BSDFContext &ctx, const SceneInteraction &si,
+              const Eigen::Vector3f &wo) const override {
         return 0;
     }
 
@@ -94,11 +97,11 @@ public:
 
     MSK_DECLARE_CLASS()
 private:
-    Float m_eta;
+    float m_eta;
     ref<Texture> m_specular_reflectance, m_specular_transmittance;
 };
 
-APR_IMPLEMENT_CLASS(SmoothDielectric, BSDF)
-APR_INTERNAL_PLUGIN(SmoothDielectric, "dielectric")
+MSK_IMPLEMENT_CLASS(SmoothDielectric, BSDF)
+MSK_REGISTER_INSTANCE(SmoothDielectric, "dielectric")
 
 } // namespace misaki

@@ -1,5 +1,9 @@
-#include <misaki/bsdf.h>
-#include <misaki/properties.h>
+#include <misaki/render/bsdf.h>
+#include <misaki/core/logger.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
+#include <misaki/render/texture.h>
+#include <misaki/core/warp.h>
 
 namespace misaki {
 
@@ -32,13 +36,13 @@ public:
     }
 
     std::pair<BSDFSample, Spectrum>
-    sample(const BSDFContext &ctx_, const SurfaceInteraction &si_,
-           Float sample1, const Vector2 &sample) const override {
-        SurfaceInteraction si(si_);
+    sample(const BSDFContext &ctx_, const SceneInteraction &si_,
+           float sample1, const Eigen::Vector2f &sample) const override {
+        SceneInteraction si(si_);
         BSDFContext ctx(ctx_);
         BSDFSample bs;
-        bool front_side = Frame3::cos_theta(si.wi) > 0.f,
-             back_side  = Frame3::cos_theta(si.wi) < 0.f;
+        bool front_side = Frame::cos_theta(si.wi) > 0.f,
+             back_side  = Frame::cos_theta(si.wi) < 0.f;
         auto ret        = std::make_pair(bs, Color3(0.f));
         if (front_side) {
             ret = m_brdf[0]->sample(ctx, si, sample1, sample);
@@ -54,14 +58,14 @@ public:
         return ret;
     }
 
-    Spectrum eval(const BSDFContext &ctx_, const SurfaceInteraction &si_,
-                  const Vector3 &wo_) const override {
-        SurfaceInteraction si(si_);
+    Spectrum eval(const BSDFContext &ctx_, const SceneInteraction &si_,
+                  const Eigen::Vector3f &wo_) const override {
+        SceneInteraction si(si_);
         BSDFContext ctx(ctx_);
-        Vector3 wo(wo_);
+        Eigen::Vector3f wo(wo_);
         auto result     = Color3(0.f);
-        bool front_side = Frame3::cos_theta(si.wi) > 0.f,
-             back_side  = Frame3::cos_theta(si.wi) < 0.f;
+        bool front_side = Frame::cos_theta(si.wi) > 0.f,
+             back_side  = Frame::cos_theta(si.wi) < 0.f;
         if (front_side) {
             result = m_brdf[0]->eval(ctx, si, wo);
         }
@@ -75,14 +79,14 @@ public:
         return result;
     }
 
-    Float pdf(const BSDFContext &ctx_, const SurfaceInteraction &si_,
-              const Vector3 &wo_) const override {
-        SurfaceInteraction si(si_);
+    float pdf(const BSDFContext &ctx_, const SceneInteraction &si_,
+              const Eigen::Vector3f &wo_) const override {
+        SceneInteraction si(si_);
         BSDFContext ctx(ctx_);
-        Vector3 wo(wo_);
-        Float result    = 0.f;
-        bool front_side = Frame3::cos_theta(si.wi) > 0.f,
-             back_side  = Frame3::cos_theta(si.wi) < 0.f;
+        Eigen::Vector3f wo(wo_);
+        float result    = 0.f;
+        bool front_side = Frame::cos_theta(si.wi) > 0.f,
+             back_side  = Frame::cos_theta(si.wi) < 0.f;
         if (front_side) {
             result = m_brdf[0]->pdf(ctx, si, wo);
         }
@@ -110,7 +114,7 @@ private:
     ref<BSDF> m_brdf[2];
 };
 
-APR_IMPLEMENT_CLASS(TwoSidedBRDF, BSDF)
-APR_INTERNAL_PLUGIN(TwoSidedBRDF, "twosided")
+MSK_IMPLEMENT_CLASS(TwoSidedBRDF, BSDF)
+MSK_REGISTER_INSTANCE(TwoSidedBRDF, "twosided")
 
 } // namespace misaki

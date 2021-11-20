@@ -16,12 +16,12 @@
             <integer name="width" value="800"/>
             <integer name="height" value="600"/>
         </film>
-<!--        <medium type="homogeneous" name="interior">-->
-<!--            <rgb name="sigma_s" value="0.1, 0.1, 0.1"/>-->
-<!--            <rgb name="sigma_a" value="0.1, 0.1, 0.1"/>-->
-<!--            <rgb name="sigma_t" value="0.2, 0.2, 0.2"/>-->
-<!--            <rgb name="albedo" value="0.5, 0.5, 0.5"/>-->
-<!--        </medium>-->
+        <!-- <medium type="homogeneous" name="interior">
+            <rgb name="sigma_s" value="0.1, 0.1, 0.1"/>
+            <rgb name="sigma_a" value="0.1, 0.1, 0.1"/>
+            <rgb name="sigma_t" value="0.2, 0.2, 0.2"/>
+            <rgb name="albedo" value="0.5, 0.5, 0.5"/>
+        </medium> -->
     </sensor>
     <!-- <light type="point">
         <vector name="position" x="278" y="548" z="279"/>

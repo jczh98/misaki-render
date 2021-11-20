@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<scene>
+    <integrator type="path">
+    </integrator>
+    <sensor type="perspective">
+        <float name="fov" value="35"/>
+        <transform name="to_world">
+            <matrix value="0.00560664 -0.488405 -0.872599 23.1701 0 0.872613 -0.488413 15.7142 0.999984 0.00274286 0.00490048 -0.172476 0 0 0 1"/>
+        </transform>
+        <sampler type="independent">
+            <integer name="sample_count" value="16"/>
+        </sampler>
+        <film type="rgbfilm">
+            <integer name="width" value="1280"/>
+            <integer name="height" value="720"/>
+        </film>
+    </sensor>
+    <bsdf type="twosided" id="Floor">
+        <bsdf type="diffuse">
+            <texture name="reflectance" type="checkerboard">
+                <rgb name="color1" value="0.325, 0.31, 0.25"/>
+                <rgb name="color0" value="0.725, 0.71, 0.68"/>
+                <transform name="to_uv">
+                    <scale x="10" y="10"/>
+                </transform>
+            </texture>
+        </bsdf>
+    </bsdf>
+    <shape type="obj">
+        <string name="filename" value="../assets/teapot/rectangle.obj"/>
+        <transform name="to_world">
+            <matrix value="-34.6854 36.1079 4.61062e-006 -0.708772 -4.37713e-006 2.18856e-006 -50.0685 0 -36.1079 -34.6854 1.6405e-006 -0.732108 0 0 0 1"/>
+        </transform>
+        <ref id="Floor"/>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="../assets/teapot/Mesh003.obj"/>
+        <transform name="to_world">
+            <matrix value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
+        </transform>
+        <bsdf type="dielectric">
+            <float name="int_ior" value="1.5"/>
+            <float name="ext_ior" value="1"/>
+        </bsdf>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="../assets/teapot/Mesh001.obj"/>
+        <transform name="to_world">
+            <matrix value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
+        </transform>
+        <bsdf type="dielectric">
+            <float name="int_ior" value="1.5"/>
+            <float name="ext_ior" value="1"/>
+        </bsdf>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="../assets/teapot/Mesh002.obj"/>
+        <transform name="to_world">
+            <matrix value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
+        </transform>
+        <boolean name="faceNormals" value="true"/>
+        <bsdf type="dielectric">
+            <float name="int_ior" value="1.33"/>
+            <float name="ext_ior" value="1"/>
+        </bsdf>
+        <medium type="homogeneous" name="interior">
+            <rgb name="sigma_s" value="0, 0, 0"/>
+            <rgb name="sigma_a" value="0.1486, 0.321, 0.736"/>
+        </medium>
+    </shape>
+    <shape type="obj">
+        <string name="filename" value="../assets/teapot/Mesh000.obj"/>
+        <transform name="to_world">
+            <matrix value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>
+        </transform>
+        <bsdf type="dielectric">
+            <float name="int_ior" value="1.13"/>
+            <float name="ext_ior" value="1"/>
+        </bsdf>
+        <medium type="homogeneous" name="exterior">
+            <rgb name="sigma_s" value="0, 0, 0"/>
+            <rgb name="sigma_a" value="0.1486, 0.321, 0.736"/>
+        </medium>
+    </shape>
+    <emitter type="constant">
+        <transform name="to_world">
+            <matrix value="-0.922278 0 0.386527 0 0 1 0 0 -0.386527 0 -0.922278 1.17369 0 0 0 1"/>
+        </transform>
+        <!--		<string name="filename" value="textures/envmap.hdr" />-->
+    </emitter>
+</scene>

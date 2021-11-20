@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     Class::static_initialization();
     InstanceManager::static_initialization();
     library_nop();
-    fs::path path = "../../../results/Figure_1_Pathtrace/scene.xml";
+    fs::path path = "../../../results/Figure_1_Pathtrace/teapot.xml";
     get_file_resolver()->append(fs::path(argv[0]).parent_path());
     get_file_resolver()->append(path.parent_path());
     try {

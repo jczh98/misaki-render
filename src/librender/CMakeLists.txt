@@ -57,6 +57,8 @@ set(UI_SRCS
 
 set(BSDF_SRCS
         bsdfs/diffuse.cpp
+        bsdfs/dielectric.cpp
+        bsdfs/twosided.cpp
 )
 
 set(SAMPLER_SRCS
