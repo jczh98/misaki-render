@@ -57,11 +57,8 @@ struct Ray;
 struct RayDifferential;
 struct DirectionSample;
 struct PositionSample;
-struct Interaction;
 struct PreliminaryIntersection;
-struct SurfaceInteraction;
 struct SceneInteraction;
-struct MediumInteraction;
 struct BSDFSample;
 struct PhaseFunctionContext;
 

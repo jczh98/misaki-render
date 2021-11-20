@@ -7,7 +7,7 @@ Volume::Volume(const Properties &props) {
     m_world_to_local = props.transform("to_world", Transform4f()).inverse();
 }
 
-Spectrum Volume::eval(const Interaction &) const {
+Spectrum Volume::eval(const SceneInteraction &) const {
     MSK_NOT_IMPLEMENTED("eval");
 }
 

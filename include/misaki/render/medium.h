@@ -6,13 +6,20 @@
 
 namespace misaki {
 
+struct MediumSample {
+    float t;
+    Eigen::Vector3f p;
+    Spectrum sigma_s;
+    Spectrum sigma_a;
+    Spectrum transmittance;
+    float pdf;
+};
+
 class MSK_EXPORT Medium : public Object {
 
 public:
-    /// Sample a free-flight distance in the medium.
-    virtual std::pair<MediumInteraction, float>
-    sample_interaction(const Ray &ray, float sample,
-                       uint32_t channel) const = 0;
+    virtual std::pair<bool, MediumSample>
+    sample_distance(const Ray &ray, float sample, uint32_t channel) const = 0;
 
     /// Compute the transmittance and PDF
     virtual Spectrum eval_transmittance(const Ray &ray) const = 0;

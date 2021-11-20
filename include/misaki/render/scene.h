@@ -21,9 +21,18 @@ public:
 
     std::pair<DirectIllumSample, Spectrum>
     sample_emitter_direct(const SceneInteraction &ref,
-                             const Eigen::Vector2f &sample,
-                             bool test_visibility = true) const;
+                          const Eigen::Vector2f &sample,
+                          bool test_visibility = true) const;
     float pdf_emitter_direct(const DirectIllumSample &ds) const;
+
+    std::pair<DirectIllumSample, Spectrum>
+    sample_attenuated_emitter_direct(const SceneInteraction &ref,
+                                     const Medium *medium,
+                                     const Eigen::Vector2f &sample) const;
+
+    Spectrum eval_transmittance(const Eigen::Vector3f &ref,
+                                const Eigen::Vector3f &p,
+                                const Medium *medium) const;
 
     const Sensor *sensor() const { return m_sensor; }
     Sensor *sensor() { return m_sensor; }

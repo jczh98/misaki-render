@@ -13,14 +13,14 @@ public:
     }
 
     std::tuple<Eigen::Vector3f, float, float>
-    sample(const PhaseFunctionContext &, const MediumInteraction &,
+    sample(const PhaseFunctionContext &, const MediumSample &,
            const Eigen::Vector2f &sample) const override {
         auto wo  = warp::square_to_uniform_sphere(sample);
         auto pdf = warp::square_to_uniform_sphere_pdf(wo);
         return { wo, pdf, 1.f };
     }
 
-    float eval(const PhaseFunctionContext &, const MediumInteraction &,
+    float eval(const PhaseFunctionContext &, const MediumSample &,
                const Eigen::Vector3f &wo) const override {
         return warp::square_to_uniform_sphere_pdf(wo);
     }

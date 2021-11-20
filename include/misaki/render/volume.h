@@ -7,7 +7,7 @@ namespace misaki {
 
 class MSK_EXPORT Volume : public Object {
 public:
-    virtual Spectrum eval(const Interaction &si) const;
+    virtual Spectrum eval(const SceneInteraction &si) const;
 
     MSK_DECLARE_CLASS()
 protected:

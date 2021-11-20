@@ -10,6 +10,8 @@
 #include <misaki/render/scene.h>
 #include <misaki/render/sensor.h>
 #include <misaki/render/shape.h>
+#include <misaki/render/medium.h>
+#include <misaki/render/bsdf.h>
 
 namespace misaki {
 
@@ -107,15 +109,78 @@ float Scene::pdf_emitter_direct(const DirectIllumSample &ds) const {
     }
 }
 
-// See interaction.h
-SurfaceInteraction::EmitterPtr
-SurfaceInteraction::emitter(const Scene *scene) const {
-    if (is_valid())
-        return shape->emitter();
-    else
-        return scene->environment();
+std::pair<DirectIllumSample, Spectrum>
+Scene::sample_attenuated_emitter_direct(const SceneInteraction &ref,
+                                        const Medium *medium,
+                                        const Eigen::Vector2f &sample_) const {
+    DirectIllumSample ds;
+    Spectrum spec;
+    Eigen::Vector2f sample(sample_);
+    if (!m_emitters.empty()) {
+        if (m_emitters.size() == 1) {
+            std::tie(ds, spec) = m_emitters[0]->sample_direct(ref, sample);
+        } else {
+            auto light_sel_pdf = 1.f / m_emitters.size();
+            auto index =
+                std::min(uint32_t(sample.x() * (float) m_emitters.size()),
+                         (uint32_t) m_emitters.size() - 1);
+            sample.x() =
+                (sample.x() - index * light_sel_pdf) * m_emitters.size();
+            std::tie(ds, spec) = m_emitters[index]->sample_direct(ref, sample);
+            ds.pdf *= light_sel_pdf;
+            spec *= m_emitters.size();
+        }
+        if (ds.pdf != 0.f) {
+            spec *= eval_transmittance(ref.p, ds.p, medium);
+        }
+    } else {
+        spec = Spectrum::Zero();
+    }
+    return { ds, spec };
 }
 
+Spectrum Scene::eval_transmittance(const Eigen::Vector3f& ref,
+    const Eigen::Vector3f& p,
+    const Medium* medium) const {
+    Eigen::Vector3f d       = p - ref;
+    float remaining = d.norm();
+    d /= remaining;
+    Ray ray(ref, d, math::RayEpsilon<float>,
+            remaining * (1 - math::ShadowEpsilon<float>), 0);
+    Spectrum transmittance = Spectrum::Constant(1);
+    while (remaining) {
+        SceneInteraction si = ray_intersect(ray);
+        if (si.is_valid() && !has_flag(si.bsdf()->flags(), BSDFFlags::Null)) {
+            return Spectrum::Zero();
+        }
+        if (medium) {
+            Ray medium_ray  = ray;
+            medium_ray.mint = 0.f;
+            medium_ray.maxt = std::min(si.t, remaining);
+            transmittance *= medium->eval_transmittance(medium_ray);
+        }
+        if (!si.is_valid() || is_black(transmittance))
+            break;
+        BSDFContext ctx;
+        const auto bsdf = si.bsdf();
+        ctx.type_mask   = +BSDFFlags::Null;
+        const auto wo   = si.to_local(ray.d);
+        si.wi           = -wo;
+        transmittance *= bsdf->eval(ctx, si, wo);
+        if (si.is_medium_transition()) {
+            if (medium != si.target_medium(-d))
+                return Spectrum::Zero();
+            medium = si.target_medium(d);
+        }
+        ray.o = ray(si.t);
+        remaining -= si.t;
+        ray.maxt = remaining * (1 - math::ShadowEpsilon<float>);
+        ray.mint = math::RayEpsilon<float>;
+    }
+    return transmittance;
+}
+
+// See interaction.h
 const Emitter *
 SceneInteraction::emitter(const Scene *scene) const {
     if (is_valid())

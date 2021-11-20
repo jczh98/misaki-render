@@ -32,7 +32,7 @@ public:
                        float diff_scale_factor) const;
 
     virtual Spectrum sample(const Scene *scene, Sampler *sampler,
-                            const RayDifferential &ray_) const = 0;
+                            const RayDifferential &ray_, const Medium* medium = nullptr) const = 0;
 
     MSK_DECLARE_CLASS()
 protected:

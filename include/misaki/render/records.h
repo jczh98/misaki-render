@@ -19,9 +19,6 @@ struct PositionSample {
         : p(Eigen::Vector3f::Zero()), n(Eigen::Vector3f::Zero()),
           uv(Eigen::Vector2f::Zero()), pdf(0.f),
           delta(false) {}
-
-    PositionSample(const SurfaceInteraction &si)
-        : p(si.p), n(si.sh_frame.n), uv(si.uv), delta(false) {}
 };
 
 struct DirectionSample {

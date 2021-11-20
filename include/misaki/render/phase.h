@@ -2,6 +2,7 @@
 
 #include "bsdf.h"
 #include "interaction.h"
+#include "medium.h"
 #include "misaki/core/object.h"
 
 namespace misaki {
@@ -52,11 +53,10 @@ public:
      * @return sampled direction, pdf, and phase value
      */
     virtual std::tuple<Eigen::Vector3f, float, float>
-    sample(const PhaseFunctionContext &ctx, const MediumInteraction &mi,
+    sample(const PhaseFunctionContext &ctx, const MediumSample &ms,
            const Eigen::Vector2f &sample) const = 0;
 
-    virtual float eval(const PhaseFunctionContext &ctx,
-                       const MediumInteraction &mi,
+    virtual float eval(const PhaseFunctionContext &ctx, const MediumSample &ms,
                        const Eigen::Vector3f &wo) const = 0;
 
     uint32_t flags() const { return m_flags; }

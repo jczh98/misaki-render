@@ -4,22 +4,6 @@
 
 namespace misaki {
 
-SurfaceInteraction::SurfaceInteraction(const PositionSample &ps)
-    : Interaction(0.f, ps.p), uv(ps.uv), n(ps.n), sh_frame(Frame(ps.n)) {}
-
-SurfaceInteraction::MediumPtr
-SurfaceInteraction::target_medium(const float &cos_theta) const {
-    return cos_theta > 0 ? shape->exterior_medium() : shape->interior_medium();
-}
-
-SurfaceInteraction::BSDFPtr SurfaceInteraction::bsdf() const {
-    return shape->bsdf();
-}
-
-bool SurfaceInteraction::is_medium_transition() const {
-    return shape->is_medium_transition();
-}
-
 SceneInteraction::SceneInteraction(const PositionSample &ps)
     : p(ps.p), uv(ps.uv), n(ps.n), sh_frame(Frame(ps.n)) {}
 

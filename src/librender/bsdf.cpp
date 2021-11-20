@@ -12,15 +12,6 @@ BSDF::~BSDF() {}
 
 std::string BSDF::id() const { return m_id; }
 
-const BSDF *SurfaceInteraction::bsdf(const RayDifferential &ray) {
-    const BSDFPtr bsdf = shape->bsdf();
-
-    if (!has_uv_partials() && bsdf->needs_differentials()) {
-        compute_uv_partials(ray);
-    }
-    return bsdf;
-}
-
 const BSDF *SceneInteraction::bsdf(const RayDifferential &ray) {
     const BSDF* bsdf = shape->bsdf();
 

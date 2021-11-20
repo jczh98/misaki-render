@@ -94,7 +94,7 @@ void MonteCarloIntegrator::render_sample(const Scene *scene,
     auto [ray, ray_weight] =
         sensor->sample_ray_differential(position_sample, sampler->next2d());
     ray.scale_differential(diff_scale_factor);
-    auto result = sample(scene, sampler, ray);
+    auto result = sample(scene, sampler, ray, sensor->medium());
     block->put(position_sample, result);
 }
 

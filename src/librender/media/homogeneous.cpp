@@ -1,10 +1,10 @@
+#include <iostream>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
 #include <misaki/render/interaction.h>
 #include <misaki/render/medium.h>
-#include <misaki/core/properties.h>
-#include <misaki/core/manager.h>
 #include <misaki/render/texture.h>
 #include <misaki/render/volume.h>
-#include <iostream>
 namespace misaki {
 
 class HomogeneousMedium final : public Medium {
@@ -17,34 +17,36 @@ public:
         m_scale          = props.float_("scale", 1.0f);
     }
 
-    std::pair<MediumInteraction, float>
-    sample_interaction(const Ray &ray, float sample,
-                       uint32_t channel) const override {
+    std::pair<bool, MediumSample>
+    sample_distance(const Ray &ray, float sample,
+                    uint32_t channel) const override {
         float sampled_distance = -std::log(1 - sample) / m_sigma_t[channel];
 
-        MediumInteraction mi;
+        MediumSample ms;
         float pdf;
+        bool success = true;
         if (sampled_distance < ray.maxt - ray.mint) {
-            mi.t       = sampled_distance + ray.mint;
-            mi.p       = ray(mi.t);
-            mi.sigma_a = m_sigma_a;
-            mi.sigma_s = m_sigma_s;
-            if (mi.p == ray.o) {
-                mi.t = math::Infinity<float>;
-                pdf  = (m_sigma_t * (-sampled_distance)).exp().mean();
+            ms.t       = sampled_distance + ray.mint;
+            ms.p       = ray(ms.t);
+            ms.sigma_a = m_sigma_a;
+            ms.sigma_s = m_sigma_s;
+            if (ms.p == ray.o) {
+                ms.t = math::Infinity<float>;
+                ms.pdf  = (m_sigma_t * (-sampled_distance)).exp().mean();
+                success = false;
             } else
-                pdf = ((m_sigma_t * (-sampled_distance)).exp() * m_sigma_t)
+                ms.pdf = ((m_sigma_t * (-sampled_distance)).exp() * m_sigma_t)
                           .mean();
         } else {
-            mi.t             = math::Infinity<float>;
+            ms.t             = math::Infinity<float>;
             sampled_distance = ray.maxt - ray.mint;
             pdf              = (m_sigma_t * (-sampled_distance)).exp().mean();
+            success          = false;
         }
-        mi.transmittance = (m_sigma_t * (-sampled_distance)).exp();
-        if (mi.transmittance.maxCoeff() < 1e-20)
-            mi.transmittance = Spectrum::Zero();
-        mi.medium = this;
-        return { mi, pdf };
+        ms.transmittance = (m_sigma_t * (-sampled_distance)).exp();
+        if (ms.transmittance.maxCoeff() < 1e-20)
+            ms.transmittance = Spectrum::Zero();
+        return { success, ms };
     }
 
     Spectrum eval_transmittance(const Ray &ray) const override {
