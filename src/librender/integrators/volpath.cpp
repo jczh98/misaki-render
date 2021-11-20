@@ -24,8 +24,8 @@ public:
         : MonteCarloIntegrator(props) {}
 
     virtual Spectrum sample(const Scene *scene, Sampler *sampler,
-                    const RayDifferential &ray_,
-                    const Medium *initial_medium) const override {
+                            const RayDifferential &ray_,
+                            const Medium *initial_medium) const override {
         RayDifferential ray  = ray_;
         Spectrum throughput  = Spectrum::Constant(1.f),
                  result      = Spectrum::Zero();
@@ -33,47 +33,43 @@ public:
         const Medium *medium = initial_medium;
         bool scattered = false, null_chain = true;
         SceneInteraction si = scene->ray_intersect(ray);
-        uint32_t channel    = std::min<uint32_t>(sampler->next1d() * 3, 3 - 1);
+        MediumSample ms;
+        uint32_t channel = std::min<uint32_t>(sampler->next1d() * 3, 3 - 1);
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
-            if (medium) {
-                Ray medium_ray  = ray;
-                medium_ray.mint = 0;
-                medium_ray.maxt = si.t;
-                if (auto [success, ms] = medium->sample_distance(
-                        medium_ray, sampler->next1d(), channel);
-                    success) {
-                    throughput *= ms.sigma_s * ms.transmittance / ms.pdf;
-                    const PhaseFunction *phase = medium->phase_function();
-                    PhaseFunctionContext phase_ctx(sampler);
+            if (medium && medium->sample_distance(ms, Ray(ray, 0, si.t, 0),
+                                                  sampler->next1d(), channel)) {
+                throughput *= ms.sigma_s * ms.transmittance / ms.pdf;
+                const PhaseFunction *phase = medium->phase_function();
+                PhaseFunctionContext phase_ctx(sampler);
 
-                    auto [ds, spec] = scene->sample_attenuated_emitter_direct(
-                        si, medium, sampler->next2d());
-                    if (!is_black(spec)) {
-                        result += throughput * spec *
-                                  phase->eval(phase_ctx, ms, ds.d);
-                    }
+                auto [ds, spec] = scene->sample_attenuated_emitter_direct(
+                    si, medium, sampler->next2d());
+                if (!is_black(spec)) {
+                    result +=
+                        throughput * spec * phase->eval(phase_ctx, ms, ds.d);
+                }
 
-                    if ((depth >= m_max_depth && m_max_depth > 0))
-                        break;
+                if ((depth >= m_max_depth && m_max_depth > 0))
+                    break;
 
-                    /**
-                     * Phase function sampling
-                     */
-                    auto [phase_wo, phase_pdf, phase_val] =
-                        phase->sample(phase_ctx, ms, sampler->next2d());
-                    if (phase_val == 0.f)
-                        break;
-                    throughput *= phase_val;
-                    // Trace a ray in phase sampled direction
-                    ray        = Ray(ms.p, phase_wo, 0);
-                    ray.mint   = 0;
-                    si         = scene->ray_intersect(ray);
-                    null_chain = false;
-                    scattered  = true;
-                } else {
+                /**
+                 * Phase function sampling
+                 */
+                auto [phase_wo, phase_pdf, phase_val] =
+                    phase->sample(phase_ctx, ms, sampler->next2d());
+                if (phase_val == 0.f)
+                    break;
+                throughput *= phase_val;
+                // Trace a ray in phase sampled direction
+                ray        = Ray(ms.p, phase_wo, 0);
+                ray.mint   = 0;
+                si         = scene->ray_intersect(ray);
+                null_chain = false;
+                scattered  = true;
+            } else {
+                if (medium) {
                     throughput *= ms.transmittance / ms.pdf;
                 }
-            } else {
                 /*
                  * Sample surface integral
                  */

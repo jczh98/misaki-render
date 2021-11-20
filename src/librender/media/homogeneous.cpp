@@ -17,13 +17,9 @@ public:
         m_scale          = props.float_("scale", 1.0f);
     }
 
-    std::pair<bool, MediumSample>
-    sample_distance(const Ray &ray, float sample,
+    bool sample_distance(MediumSample &ms, const Ray &ray, float sample,
                     uint32_t channel) const override {
         float sampled_distance = -std::log(1 - sample) / m_sigma_t[channel];
-
-        MediumSample ms;
-        float pdf;
         bool success = true;
         if (sampled_distance < ray.maxt - ray.mint) {
             ms.t       = sampled_distance + ray.mint;
@@ -40,13 +36,13 @@ public:
         } else {
             ms.t             = math::Infinity<float>;
             sampled_distance = ray.maxt - ray.mint;
-            pdf              = (m_sigma_t * (-sampled_distance)).exp().mean();
+            ms.pdf              = (m_sigma_t * (-sampled_distance)).exp().mean();
             success          = false;
         }
         ms.transmittance = (m_sigma_t * (-sampled_distance)).exp();
         if (ms.transmittance.maxCoeff() < 1e-20)
             ms.transmittance = Spectrum::Zero();
-        return { success, ms };
+        return success;
     }
 
     Spectrum eval_transmittance(const Ray &ray) const override {

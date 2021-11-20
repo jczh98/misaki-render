@@ -19,9 +19,13 @@ struct Ray {
     }
 
     Ray(const Eigen::Vector3f &o, const Eigen::Vector3f &d, float mint,
-        float maxt,
-        float time)
+        float maxt, float time)
         : o(o), d(d), mint(mint), maxt(maxt), time(time) {
+        update();
+    }
+
+    Ray(const Ray &ray, float mint, float maxt, float time)
+        : o(ray.o), d(ray.d), mint(mint), maxt(maxt), time(time) {
         update();
     }
 
