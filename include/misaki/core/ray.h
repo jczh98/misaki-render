@@ -60,4 +60,24 @@ struct RayDifferential : public Ray {
     RayDifferential(const Ray &ray) : Ray(ray), has_differentials(false) {}
 };
 
+namespace ray {
+
+inline Ray spawn(const Ray &ray, float mint, float maxt) {
+    return Ray(ray.o, ray.d, mint, maxt, 0.f);
+}
+
+template <bool Offset = true>
+inline Ray spawn(const Eigen::Vector3f &p, const Eigen::Vector3f &d) {
+    if constexpr (Offset) {
+
+        return Ray(p, d,
+                   (1.f + p.cwiseAbs().maxCoeff()) * math::RayEpsilon<float>,
+                   math::Infinity<float>, 0.f);
+    } else {
+        return Ray(p, d, 0, math::Infinity<float>, 0.f);
+    }
+}
+
+} // namespace ray
+
 } // namespace misaki

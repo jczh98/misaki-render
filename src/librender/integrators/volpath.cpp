@@ -31,13 +31,16 @@ public:
                  result      = Spectrum::Zero();
         float eta            = 1.f;
         const Medium *medium = initial_medium;
-        bool scattered = false, null_chain = true, emitted_radiance = true;
-        SceneInteraction si = scene->ray_intersect(ray);
+        bool ms_flag, scattered = false, null_chain = true,
+                      emitted_radiance = true;
+        SceneInteraction si            = scene->ray_intersect(ray);
         MediumSample ms;
         uint32_t channel = std::min<uint32_t>(sampler->next1d() * 3, 3 - 1);
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
-            if (medium && medium->sample_distance(ms, Ray(ray, 0, si.t, 0),
-                                                  sampler->next1d(), channel)) {
+            if (medium)
+                std::tie(ms_flag, ms) = medium->sample_distance(
+                    ray::spawn(ray, 0, si.t), sampler->next1d(), channel);
+            if (medium && ms_flag) {
                 throughput *= ms.sigma_s * ms.transmittance / ms.pdf;
                 const PhaseFunction *phase = medium->phase_function();
                 PhaseFunctionContext phase_ctx(sampler);
@@ -49,7 +52,7 @@ public:
                         throughput * spec * phase->eval(phase_ctx, ms, ds.d);
                 }
 
-                if ((depth + 1>= m_max_depth && m_max_depth > 0))
+                if ((depth + 1 >= m_max_depth && m_max_depth > 0))
                     break;
 
                 /**
@@ -61,8 +64,7 @@ public:
                     break;
                 throughput *= phase_val;
                 // Trace a ray in phase sampled direction
-                ray        = Ray(ms.p, phase_wo, 0);
-                ray.mint   = 0;
+                ray        = ray::spawn<false>(ms.p, phase_wo);
                 si         = scene->ray_intersect(ray);
                 null_chain = false;
                 scattered  = true;
@@ -117,7 +119,7 @@ public:
                     break;
 
                 emitted_radiance = false;
-                // Recursively gather indirect illumination 
+                // Recursively gather indirect illumination
                 bool recursive = false;
                 if (depth + 1 < m_max_depth || m_max_depth < 0)
                     recursive = true;
@@ -128,8 +130,8 @@ public:
                     (!has_flag(bs.sampled_type, BSDFFlags::Null) ||
                      null_chain)) {
                     emitted_radiance = true;
-                    recursive  = true;
-                    null_chain = true;
+                    recursive        = true;
+                    null_chain       = true;
                 } else {
                     null_chain &= has_flag(bs.sampled_type, BSDFFlags::Null);
                 }

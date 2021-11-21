@@ -18,7 +18,7 @@ struct MediumSample {
 class MSK_EXPORT Medium : public Object {
 
 public:
-    virtual bool sample_distance(MediumSample &ms, const Ray &ray, float sample,
+    virtual std::pair<bool, MediumSample> sample_distance(const Ray &ray, float sample,
                                  uint32_t channel) const = 0;
 
     /// Compute the transmittance and PDF
