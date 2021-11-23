@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400;1,500;1,600;1,700;1,900&family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
+
+body {
+    font-family: 'Source Sans Pro', sans-serif;
+    background:#2f363f;
+
+    color: rgb(220, 220, 220);
+    /* font-weight: 700; */
+}
+
+/* reset heading/link fonts to that of body */
+.md a,
+.md div.title, contents, .md .tocHeader,
+.md h1, .md h2, .md h3, .md h4, .md h5, .md h6,
+.md .nonumberh1, .md .nonumberh2, .md .nonumberh3, .md .nonumberh4, .md .nonumberh5, .md .nonumberh6,
+.md .shortTOC, .md .mediumTOC, .md .longTOC {
+    font-family: inherit;
+    background: inherit;
+    color: inherit;
+}
+
+a {
+    color: rgb(165, 201, 234) !important;
+    font-weight: 600;
+}
+
+body,
+table {
+    font-weight: 500;
+    /* color: #555; */
+}
+
+/* em.asterisk {
+    font-style: normal;
+    font-weight: 500;
+    color: #333; 
+} */
+
+
+.md div.title {
+    margin-top: 20px;
+    font-size: x-large;
+    /* font-family: 'Source Sans Pro', sans-serif; */
+}
+
+
+/* inline and block code */
+.md code {
+    color: rgb(230, 230, 230);
+    background-color: rgb(0, 0, 0, 0.2);
+    padding: 0.1em 0.2em;
+    border-radius: 0.15em;
+    font-weight: 500;
+    font-family: 'Source Code Pro';
+}
+
+.md pre.listing,
+.md pre.listing.tilde,
+.md pre.listing.backtick {
+    background-color: rgb(0, 0, 0, 0.2);
+    padding: 0.4em 0.8em;
+    border-radius: 0.25em;
+    border: none;
+}
+
+.md pre.listing code {
+    background-color: transparent;
+    color: rgb(230, 230, 230);
+    padding: 0;
+    font-weight: 500;
+}
+
+
+.hljs-string {
+    color: rgb(216, 142, 116);
+}
+.hljs-attr {
+    color: rgb(136, 222, 255);
+}
+.hljs-number {
+    color: rgb(175, 207, 164);
+}
+.hljs-built_in,
+.hljs-literal {
+    color: rgb(57, 158, 219);
+}
+.hljs-keyword {
+    /* color: rgb(208, 130, 196); */
+    color: rgb(57, 158, 219);
+}
+.hljs-comment {
+    color: rgb(91, 154, 76);
+}
+.hljs-class .hljs-title {
+    color: rgb(0, 205, 175);
+}
+.hljs-function .hljs-title {
+    color: rgb(220, 220, 164);
+}
+.hljs-function .hljs-params {
+    color: rgb(212, 212, 212);
+}
+.hljs-title {
+    color: rgb(0, 205, 175);
+}
+
+
+/* tables; use fainter colors than regular markdeep style */
+.md table.table {
+    font-size: 90%;
+    border: none;
+}
+
+.md table.table th {
+    border: none;
+    background-color: rgba(255, 255, 255, 0.5);
+    color: rgba(0,0,0,.9);
+}
+.md table.table tr, .md table.table td {
+    border-left:none;
+    border-right:none;
+    border-color: rgba(255,255,255,0.1);
+}
+.md table.table tr:nth-child(even) {
+    background-color: inherit;
+}
+.md table.table tr:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+
+/* End standard markdeep stuff */
+
