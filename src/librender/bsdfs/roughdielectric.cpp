@@ -1,3 +1,4 @@
+#include <iostream>
 #include <misaki/core/logger.h>
 #include <misaki/core/manager.h>
 #include <misaki/core/properties.h>
@@ -14,7 +15,7 @@ public:
     RoughDielectric(const Properties &props) : BSDF(props) {
         m_specular_reflectance   = props.texture("specular_reflectance", 1.f);
         m_specular_transmittance = props.texture("specular_transmittance", 1.f);
-        float int_ior            = props.float_("int_ior", 1.49);
+        float int_ior            = props.float_("int_ior", 1.5046f);
         float ext_ior            = props.float_("ext_ior", 1.00028);
         if (int_ior < 0.f || ext_ior < 0.f || int_ior == ext_ior)
             Throw("The interior and exterior indices of "
@@ -69,52 +70,46 @@ public:
         if (!m_sample_visible)
             sample_distr.scale_alpha(1.2f -
                                      .2f * std::sqrt(std::abs(cos_theta_i)));
-        auto [m, micro_pdf] = sample_distr.sample(
-            std::copysign(1.f, Frame::cos_theta(si.wi)) * si.wi, sample);
-        if (micro_pdf == 0.f)
+        Eigen::Vector3f m;
+        std::tie(m, bs.pdf) = sample_distr.sample(
+            std::copysign(1.0, cos_theta_i) * si.wi, sample);
+        if (bs.pdf == 0)
             return { bs, Spectrum::Zero() };
         auto [F, cos_theta_t, eta_it, eta_ti] = fresnel(si.wi.dot(m), m_eta);
-
-        bool sample_reflection = false;
-        Spectrum weight;
+        bool selected_r;
+        Color3 weight;
         if (has_reflection && has_transmission) {
-            if (sample1 > F)
-                sample_reflection = false;
+            selected_r = sample1 <= F;
+            weight     = 1.f;
+            bs.pdf *= selected_r ? F : (1.f - F);
         } else {
-            weight = has_reflection ? F : (1 - F);
+            selected_r = has_reflection;
+            weight     = has_reflection ? F : (1.f - F);
         }
-
-        if (sample_reflection) {
-            bs.wo                = reflect(si.wi, m);
-            bs.eta               = 1.f;
-            bs.sampled_component = 0;
-            bs.sampled_type      = +BSDFFlags::GlossyReflection;
-            if (cos_theta_i * Frame::cos_theta(bs.wo) <= 0)
-                return { bs, Spectrum::Zero() };
+        auto selected_t      = !selected_r;
+        bs.eta               = selected_r ? 1.f : eta_it;
+        bs.sampled_component = selected_r ? (uint32_t) 0 : (uint32_t) 1;
+        bs.sampled_type      = selected_r ? +BSDFFlags::GlossyReflection
+                                          : +BSDFFlags::GlossyTransmission;
+        float dwh_dwo        = 0.f;
+        if (selected_r) {
+            bs.wo = reflect(si.wi, m);
             weight *= m_specular_reflectance->eval_3(si);
+            dwh_dwo = 1.f / (4.f * bs.wo.dot(m));
         } else {
-            if (cos_theta_t == 0)
-                return { bs, Spectrum::Zero() };
-            bs.wo                = refract(si.wi, m, m_eta, cos_theta_t);
-            bs.eta               = cos_theta_t < 0 ? m_eta : m_inv_eta;
-            bs.sampled_component = 1;
-            bs.sampled_type      = +BSDFFlags::GlossyTransmission;
-            if (cos_theta_i * Frame::cos_theta(bs.wo) >= 0)
-                return { bs, Spectrum::Zero() };
-
-            float factor = (ctx.mode == TransportMode::Radiance)
-                               ? (cos_theta_t < 0 ? m_inv_eta : m_eta)
-                               : 1.0f;
-
-            weight *= m_specular_transmittance->eval_3(si) * (factor * factor);
+            bs.wo = refract(si.wi, m, cos_theta_t, eta_ti);
+            float factor =
+                (ctx.mode == TransportMode::Radiance) ? math::sqr(eta_ti) : 1.f;
+            weight *= factor;
+            dwh_dwo = math::sqr(bs.eta) * bs.wo.dot(m) /
+                      math::sqr(si.wi.dot(m) + bs.eta * bs.wo.dot(m));
         }
         if (m_sample_visible)
             weight *= distr.smith_g1(bs.wo, m);
         else
-            weight *=
-                std::abs(distr.eval(m) * distr.G(si.wi, bs.wo, m) *
-                         si.wi.dot(m) / (micro_pdf * Frame::cos_theta(si.wi)));
-        bs.pdf = pdf(ctx, si, bs.wo);
+            weight *= distr.G(si.wi, bs.wo, m) * si.wi.dot(m) /
+                      (cos_theta_i * Frame::cos_theta(m));
+        bs.pdf *= std::abs(dwh_dwo);
         return { bs, weight };
     }
 
@@ -127,47 +122,34 @@ public:
         bool has_reflection = ctx.is_enabled(BSDFFlags::GlossyReflection, 0),
              has_transmission =
                  ctx.is_enabled(BSDFFlags::GlossyTransmission, 1);
-        bool reflect = cos_theta_i * cos_theta_o > 0.f;
-        Eigen::Vector3f H;
-        if (reflect) {
-            if (!has_reflection)
-                return Spectrum::Zero();
-            H = (wo + si.wi).normalized();
-        } else {
-            if (!has_transmission)
-                return Spectrum::Zero();
-
-            float eta = Frame::cos_theta(si.wi) > 0 ? m_eta : m_inv_eta;
-
-            H = (wo * eta + si.wi).normalized();
-        }
-        H *= std::copysign(1.f, Frame::cos_theta(H));
+        bool reflect      = cos_theta_i * cos_theta_o > 0.f;
+        float eta         = (cos_theta_i > 0.f ? (m_eta) : (m_inv_eta)),
+              inv_eta     = (cos_theta_i > 0.f ? (m_inv_eta) : (m_eta));
+        Eigen::Vector3f m = (si.wi + wo * (reflect ? 1.f : eta)).normalized();
+        m *= std::copysign(1.f, Frame::cos_theta(m));
         MicrofacetDistribution distr(m_type, m_alpha_u->eval_1(si),
                                      m_alpha_v->eval_1(si), m_sample_visible);
-        const float D = distr.eval(H);
-        if (D == 0)
-            return Spectrum::Zero();
-        const float F = std::get<0>(fresnel(si.wi.dot(H), m_eta));
-        const float G = distr.G(si.wi, wo, H);
-        if (reflect) {
-            return F * D * G * m_specular_reflectance->eval_3(si) /
-                   (4.f * std::abs(cos_theta_i));
-        } else {
-            float eta = Frame::cos_theta(si.wi) > 0.0f ? m_eta : m_inv_eta;
-
-            float sqrt_denom = si.wi.dot(H) + eta * wo.dot(H);
-            float value =
-                ((1 - F) * D * G * eta * eta * si.wi.dot(H) * wo.dot(H)) /
-                (Frame::cos_theta(si.wi) * sqrt_denom * sqrt_denom);
-
-            float factor =
-                (ctx.mode == TransportMode::Radiance)
-                    ? (Frame::cos_theta(si.wi) > 0 ? m_inv_eta : m_eta)
-                    : 1.0f;
-
-            return m_specular_transmittance->eval_3(si) *
-                   std::abs(value * factor * factor);
+        float D         = distr.eval(m);
+        float F         = std::get<0>(fresnel(si.wi.dot(m), m_eta));
+        float G         = distr.G(si.wi, wo, m);
+        bool eval_r     = has_reflection && reflect;
+        bool eval_t     = has_transmission && !reflect;
+        Spectrum result = Spectrum::Zero();
+        if (eval_r) {
+            result = F * D * G * m_specular_reflectance->eval_3(si) /
+                     (4.f * std::abs(cos_theta_i));
         }
+        if (eval_t) {
+            float scale = (ctx.mode == TransportMode::Radiance)
+                              ? math::sqr(inv_eta)
+                              : 1.f;
+            result      = m_specular_transmittance->eval_3(si) *
+                     std::abs((scale * (1.f - F) * D * G * eta * eta *
+                               si.wi.dot(m) * wo.dot(m)) /
+                              (cos_theta_i *
+                               math::sqr(si.wi.dot(m) + eta * wo.dot(m))));
+        }
+        return result;
     }
 
     float pdf(const BSDFContext &ctx, const SceneInteraction &si,
@@ -181,25 +163,17 @@ public:
                  ctx.is_enabled(BSDFFlags::GlossyTransmission, 1);
         if (!has_reflection && !has_transmission)
             return 0.f;
-        bool reflect = cos_theta_i * cos_theta_o > 0.f;
-        Eigen::Vector3f H;
-        float dwh_dwo;
-        if (reflect) {
-            if (!has_reflection)
-                return 0.f;
-            H       = (wo + si.wi).normalized();
-            dwh_dwo = 1.0f / (4.0f * wo.dot(H));
-        } else {
-            if (!has_transmission)
-                return 0.f;
-
-            float eta = Frame::cos_theta(si.wi) > 0 ? m_eta : m_inv_eta;
-
-            H                = (wo * eta + si.wi).normalized();
-            float sqrt_denom = si.wi.dot(H) + eta * wo.dot(H);
-            dwh_dwo = (eta * eta * wo.dot(H)) / (sqrt_denom * sqrt_denom);
-        }
-        H *= std::copysign(1.f, Frame::cos_theta(H));
+        bool reflect      = cos_theta_i * cos_theta_o > 0.f;
+        float eta         = (cos_theta_i > 0.f ? (m_eta) : (m_inv_eta));
+        Eigen::Vector3f m = (si.wi + wo * (reflect ? 1.f : eta)).normalized();
+        m *= std::copysign(1.f, Frame::cos_theta(m));
+        if (si.wi.dot(m) * Frame::cos_theta(si.wi) <= 0.f ||
+            wo.dot(m) * Frame::cos_theta(wo) <= 0.f)
+            return 0.f;
+        float dwh_dwo =
+            (reflect ? 1.f / (4.f * wo.dot(m))
+                     : (eta * eta * wo.dot(m)) /
+                           math::sqr(si.wi.dot(m) + eta * wo.dot(m)));
         MicrofacetDistribution sample_distr(m_type, m_alpha_u->eval_1(si),
                                             m_alpha_v->eval_1(si),
                                             m_sample_visible);
@@ -207,12 +181,18 @@ public:
             sample_distr.scale_alpha(
                 1.2f - .2f * std::sqrt(std::abs(Frame::cos_theta(si.wi))));
         float prob = sample_distr.pdf(
-            si.wi * std::copysign(1.f, Frame::cos_theta(si.wi)), H);
+            si.wi * std::copysign(1.f, Frame::cos_theta(si.wi)), m);
         if (has_transmission && has_reflection) {
-            float F = std::get<0>(fresnel(si.wi.dot(H), m_eta));
+            float F = std::get<0>(fresnel(si.wi.dot(m), m_eta));
             prob *= (reflect ? F : 1.f - F);
         }
-        return std::abs(prob * dwh_dwo);
+        return prob * std::abs(dwh_dwo);
+    }
+
+    std::string to_string() const override {
+        std::ostringstream oss;
+        oss << "RoughDielectric[]";
+        return oss.str();
     }
 
     MSK_DECLARE_CLASS()

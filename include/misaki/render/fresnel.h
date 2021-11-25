@@ -62,30 +62,29 @@ std::tuple<Float, Float, Float, Float> fresnel(Float cos_theta_i, Float eta) {
     return { r, cos_theta_t, eta_it, eta_ti };
 }
 
- inline Color3 fresnel_conductor(float cos_theta_i, const Color3 &eta, const Color3
- &k) {
+inline Color3 fresnel_conductor(float cos_theta_i, const Color3 &eta,
+                                const Color3 &k) {
     float cos_theta_i_2 = cos_theta_i * cos_theta_i,
-        sin_theta_i_2 = 1.f - cos_theta_i_2,
-        sin_theta_i_4 = sin_theta_i_2 * sin_theta_i_2;
+          sin_theta_i_2 = 1.f - cos_theta_i_2,
+          sin_theta_i_4 = sin_theta_i_2 * sin_theta_i_2;
 
-  Color3 eta_r = eta,
-           eta_i = k;
+    Color3 eta_r = eta, eta_i = k;
 
-  Color3 temp_1 = eta_r * eta_r - eta_i * eta_i - sin_theta_i_2,
-           a_2_pb_2 = (temp_1 * temp_1 + 4.f * eta_i * eta_i * eta_r *
-           eta_r).sqrt(), a = (.5f * (a_2_pb_2 + temp_1)).sqrt();
+    Color3 temp_1 = eta_r * eta_r - eta_i * eta_i - sin_theta_i_2,
+           a_2_pb_2 =
+               (temp_1 * temp_1 + 4.f * eta_i * eta_i * eta_r * eta_r).sqrt(),
+           a = (.5f * (a_2_pb_2 + temp_1)).sqrt();
 
-  Color3 term_1 = a_2_pb_2 + cos_theta_i_2,
-           term_2 = 2.f * cos_theta_i * a;
+    Color3 term_1 = a_2_pb_2 + cos_theta_i_2, term_2 = 2.f * cos_theta_i * a;
 
-  Color3 r_s = (term_1 - term_2) / (term_1 + term_2);
+    Color3 r_s = (term_1 - term_2) / (term_1 + term_2);
 
-  Color3 term_3 = a_2_pb_2 * cos_theta_i_2 + sin_theta_i_4,
+    Color3 term_3 = a_2_pb_2 * cos_theta_i_2 + sin_theta_i_4,
            term_4 = term_2 * sin_theta_i_2;
 
-  Color3 r_p = r_s * (term_3 - term_4) / (term_3 + term_4);
+    Color3 r_p = r_s * (term_3 - term_4) / (term_3 + term_4);
 
-  return .5f * (r_s + r_p);
+    return .5f * (r_s + r_p);
 }
 
 // Computes the diffuse unpolarized Fresnel reflectance of a dielectric material
