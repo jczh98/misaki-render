@@ -65,6 +65,10 @@ template <typename T> inline auto safe_acos(const T &a) {
     return std::acos(std::min(T(1), std::max(T(-1), a)));
 }
 
+inline std::pair<float, float> sincos(const float& v) {
+    return { std::sinf(v), std::cosf(v) };
+}
+
 // Search the interval of [begin, end)
 template <typename Predicate>
 uint32_t binary_search(uint32_t begin, uint32_t end, const Predicate &pred) {

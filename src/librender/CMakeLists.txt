@@ -59,6 +59,8 @@ set(BSDF_SRCS
         bsdfs/diffuse.cpp
         bsdfs/dielectric.cpp
         bsdfs/twosided.cpp
+        bsdfs/roughconductor.cpp
+        bsdfs/roughdielectric.cpp
 )
 
 set(SAMPLER_SRCS

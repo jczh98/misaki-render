@@ -7,6 +7,7 @@ build
 
 results/assets
 results/*/*.png
+!results/resources/images
 
 assets/*/*
 !assets/gallery/*
