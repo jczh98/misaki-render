@@ -169,9 +169,9 @@ struct Transform4f {
     static Transform4f lookat(const Eigen::Vector3f &origin,
                               const Eigen::Vector3f &target,
                               const Eigen::Vector3f &up) {
-        auto dir    = (target - origin).normalized();
-        auto left   = up.normalized().cross(dir).normalized();
-        auto new_up = dir.cross(left).normalized();
+        const Eigen::Vector3f dir = (target - origin).normalized();
+        const Eigen::Vector3f left = up.normalized().cross(dir).normalized();
+        const Eigen::Vector3f new_up = dir.cross(left).normalized();
         Eigen::Matrix4f result;
         result << left, new_up, dir, origin, 0, 0, 0, 1;
         return Transform4f(result);
