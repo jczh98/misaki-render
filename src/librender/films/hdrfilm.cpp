@@ -47,8 +47,19 @@ public:
 
     std::shared_ptr<Image> image() override {
         const auto channel_count = m_channels.size();
-        auto image    = std::make_shared<Image>(m_storage->size(), m_channels);
-        bool has_aovs = channel_count != 4;
+
+        bool has_aovs            = channel_count != 5;
+        std::vector<std::string> converted_channels;
+        for (size_t i = 0; i < 4; ++i)
+            converted_channels.insert(converted_channels.begin() + i,
+                                      std::string(1, "RGBA"[i]));
+        for (size_t i = 5; i < m_channels.size(); i++) {
+            converted_channels.emplace_back(m_channels[i]);
+        }
+        
+        auto image =
+            std::make_shared<Image>(m_storage->size(), converted_channels);
+        
         for (int x = 0; x < m_size.x(); x++) {
             for (int y = 0; y < m_size.y(); y++) {
                 uint32_t base_index = channel_count * (y * m_size.x() + x);
@@ -58,18 +69,19 @@ public:
                                     m_storage->data()[base_index + 1],
                                     m_storage->data()[base_index + 2]);
                 Eigen::Vector3f rgb = xyz_to_srgb(xyz);
-                float weight        = m_storage->data()[base_index + 3];
+                float weight        = m_storage->data()[base_index + 4];
                 float inv_weight    = weight != 0 ? 1.f / weight : 0.f;
-                    
+
+                float alpha = m_storage->data()[base_index + 3] * inv_weight;
                 rgb *= inv_weight;
 
                 image->operator()(x, y, 0) = rgb.x();
                 image->operator()(x, y, 1) = rgb.y();
                 image->operator()(x, y, 2) = rgb.z();
-                image->operator()(x, y, 3) = 1.f;
+                image->operator()(x, y, 3) = alpha;
 
-                for (int ch = 4; ch < channel_count; ch++) {
-                    image->operator()(x, y, ch) =
+                for (int ch = 5; ch < channel_count; ch++) {
+                    image->operator()(x, y, ch - 1) =
                         m_storage->data()[base_index + ch] * inv_weight;
                 }
             }

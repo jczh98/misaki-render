@@ -1,9 +1,9 @@
 <scene>
-    <integrator type="aov">
+    <!-- <integrator type="aov">
         <string name="aovs" value="dd.y:depth,nn:sh_normal"/>
         <integrator type="path"/>
-    </integrator>
-    <!-- <integrator type="path"/> -->
+    </integrator> -->
+    <integrator type="path"/>
     <sensor type="perspective">
         <float name="near_clip" value="10"/>
         <float name="far_clip" value="2800"/>

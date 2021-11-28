@@ -35,8 +35,8 @@ bool SamplingIntegrator::render(Scene *scene, Sensor *sensor) {
     std::vector<std::string> channels = aov_names();
     bool has_aovs                     = !channels.empty();
     // Insert default channels and set up the film
-    for (size_t i = 0; i < 4; ++i)
-        channels.insert(channels.begin() + i, std::string(1, "RGBA"[i]));
+    for (size_t i = 0; i < 5; ++i)
+        channels.insert(channels.begin() + i, std::string(1, "XYZAW"[i]));
     film->prepare(channels);
 
     m_render_timer.reset();
@@ -107,13 +107,14 @@ void SamplingIntegrator::render_sample(const Scene *scene, const Sensor *sensor,
     auto [ray, ray_weight] =
         sensor->sample_ray_differential(position_sample, sampler->next2d());
     ray.scale_differential(diff_scale_factor);
-    Spectrum result     = sample(scene, sampler, ray, sensor->medium(), aovs + 4);
+    Spectrum result     = sample(scene, sampler, ray, sensor->medium(), aovs + 5);
     Eigen::Vector3f xyz = srgb_to_xyz(result);
 
     aovs[0] = xyz.x();
     aovs[1] = xyz.y();
     aovs[2] = xyz.z();
     aovs[3] = 1.f;
+    aovs[4] = 1.f;
 
     block->put(position_sample, aovs);
 }
