@@ -33,13 +33,12 @@ square_to_uniform_disk_concentric(const Eigen::Vector2f &sample) {
 
 MSK_INLINE Eigen::Vector3f
 square_to_cosine_hemisphere(const Eigen::Vector2f &sample) {
-    auto p  = square_to_uniform_disk_concentric(sample);
-    float z = math::safe_sqrt(1.f - p.squaredNorm());
+    const Eigen::Vector2f p = square_to_uniform_disk_concentric(sample);
+    float z                 = math::safe_sqrt(1.f - p.squaredNorm());
     return Eigen::Vector3f(p.x(), p.y(), z);
 }
 
-MSK_INLINE float
-square_to_cosine_hemisphere_pdf(const Eigen::Vector3f &v) {
+MSK_INLINE float square_to_cosine_hemisphere_pdf(const Eigen::Vector3f &v) {
     return math::InvPi<float> * v.z();
 }
 
@@ -55,8 +54,7 @@ square_to_uniform_sphere(const Eigen::Vector2f &sample) {
 
 /// Density of \ref square_to_uniform_sphere() with respect to solid angles
 template <bool TestDomain = false>
-MSK_INLINE float
-square_to_uniform_sphere_pdf(const Eigen::Vector3f &v) {
+MSK_INLINE float square_to_uniform_sphere_pdf(const Eigen::Vector3f &v) {
     if constexpr (TestDomain)
         if (v.squaredNorm() - 1.f > math::RayEpsilon<float>) {
             return float(0);

@@ -25,7 +25,8 @@ public:
 
     virtual Spectrum sample(const Scene *scene, Sampler *sampler,
                             const RayDifferential &ray_,
-                            const Medium *initial_medium) const override {
+                            const Medium *initial_medium,
+                            float *aovs) const override {
         RayDifferential ray  = ray_;
         Spectrum throughput  = Spectrum::Constant(1.f),
                  result      = Spectrum::Zero();

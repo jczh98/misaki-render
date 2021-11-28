@@ -15,45 +15,45 @@
 #include <tbb/parallel_for.h>
 
 namespace misaki {
+SamplingIntegrator::SamplingIntegrator(const Properties &props)
+    : Integrator(props) {
+    m_block_size = (uint32_t) props.int_("block_size", MSK_BLOCK_SIZE);
 
-Integrator::Integrator(const Properties &props) {
-    m_block_size = props.int_("block_size", MSK_BLOCK_SIZE);
+    /// Disable direct visibility of emitters if needed
+    m_hide_emitters = props.bool_("hide_emitters", false);
 }
 
-Integrator::~Integrator() {}
+SamplingIntegrator::~SamplingIntegrator() {}
 
-bool Integrator::render(Scene *scene, Sensor *sensor) {
-    MSK_NOT_IMPLEMENTED("render");
-}
+std::vector<std::string> SamplingIntegrator::aov_names() const { return {}; }
 
-MonteCarloIntegrator::MonteCarloIntegrator(const Properties &props)
-    : Integrator(props) {}
+bool SamplingIntegrator::render(Scene *scene, Sensor *sensor) {
+    ref<Film> film            = sensor->film();
+    Eigen::Vector2i film_size = film->size();
+    auto total_spp            = sensor->sampler()->sample_count();
 
-MonteCarloIntegrator::~MonteCarloIntegrator() {}
-
-bool MonteCarloIntegrator::render(Scene *scene, Sensor *sensor) {
-    auto film      = sensor->film();
-    auto film_size = film->size();
-    auto total_spp = sensor->sampler()->sample_count();
-    Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(),
-        film_size.y(), total_spp);
-    int m_block_size = MSK_BLOCK_SIZE;
-    BlockGenerator gen(film_size, Eigen::Vector2i::Zero(), m_block_size);
-    size_t total_blocks = gen.block_count();
-
-    std::vector<std::string> channels = {};
+    std::vector<std::string> channels = aov_names();
     bool has_aovs                     = !channels.empty();
     // Insert default channels and set up the film
     for (size_t i = 0; i < 4; ++i)
         channels.insert(channels.begin() + i, std::string(1, "RGBA"[i]));
     film->prepare(channels);
 
+    m_render_timer.reset();
+
+    Log(Info, "Starting render job ({}x{}, {} sample)", film_size.x(),
+        film_size.y(), total_spp);
+
+    BlockGenerator gen(film_size, Eigen::Vector2i::Zero(), m_block_size);
+
+    size_t total_blocks = gen.block_count();
+
     ProgressBar pbar(total_blocks, 70);
-    Timer timer;
+
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, total_blocks, 1),
         [&](const tbb::blocked_range<size_t> &range) {
-            auto sampler = sensor->sampler()->clone();
+            ref<Sampler> sampler = sensor->sampler()->clone();
             ref<ImageBlock> block =
                 new ImageBlock(Eigen::Vector2i::Constant(m_block_size),
                                channels.size(), film->filter(), !has_aovs);
@@ -64,25 +64,26 @@ bool MonteCarloIntegrator::render(Scene *scene, Sensor *sensor) {
                 auto [offset, size, block_id] = gen.next_block();
                 block->set_offset(offset);
                 block->set_size(size);
+
                 render_block(scene, sensor, sampler, block, aovs.get(),
                              total_spp);
+
                 film->put(block);
                 pbar.update();
             }
         });
     pbar.done();
     Log(Info, "Rendering finished. (took {})",
-        time_string(timer.value(), true));
+        time_string(m_render_timer.value(), true));
     return true;
 }
 
-void MonteCarloIntegrator::render_block(const Scene *scene,
-                                        const Sensor *sensor, Sampler *sampler,
-                                        ImageBlock *block, float *aovs,
-                                        size_t sample_count) const {
+void SamplingIntegrator::render_block(const Scene *scene, const Sensor *sensor,
+                                      Sampler *sampler, ImageBlock *block,
+                                      float *aovs, size_t sample_count) const {
     block->clear();
-    auto &size              = block->size();
-    auto &offset            = block->offset();
+    Eigen::Vector2i size    = block->size();
+    Eigen::Vector2i offset  = block->offset();
     float diff_scale_factor = float(1) / std::sqrt(sample_count);
     for (int y = 0; y < size.y(); ++y) {
         for (int x = 0; x < size.x(); ++x) {
@@ -98,16 +99,15 @@ void MonteCarloIntegrator::render_block(const Scene *scene,
     }
 }
 
-void MonteCarloIntegrator::render_sample(const Scene *scene,
-                                         const Sensor *sensor, Sampler *sampler,
-                                         ImageBlock *block, float *aovs,
-                                         const Eigen::Vector2f &pos,
-                                         float diff_scale_factor) const {
+void SamplingIntegrator::render_sample(const Scene *scene, const Sensor *sensor,
+                                       Sampler *sampler, ImageBlock *block,
+                                       float *aovs, const Eigen::Vector2f &pos,
+                                       float diff_scale_factor) const {
     Eigen::Vector2f position_sample = pos + sampler->next2d();
     auto [ray, ray_weight] =
         sensor->sample_ray_differential(position_sample, sampler->next2d());
     ray.scale_differential(diff_scale_factor);
-    Spectrum result = sample(scene, sampler, ray, sensor->medium());
+    Spectrum result     = sample(scene, sampler, ray, sensor->medium(), aovs);
     Eigen::Vector3f xyz = srgb_to_xyz(result);
 
     aovs[0] = xyz.x();
@@ -117,7 +117,21 @@ void MonteCarloIntegrator::render_sample(const Scene *scene,
     block->put(position_sample, aovs);
 }
 
+MonteCarloIntegrator::MonteCarloIntegrator(const Properties &props)
+    : SamplingIntegrator(props) {
+    m_rr_depth = props.int_("rr_depth", 5);
+    if (m_rr_depth <= 0)
+        Throw("\"rr_depth\" must be set to a value greater than zero!");
+
+    m_max_depth = props.int_("max_depth", -1);
+    if (m_max_depth < 0 && m_max_depth != -1)
+        Throw("\"max_depth\" must be set to -1 (infinite) or a value >= 0");
+}
+
+MonteCarloIntegrator::~MonteCarloIntegrator() {}
+
 MSK_IMPLEMENT_CLASS(Integrator, Object, "integrator")
-MSK_IMPLEMENT_CLASS(MonteCarloIntegrator, Integrator)
+MSK_IMPLEMENT_CLASS(SamplingIntegrator, Integrator)
+MSK_IMPLEMENT_CLASS(MonteCarloIntegrator, SamplingIntegrator)
 
 } // namespace misaki

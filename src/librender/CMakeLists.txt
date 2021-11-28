@@ -94,7 +94,7 @@ set(FILM_SRCS
 )
 
 set(INTEGRATOR_SRCS
-        #integrators/debug.cpp 
+        integrators/aov.cpp 
         integrators/path.cpp
         integrators/volpath.cpp 
         #integrators/sppm.cpp

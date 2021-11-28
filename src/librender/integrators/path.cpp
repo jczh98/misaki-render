@@ -1,17 +1,17 @@
+#include <fstream>
+#include <misaki/core/logger.h>
+#include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
+#include <misaki/core/utils.h>
 #include <misaki/render/bsdf.h>
 #include <misaki/render/emitter.h>
 #include <misaki/render/film.h>
 #include <misaki/render/integrator.h>
 #include <misaki/render/interaction.h>
-#include <misaki/core/logger.h>
 #include <misaki/render/mesh.h>
-#include <misaki/core/properties.h>
-#include <misaki/core/manager.h>
 #include <misaki/render/records.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/sensor.h>
-#include <misaki/core/utils.h>
-#include <fstream>
 #include <tbb/parallel_for.h>
 
 namespace misaki {
@@ -22,18 +22,18 @@ public:
 
     virtual Spectrum sample(const Scene *scene, Sampler *sampler,
                             const RayDifferential &ray_,
-                            const Medium *initial_medium) const override {
-        RayDifferential ray   = ray_;
-        Spectrum throughput   = Spectrum::Constant(1.f),
-                 result       = Spectrum::Zero();
-        float eta             = 1.f;
-        bool scattered        = false;
+                            const Medium *initial_medium,
+                            float *aovs) const override {
+        RayDifferential ray = ray_;
+        Spectrum throughput = Spectrum::Constant(1.f),
+                 result     = Spectrum::Zero();
+        float eta           = 1.f;
+        bool scattered      = false;
         SceneInteraction si = scene->ray_intersect(ray);
         for (int depth = 1; depth <= m_max_depth || m_max_depth < 0; depth++) {
             if (!si.is_valid()) {
                 // If no intersection, compute the environment illumination
-                if (depth == 1 &&
-                    (!m_hide_emitter || scattered)) {
+                if (depth == 1 && (!m_hide_emitter || scattered)) {
                     if (scene->environment() != nullptr)
                         result += throughput * scene->environment()->eval(si);
                 }
@@ -55,13 +55,13 @@ public:
             auto bsdf = si.bsdf(ray);
             if (has_flag(bsdf->flags(), BSDFFlags::Smooth)) {
                 Spectrum emitter_val;
-                std::tie(ds, emitter_val) = scene->sample_emitter_direct(
-                    si, sampler->next2d(), true);
+                std::tie(ds, emitter_val) =
+                    scene->sample_emitter_direct(si, sampler->next2d(), true);
                 if (ds.pdf != 0.f) {
-                    auto wo           = si.to_local(ds.d);
-                    Spectrum bsdf_val = bsdf->eval(ctx, si, wo);
-                    float bsdf_pdf    = bsdf->pdf(ctx, si, wo);
-                    float weight      = mis_weight(ds.pdf, bsdf_pdf);
+                    const Eigen::Vector3f wo = si.to_local(ds.d);
+                    Spectrum bsdf_val        = bsdf->eval(ctx, si, wo);
+                    float bsdf_pdf           = bsdf->pdf(ctx, si, wo);
+                    float weight             = mis_weight(ds.pdf, bsdf_pdf);
                     result += throughput * emitter_val * bsdf_val * weight;
                 }
             }
@@ -72,17 +72,17 @@ public:
                 bsdf->sample(ctx, si, sampler->next1d(), sampler->next2d());
             scattered |= bs.sampled_type != (uint32_t) BSDFFlags::Null;
 
-            const auto wo    = si.to_world(bs.wo);
-            bool hit_emitter = false;
-            Spectrum value   = Spectrum::Zero();
+            const Eigen::Vector3f wo = si.to_world(bs.wo);
+            bool hit_emitter         = false;
+            Spectrum value           = Spectrum::Zero();
 
-            ray                        = si.spawn_ray(wo);
+            ray                      = si.spawn_ray(wo);
             SceneInteraction si_bsdf = scene->ray_intersect(ray);
 
             if (si_bsdf.is_valid()) {
                 emitter = si_bsdf.shape->emitter();
                 if (emitter != nullptr) {
-                    value       = emitter->eval(si_bsdf);
+                    value = emitter->eval(si_bsdf);
                     ds.set_query(ray, si_bsdf);
                     hit_emitter = true;
                 }
