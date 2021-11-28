@@ -59,10 +59,10 @@ public:
                                     m_storage->data()[base_index + 2]);
                 Eigen::Vector3f rgb = xyz_to_srgb(xyz);
                 float weight        = m_storage->data()[base_index + 3];
-                if (weight != 0)
-                    rgb /= weight;
-                else
-                    rgb.setZero();
+                float inv_weight    = weight != 0 ? 1.f / weight : 0.f;
+                    
+                rgb *= inv_weight;
+
                 image->operator()(x, y, 0) = rgb.x();
                 image->operator()(x, y, 1) = rgb.y();
                 image->operator()(x, y, 2) = rgb.z();
@@ -70,7 +70,7 @@ public:
 
                 for (int ch = 4; ch < channel_count; ch++) {
                     image->operator()(x, y, ch) =
-                        m_storage->data()[base_index + ch];
+                        m_storage->data()[base_index + ch] * inv_weight;
                 }
             }
         }
