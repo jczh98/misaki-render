@@ -11,51 +11,76 @@ namespace misaki {
 
 class MSK_EXPORT ImageBlock : public Object {
 public:
-    using DynamicBuffer =
-        Eigen::Array<Color4, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    ImageBlock(const Eigen::Vector2i &size, size_t channel_count,
+               const ReconstructionFilter *filter = nullptr,
+               bool warn_negative = true, bool warn_invalid = true,
+               bool border = true);
 
-    ImageBlock(const Eigen::Vector2i &size,
-               const ReconstructionFilter *filter = nullptr);
+    void put(const ImageBlock *block);
 
-    virtual ~ImageBlock();
+    inline bool put(const Eigen::Vector2f &pos, const Spectrum &value,
+             const float &alpha) {
+        float values[4] = { value.x(), value.y(), value.z(), alpha };
+        return put(pos, values);
+    }
 
-    void put(const ImageBlock *b);
-
-    bool put(const Eigen::Vector2f &pos, const Spectrum &val);
+    bool put(const Eigen::Vector2f &pos, const float *value);
 
     void clear();
-
-    std::string to_string() const override;
 
     void set_offset(const Eigen::Vector2i &offset) { m_offset = offset; }
 
     void set_size(const Eigen::Vector2i &size);
 
     const Eigen::Vector2i &offset() const { return m_offset; }
+
     const Eigen::Vector2i &size() const { return m_size; }
+
+    size_t width() const { return m_size.x(); }
+
+    size_t height() const { return m_size.y(); }
+
+    void set_warn_invalid(bool value) { m_warn_invalid = value; }
+
+    bool warn_invalid() const { return m_warn_invalid; }
+
+    void set_warn_negative(bool value) { m_warn_negative = value; }
+
+    bool warn_negative() const { return m_warn_negative; }
+
+    size_t channel_count() const { return (size_t) m_channel_count; }
+
     int border_size() const { return m_border_size; }
 
-    DynamicBuffer &data() { return m_buffer; }
-    const DynamicBuffer &data() const { return m_buffer; }
+    std::vector<float> &data() { return m_data; }
+
+    const std::vector<float> &data() const { return m_data; }
 
     MSK_DECLARE_CLASS()
 
 protected:
-    DynamicBuffer m_buffer;
-    const ReconstructionFilter *m_filter;
+    virtual ~ImageBlock();
+
+    void accumulate_2d(const float *source, Eigen::Vector2i source_size,
+                       float *target, Eigen::Vector2i target_size,
+                       Eigen::Vector2i source_offset,
+                       Eigen::Vector2i target_offset, Eigen::Vector2i size,
+                       size_t channel_count);
+
+protected:
     Eigen::Vector2i m_offset, m_size;
-    int m_border_size       = 0;
-    float *m_filter_weights = nullptr;
-    float m_filter_radius   = 0;
-    float *m_weight_x = nullptr, *m_weight_y = nullptr;
-    float m_lookup_factor = 0;
-    mutable tbb::spin_mutex m_mutex;
+    uint32_t m_channel_count;
+    int m_border_size;
+    std::vector<float> m_data;
+    const ReconstructionFilter *m_filter;
+    float *m_weights_x, *m_weights_y;
+    bool m_warn_negative;
+    bool m_warn_invalid;
 };
 
 class MSK_EXPORT BlockGenerator : public Object {
 public:
-    BlockGenerator(const Eigen::Vector2i &size,
-                   const Eigen::Vector2i &offset,
+    BlockGenerator(const Eigen::Vector2i &size, const Eigen::Vector2i &offset,
                    int block_size);
     size_t max_block_size() const { return m_block_size; }
     size_t block_count() const { return m_block_count; }
@@ -76,8 +101,8 @@ protected:
         m_block_size;       //< Size of the (square) blocks (in pixels)
 
     Eigen::Vector2i m_size, //< Size of the 2D image (in pixels).
-        m_offset,    //< Offset to the crop region on the sensor (pixels).
-        m_blocks;    //< Number of blocks in each direction.
+        m_offset, //< Offset to the crop region on the sensor (pixels).
+        m_blocks; //< Number of blocks in each direction.
 
     Eigen::Vector2i m_position; //< Relative position of the current block.
     /// Direction where the spiral is currently headed.

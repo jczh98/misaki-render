@@ -36,7 +36,7 @@ public:
             tbb::blocked_range<size_t>(0, total_blocks, 1),
             [&](const tbb::blocked_range<size_t> &range) {
                 auto sampler = sensor->sampler()->clone();
-                auto block   = std::make_unique<ImageBlock>(
+                ref<ImageBlock> block   = new ImageBlock(
                     Eigen::Vector2i::Constant(m_block_size), film->filter());
                 for (auto i = range.begin(); i != range.end(); ++i) {
                     auto [offset, size, block_id] = gen.next_block();
@@ -58,7 +58,7 @@ public:
                                     Spectrum(std::abs(si.sh_frame.n.x()),
                                              std::abs(si.sh_frame.n.y()),
                                              std::abs(si.sh_frame.n.z()));
-                                block->put(position_sample, spec);
+                                block->put(position_sample, spec, 1.f);
                             }
                         }
                     }

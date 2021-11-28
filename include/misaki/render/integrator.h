@@ -23,11 +23,11 @@ public:
     bool render(Scene *scene, Sensor *sensor) override;
 
     void render_block(const Scene *scene, const Sensor *sensor,
-                      Sampler *sampler, ImageBlock *block,
+                      Sampler *sampler, ImageBlock *block, float *aovs,
                       size_t sample_count) const;
 
     void render_sample(const Scene *scene, const Sensor *sensor,
-                       Sampler *sampler, ImageBlock *block,
+                       Sampler *sampler, ImageBlock *block, float *aovs,
                        const Eigen::Vector2f &pos,
                        float diff_scale_factor) const;
 

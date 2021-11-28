@@ -12,7 +12,7 @@
         <sampler type="independent">
             <integer name="sample_count" value="16"/>
         </sampler>
-        <film type="rgbfilm">
+        <film type="hdrfilm">
             <integer name="width" value="800"/>
             <integer name="height" value="600"/>
         </film>

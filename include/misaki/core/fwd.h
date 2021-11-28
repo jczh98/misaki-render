@@ -17,6 +17,13 @@
 #include <tuple>
 #include <type_traits>
 
+namespace Eigen {
+
+using RowMatrixXf =
+    Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+
+}
+
 namespace misaki {
 
 class Object;

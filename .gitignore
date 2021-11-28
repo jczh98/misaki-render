@@ -3,10 +3,12 @@ cmake-build-debug
 cmake-build-release
 cmake-build-relwithdebinfo
 build
+dist
 .vscode
 
 results/assets
 results/*/*.png
+results/*/*.exr
 !results/resources/images
 
 assets/*/*

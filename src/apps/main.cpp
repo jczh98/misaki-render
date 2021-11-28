@@ -3,16 +3,18 @@
 #include <misaki/core/manager.h>
 #include <misaki/core/object.h>
 #include <misaki/core/xml.h>
+#include <misaki/core/image.h>
 #include <misaki/render/integrator.h>
 #include <misaki/render/scene.h>
 #include <misaki/render/sensor.h>
 #include <misaki/ui/viewer.h>
 #include <spdlog/spdlog.h>
 #include <tbb/task_scheduler_init.h>
+#include <tbb/global_control.h>
 
 using namespace misaki;
 
-const bool gui = true;
+const bool gui = false;
 
 bool render(Object *scene_, fs::path filename) {
     auto *scene = dynamic_cast<Scene *>(scene_);
@@ -21,7 +23,6 @@ bool render(Object *scene_, fs::path filename) {
     }
     auto sensor = scene->sensor();
     auto film   = sensor->film();
-    filename.replace_extension("png");
     film->set_destination_file(filename);
     auto integrator = scene->integrator();
     if (!integrator)
@@ -56,10 +57,13 @@ bool render(Object *scene_, fs::path filename) {
 }
 
 int main(int argc, char **argv) {
+    tbb::global_control global_limit(
+        tbb::global_control::max_allowed_parallelism, 8);
     Class::static_initialization();
     InstanceManager::static_initialization();
     library_nop();
-    fs::path path = "../../../results/Figure_3_RoughDielectric/roughdielectric.xml";
+
+    fs::path path = "../../../results/Figure_1_Pathtrace/scene.xml";
     get_file_resolver()->append(fs::path(argv[0]).parent_path());
     get_file_resolver()->append(path.parent_path());
     try {

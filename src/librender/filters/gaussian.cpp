@@ -1,5 +1,5 @@
-#include <misaki/core/properties.h>
 #include <misaki/core/manager.h>
+#include <misaki/core/properties.h>
 #include <misaki/render/rfilter.h>
 
 namespace misaki {
@@ -11,10 +11,17 @@ public:
         m_radius = 4 * m_stddev;
         m_alpha  = -1.f / (2.f * m_stddev * m_stddev);
         m_bias   = std::exp(m_alpha * m_radius * m_radius);
+
+        init_discretization();
     }
 
     float eval(float x) const override {
         return std::max(0.f, std::exp(m_alpha * x * x) - m_bias);
+    }
+
+    std::string to_string() const override {
+        return fmt::format("GaussianFilter[stddev={}, radius={}]", m_stddev,
+                           m_radius);
     }
 
     MSK_DECLARE_CLASS()

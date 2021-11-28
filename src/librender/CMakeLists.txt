@@ -42,6 +42,7 @@ set(CORE_SRCS
         interaction.cpp
         manager.cpp
         records.cpp
+        image.cpp
 )
 
 set(UI_SRCS
@@ -89,11 +90,11 @@ set(FILTER_SRCS
 )
 
 set(FILM_SRCS
-        films/rgbfilm.cpp
+        films/hdrfilm.cpp
 )
 
 set(INTEGRATOR_SRCS
-        integrators/debug.cpp 
+        #integrators/debug.cpp 
         integrators/path.cpp
         integrators/volpath.cpp 
         #integrators/sppm.cpp
@@ -165,5 +166,3 @@ target_link_libraries(misaki-render PUBLIC
         OpenGL::GL
         ${STB_INCLUDE_DIRS}
         )
-
-set_output_dir(misaki-render)

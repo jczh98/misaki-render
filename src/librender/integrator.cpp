@@ -40,19 +40,32 @@ bool MonteCarloIntegrator::render(Scene *scene, Sensor *sensor) {
     int m_block_size = MSK_BLOCK_SIZE;
     BlockGenerator gen(film_size, Eigen::Vector2i::Zero(), m_block_size);
     size_t total_blocks = gen.block_count();
+
+    std::vector<std::string> channels = {};
+    bool has_aovs                     = !channels.empty();
+    // Insert default channels and set up the film
+    for (size_t i = 0; i < 4; ++i)
+        channels.insert(channels.begin() + i, std::string(1, "RGBA"[i]));
+    film->prepare(channels);
+
     ProgressBar pbar(total_blocks, 70);
     Timer timer;
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, total_blocks, 1),
         [&](const tbb::blocked_range<size_t> &range) {
-            auto sampler          = sensor->sampler()->clone();
-            ref<ImageBlock> block = new ImageBlock(
-                Eigen::Vector2i::Constant(m_block_size), film->filter());
+            auto sampler = sensor->sampler()->clone();
+            ref<ImageBlock> block =
+                new ImageBlock(Eigen::Vector2i::Constant(m_block_size),
+                               channels.size(), film->filter(), !has_aovs);
+
+            std::unique_ptr<float[]> aovs(new float[channels.size()]);
+
             for (auto i = range.begin(); i != range.end(); ++i) {
                 auto [offset, size, block_id] = gen.next_block();
                 block->set_offset(offset);
                 block->set_size(size);
-                render_block(scene, sensor, sampler, block, total_spp);
+                render_block(scene, sensor, sampler, block, aovs.get(),
+                             total_spp);
                 film->put(block);
                 pbar.update();
             }
@@ -65,7 +78,7 @@ bool MonteCarloIntegrator::render(Scene *scene, Sensor *sensor) {
 
 void MonteCarloIntegrator::render_block(const Scene *scene,
                                         const Sensor *sensor, Sampler *sampler,
-                                        ImageBlock *block,
+                                        ImageBlock *block, float *aovs,
                                         size_t sample_count) const {
     block->clear();
     auto &size              = block->size();
@@ -78,7 +91,7 @@ void MonteCarloIntegrator::render_block(const Scene *scene,
                 continue;
             pos = pos + offset.template cast<float>();
             for (int s = 0; s < sample_count; ++s) {
-                render_sample(scene, sensor, sampler, block, pos,
+                render_sample(scene, sensor, sampler, block, aovs, pos,
                               diff_scale_factor);
             }
         }
@@ -87,15 +100,21 @@ void MonteCarloIntegrator::render_block(const Scene *scene,
 
 void MonteCarloIntegrator::render_sample(const Scene *scene,
                                          const Sensor *sensor, Sampler *sampler,
-                                         ImageBlock *block,
+                                         ImageBlock *block, float *aovs,
                                          const Eigen::Vector2f &pos,
                                          float diff_scale_factor) const {
     Eigen::Vector2f position_sample = pos + sampler->next2d();
     auto [ray, ray_weight] =
         sensor->sample_ray_differential(position_sample, sampler->next2d());
     ray.scale_differential(diff_scale_factor);
-    auto result = sample(scene, sampler, ray, sensor->medium());
-    block->put(position_sample, result);
+    Spectrum result = sample(scene, sampler, ray, sensor->medium());
+    Eigen::Vector3f xyz = srgb_to_xyz(result);
+
+    aovs[0] = xyz.x();
+    aovs[1] = xyz.y();
+    aovs[2] = xyz.z();
+    aovs[3] = 1.f;
+    block->put(position_sample, aovs);
 }
 
 MSK_IMPLEMENT_CLASS(Integrator, Object, "integrator")
