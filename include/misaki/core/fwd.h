@@ -37,7 +37,8 @@ class Logger;
 using Distribution1D = math::Distribution1D<float>;
 using Color3         = Color<float, 3>;
 using Color4         = Color<float, 4>;
-using Spectrum       = Color3;
+using Spectrum       = SpectrumArray<float, 4>;
+using Wavelength     = SpectrumArray<float, 4>;
 
 namespace fs = std::filesystem;
 

@@ -1,6 +1,6 @@
 #include <misaki/core/logger.h>
-#include <misaki/core/object.h>
 #include <misaki/core/manager.h>
+#include <misaki/core/object.h>
 #include <misaki/core/properties.h>
 #include <misaki/core/xml.h>
 
@@ -18,6 +18,7 @@ enum class Tag {
     String,
     Vector,
     RGB,
+    Spectrum,
     Transform,
     Translate,
     Matrix,
@@ -83,6 +84,7 @@ void register_class(const Class *class_) {
         (*tags)["lookat"]    = Tag::LookAt;
         (*tags)["ref"]       = Tag::NamedReference;
         (*tags)["rgb"]       = Tag::RGB;
+        (*tags)["spectrum"]  = Tag::Spectrum;
         (*tags)["include"]   = Tag::Include;
         (*tags)["alias"]     = Tag::Alias;
         (*tags)["default"]   = Tag::Default;
@@ -227,7 +229,7 @@ void expand_value_to_xyz(XMLSource &src, pugi::xml_node &node) {
 }
 
 Eigen::Vector3f parse_named_vector(XMLSource &src, pugi::xml_node &node,
-                           const std::string &attr_name) {
+                                   const std::string &attr_name) {
     auto vec_str = node.attribute(attr_name.c_str()).value();
     auto list    = string::tokenize(vec_str);
     if (list.size() != 3)
@@ -235,7 +237,7 @@ Eigen::Vector3f parse_named_vector(XMLSource &src, pugi::xml_node &node,
                         attr_name);
     try {
         return Eigen::Vector3f(detail::stof(list[0]), detail::stof(list[1]),
-                       detail::stof(list[2]));
+                               detail::stof(list[2]));
     } catch (...) {
         src.throw_error(node, "could not parse floating point values in \"{}\"",
                         vec_str);
@@ -243,7 +245,7 @@ Eigen::Vector3f parse_named_vector(XMLSource &src, pugi::xml_node &node,
 }
 
 Eigen::Vector3f parse_vector(XMLSource &src, pugi::xml_node &node,
-                     float def_val = 0.f) {
+                             float def_val = 0.f) {
     std::string value;
     try {
         float x = def_val, y = def_val, z = def_val;
@@ -260,6 +262,63 @@ Eigen::Vector3f parse_vector(XMLSource &src, pugi::xml_node &node,
     } catch (...) {
         src.throw_error(node, "could not parse floating point value \"{}\"",
                         value);
+    }
+}
+
+ref<Object> create_texture_from_spectrum(
+    const std::string &name, float const_value, std::vector<float> &wavelengths,
+    std::vector<float> &values) {
+    const Class *class_ = Class::for_name("Texture");
+
+    if (wavelengths.empty()) {
+        Properties props("uniform");
+        props.set_float("value", const_value);
+
+        ref<Object> obj =
+            InstanceManager::get()->create_instance(props, class_);
+        auto expanded = obj->expand();
+        assert(expanded.size() <= 1);
+        if (!expanded.empty())
+            obj = expanded[0];
+        return obj;
+    } else {
+        /* Values are scaled so that integrating the spectrum against the CIE
+           curves and converting to sRGB yields (1, 1, 1) for D65. */
+        float unit_conversion = 1.f;
+
+        /* Detect whether wavelengths are regularly sampled and potentially
+            apply the conversion factor. */
+        bool is_regular = true;
+        float interval  = 0.f;
+
+        for (size_t n = 0; n < wavelengths.size(); ++n) {
+            values[n] *= unit_conversion;
+
+            if (n <= 0)
+                continue;
+
+            float distance = (wavelengths[n] - wavelengths[n - 1]);
+            if (distance < 0.f)
+                Throw("Wavelengths must be specified in increasing order!");
+            if (n == 1)
+                interval = distance;
+            else if (std::abs(distance - interval) > math::Epsilon<float>)
+                is_regular = false;
+        }
+        Properties props;
+        if (is_regular) {
+            props.set_instance_name("regular");
+            props.set_int("size", wavelengths.size());
+            props.set_float("lambda_min", wavelengths.front());
+            props.set_float("lambda_max", wavelengths.back());
+            props.set_pointer("values", values.data());
+        } else {
+            props.set_instance_name("irregular");
+            props.set_int("size", wavelengths.size());
+            props.set_pointer("wavelengths", wavelengths.data());
+            props.set_pointer("values", values.data());
+        }
+        return InstanceManager::get()->create_instance(props, class_);
     }
 }
 
@@ -464,7 +523,72 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                     src.throw_error(node, "could not parse RGB value \"%s\"",
                                     node.attribute("value").value());
                 }
+
                 props.set_color(node.attribute("name").value(), color);
+            } break;
+            case Tag::Spectrum: {
+                check_attributes(src, node, { "name", "value", "filename" },
+                                 false);
+                std::string name = node.attribute("name").value();
+                std::vector<float> wavelengths, values;
+                bool has_value    = !node.attribute("value").empty(),
+                     has_filename = !node.attribute("filename").empty(),
+                     is_constant =
+                         has_value &&
+                         string::tokenize(node.attribute("value").value())
+                                 .size() == 1;
+                float const_value = 1.f;
+                if (has_value == has_filename) {
+                    src.throw_error(node,
+                                    "'spectrum' tag requires one of \"value\" "
+                                    "or \"filename\" attributes");
+                } else if (is_constant) {
+                    /* A constant spectrum is specified. */
+                    std::vector<std::string> tokens =
+                        string::tokenize(node.attribute("value").value());
+
+                    try {
+                        const_value = detail::stof(tokens[0]);
+                    } catch (...) {
+                        src.throw_error(
+                            node, "could not parse constant spectrum \"%s\"",
+                            tokens[0]);
+                    }
+                } else {
+                    if (has_value) {
+                        std::vector<std::string> tokens =
+                            string::tokenize(node.attribute("value").value());
+
+                        for (const std::string &token : tokens) {
+                            std::vector<std::string> pair =
+                                string::tokenize(token, ":");
+                            if (pair.size() != 2)
+                                src.throw_error(node,
+                                                "invalid spectrum (expected "
+                                                "wavelength:value pairs)");
+
+                            float wavelength, value;
+                            try {
+                                wavelength = detail::stof(pair[0]);
+                                value      = detail::stof(pair[1]);
+                            } catch (...) {
+                                src.throw_error(node,
+                                                "could not parse "
+                                                "wavelength:value pair: \"%s\"",
+                                                token);
+                            }
+
+                            wavelengths.push_back(wavelength);
+                            values.push_back(value);
+                        }
+                    } else if (has_filename) {
+                        // TODO
+                    }
+                }
+                ref<Object> obj = detail::create_texture_from_spectrum(
+                    name, const_value, wavelengths, values);
+
+                props.set_object(name, obj);
             } break;
             case Tag::Transform: {
                 check_attributes(src, node, { "name" });

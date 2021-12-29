@@ -56,11 +56,11 @@ public:
             reflectance = m_specular_reflectance->eval_3(si);
         if (!selected_r)
             transmittance = m_specular_transmittance->eval_3(si);
-        Color3 weight;
+        Spectrum weight;
         if (has_reflection && has_transmission)
-            weight = 1.f;
+            weight.setConstant(1.f);
         else if (has_reflection || has_transmission) {
-            weight = has_reflection ? r_i : t_i;
+            weight.setConstant(has_reflection ? r_i : t_i);
         }
         if (selected_r)
             weight *= reflectance;

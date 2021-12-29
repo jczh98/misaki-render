@@ -1,5 +1,6 @@
 #pragma once
 
+#include "platform.h"
 #include <Eigen/Core>
 
 namespace misaki {
@@ -27,6 +28,17 @@ struct Color : public Eigen::Array<Value_, Size_, 1> {
     }
 };
 
+template <typename Value_, size_t Size_ = 4>
+struct SpectrumArray : public Eigen::Matrix<Value_, Size_, 1> {
+    using Base = Eigen::Matrix<Value_, Size_, 1>;
+    using Base::Base;
+    using Base::operator=;
+
+    bool operator!=(const SpectrumArray<Value_, Size_> &rhs) const {
+        return Base::operator!=(rhs).all();
+    }
+};
+
 template <typename Value_, size_t Size_ = 3>
 bool is_black(const Color<Value_, Size_> &col) {
     bool result = true;
@@ -35,6 +47,53 @@ bool is_black(const Color<Value_, Size_> &col) {
             result = false;
         }
     return result;
+}
+
+#define MSK_CIE_MIN 360.f
+#define MSK_CIE_MAX 830.f
+#define MSK_CIE_SAMPLES 95
+
+#define MSK_CIE_Y_NORMALIZATION float(1.0 / 106.7502593994140625)
+
+/// Table with fits for \ref cie1931_xyz and \ref cie1931_y
+extern MSK_EXPORT const float *cie1931_x_data;
+extern MSK_EXPORT const float *cie1931_y_data;
+extern MSK_EXPORT const float *cie1931_z_data;
+
+template <size_t Size>
+Color<SpectrumArray<float, Size>, 3>
+cie1931_xyz(SpectrumArray<float, Size> wavelengths) {
+    using Array = SpectrumArray<float, Size>;
+    Array t =
+        (wavelengths - Array::Constant(MSK_CIE_MIN)) *
+        (Array::Constant((MSK_CIE_SAMPLES - 1) / (MSK_CIE_MAX - MSK_CIE_MIN)));
+
+    Array w1, w0, v0_x, v1_x, v0_y, v1_y, v0_z, v1_z;
+    for (int s = 0; s < Array::MaxRowsAtCompileTime; s++) {
+        uint32_t i0      = std::clamp(uint32_t(t.coeff(s)), 0u,
+                                 uint32_t(MSK_CIE_SAMPLES - 2)),
+                 i1      = i0 + 1;
+        v0_x.coeffRef(s) = cie1931_x_data[i0];
+        v1_x.coeffRef(s) = cie1931_x_data[i1];
+        v0_y.coeffRef(s) = cie1931_y_data[i0];
+        v1_y.coeffRef(s) = cie1931_y_data[i1];
+        v0_z.coeffRef(s) = cie1931_z_data[i0];
+        v1_z.coeffRef(s) = cie1931_z_data[i1];
+
+        w1.coeffRef(s) = t.coeff(s) - float(i0);
+        w0.coeffRef(s) = 1.f - w1.coeff(s);
+    }
+
+    return Color<Array, 3>(w0 * v0_x + w1 * v1_x, w0 * v0_y + w1 * v1_y,
+                           w0 * v0_z + w1 * v1_z);
+}
+
+template <size_t Size>
+Color<float, 3> spectrum_to_xyz(const SpectrumArray<float, Size> &value,
+                                const SpectrumArray<float, Size> &wavelengths) {
+    Color<Spectrum<float, Size>, 3> XYZ = cie1931_xyz(wavelengths);
+    return { (XYZ.x() * value).mean(), (XYZ.y() * value).mean(),
+             (XYZ.z() * value).mean() };
 }
 
 template <typename T, int D>
@@ -47,28 +106,6 @@ std::ostream &operator<<(std::ostream &out, const Color<T, D> &c) {
     out << "[" + result + "]";
     return out;
 }
-
-namespace detail {
-
-template <typename Spectrum> struct spectrum_traits {};
-
-template <typename Float> struct spectrum_traits<Color<Float, 1>> {
-    using Scalar                           = Color<Float, 1>;
-    using Wavelength                       = Color<Float, 1>;
-    static constexpr bool is_monochromatic = true;
-    static constexpr bool is_rgb           = false;
-    static constexpr bool is_spectral      = false;
-};
-
-template <typename Float> struct spectrum_traits<Color<Float, 3>> {
-    using Scalar                           = Color<Float, 3>;
-    using Wavelength                       = Color<Float, 0>;
-    static constexpr bool is_monochromatic = false;
-    static constexpr bool is_rgb           = true;
-    static constexpr bool is_spectral      = false;
-};
-
-} // namespace detail
 
 template <typename T>
 constexpr bool is_monochromatic_v =

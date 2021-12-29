@@ -10,6 +10,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${RENDER_BIN_DIR}/$<$<CONFIG:Debug>:Debug>$<$
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${RENDER_BIN_DIR}/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:Release>$<$<CONFIG:MinSizeRel>:Release>)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RENDER_BIN_DIR}/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:Release>$<$<CONFIG:MinSizeRel>:Release>)
 
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake
+  CACHE STRING "Vcpkg toolchain file")
+  
 find_package(Eigen3 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)

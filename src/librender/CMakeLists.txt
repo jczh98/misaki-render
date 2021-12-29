@@ -43,6 +43,7 @@ set(CORE_SRCS
         manager.cpp
         records.cpp
         image.cpp
+        spectrum.cpp
 )
 
 set(UI_SRCS
@@ -96,7 +97,7 @@ set(FILM_SRCS
 set(INTEGRATOR_SRCS
         integrators/aov.cpp 
         integrators/path.cpp
-        integrators/volpath.cpp 
+        #integrators/volpath.cpp 
         #integrators/sppm.cpp
         #integrators/photonmapper.cpp
 )
