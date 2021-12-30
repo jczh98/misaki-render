@@ -2,10 +2,22 @@
 #include <misaki/core/manager.h>
 #include <misaki/core/properties.h>
 #include <misaki/render/sensor.h>
+#include <misaki/render/medium.h>
 
 namespace misaki {
 
-Sensor::Sensor(const Properties &props) : Endpoint(props) {
+Sensor::Sensor(const Properties &props) {
+    m_world_transform = props.transform("to_world", Transform4f());
+    for (auto &[name, obj] : props.objects()) {
+        auto *medium = dynamic_cast<Medium *>(obj.get());
+        if (medium) {
+            if (m_medium) {
+                Throw("Only a single medium can be specified per endpoint");
+            }
+            m_medium = medium;
+        }
+    }
+
     for (auto &[name, obj] : props.objects()) {
         auto *film    = dynamic_cast<Film *>(obj.get());
         auto *sampler = dynamic_cast<Sampler *>(obj.get());
@@ -60,6 +72,61 @@ Sensor::sample_ray_differential(const Eigen::Vector2f &sample,
 
     return { result_ray, result_spec };
 }
+
+std::pair<Ray, Spectrum> Sensor::sample_ray(const Eigen::Vector2f &,
+                                              const Eigen::Vector2f &) const {
+    MSK_NOT_IMPLEMENTED("sample_ray");
+}
+
+std::pair<PositionSample, Spectrum>
+Sensor::sample_position(const Eigen::Vector2f &sample) const {
+    MSK_NOT_IMPLEMENTED("sample_position");
+}
+
+float Sensor::pdf_position(const PositionSample &ps) const {
+    MSK_NOT_IMPLEMENTED("pdf_position");
+}
+
+std::pair<DirectionSample, Spectrum>
+Sensor::sample_direction(const PositionSample &ps,
+                           const Eigen::Vector2f &sample) const {
+    MSK_NOT_IMPLEMENTED("sample_direction");
+}
+
+float Sensor::pdf_direction(const PositionSample &ps,
+                              const DirectionSample &ds) const {
+    MSK_NOT_IMPLEMENTED("pdf_direction");
+}
+
+std::pair<DirectIllumSample, Spectrum>
+Sensor::sample_direct(const SceneInteraction &ref,
+                        const Eigen::Vector2f &sample) const {
+    MSK_NOT_IMPLEMENTED("sample_direct");
+}
+
+float Sensor::pdf_direct(const DirectIllumSample &dis) const {
+    MSK_NOT_IMPLEMENTED("pdf_direct");
+}
+
+Spectrum Sensor::eval(const SceneInteraction &si) const {
+    MSK_NOT_IMPLEMENTED("eval");
+}
+
+void Sensor::set_shape(Shape *shape) {
+    if (m_shape)
+        Throw("An sensor can be only be attached to a single shape.");
+
+    m_shape = shape;
+}
+
+void Sensor::set_medium(Medium *medium) {
+    if (m_medium)
+        Throw("An sensor can be only be attached to a single shape.");
+
+    m_medium = medium;
+}
+
+void Sensor::set_scene(const Scene *scene) {}
 
 ProjectiveCamera::ProjectiveCamera(const Properties &props) : Sensor(props) {
     m_near_clip      = props.float_("near_clip", 1e-2f);

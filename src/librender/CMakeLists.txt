@@ -23,7 +23,7 @@ set(CORE_SRCS
         bitmap.cpp
         fresolver.cpp
         xml.cpp
-        endpoint.cpp
+        #endpoint.cpp
         sensor.cpp
         emitter.cpp
         rfilter.cpp
