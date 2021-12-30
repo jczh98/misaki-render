@@ -3,6 +3,7 @@
 #include "fwd.h"
 #include "string.h"
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 namespace misaki {
 

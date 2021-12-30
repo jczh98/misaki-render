@@ -40,7 +40,7 @@ static void check_whitespace_only(const std::string &s, size_t offset) {
     for (size_t i = offset; i < s.size(); ++i) {
         if (!std::isspace(s[i]))
             Throw("Invalid trailing characters in floating point number \"{}\"",
-                  s);
+              s);
     }
 }
 
@@ -58,7 +58,7 @@ static int64_t stoll(const std::string &s) {
     return result;
 }
 
-static std::unordered_map<std::string, Tag> *tags   = nullptr;
+static std::unordered_map<std::string, Tag> *tags = nullptr;
 static std::unordered_map<std::string, // e.g. bsdf.scalar_rgb
                           const Class *> *tag_class = nullptr;
 
@@ -159,9 +159,9 @@ struct XMLSource {
     std::function<std::string(ptrdiff_t)> offset;
     size_t depth = 0;
 
-    template <typename... Args>
-    [[noreturn]] void throw_error(const pugi::xml_node &n,
-                                  const std::string &msg_, Args &&...args) {
+    template <typename... Args> [[noreturn]] void throw_error(
+        const pugi::xml_node &n,
+        const std::string &msg_, Args &&...args) {
         std::string msg = "Error while loading \"{}\" (at {}): " + msg_ + ".";
         Throw(msg.c_str(), id, offset(n.offset_debug()), args...);
     }
@@ -184,7 +184,8 @@ struct XMLParseContext {
     Transform4f transform;
     size_t id_counter = 0;
 
-    XMLParseContext() {}
+    XMLParseContext() {
+    }
 };
 
 // Helper function to check if attributes are fully specified
@@ -211,7 +212,7 @@ void expand_value_to_xyz(XMLSource &src, pugi::xml_node &node) {
         auto list = string::tokenize(node.attribute("value").value());
         if (node.attribute("x") || node.attribute("y") || node.attribute("z"))
             src.throw_error(node, "can't mix and match \"value\" and "
-                                  "\"x\"/\"y\"/\"z\" attributes");
+                            "\"x\"/\"y\"/\"z\" attributes");
         if (list.size() == 1) {
             node.append_attribute("x") = list[0].c_str();
             node.append_attribute("y") = list[0].c_str();
@@ -249,7 +250,7 @@ Eigen::Vector3f parse_vector(XMLSource &src, pugi::xml_node &node,
     std::string value;
     try {
         float x = def_val, y = def_val, z = def_val;
-        value = node.attribute("x").value();
+        value   = node.attribute("x").value();
         if (!value.empty())
             x = detail::stof(value);
         value = node.attribute("y").value();
@@ -263,6 +264,16 @@ Eigen::Vector3f parse_vector(XMLSource &src, pugi::xml_node &node,
         src.throw_error(node, "could not parse floating point value \"{}\"",
                         value);
     }
+}
+
+ref<Object> create_texture_from_rgb(const std::string &name,
+                                    Color<float, 3> color,
+                                    bool within_emitter) {
+    Properties props(within_emitter ? "srgb_d65" : "srgb");
+    props.set_color("color", color);
+
+    return InstanceManager::get()->create_instance(
+        props, Class::for_name("Texture"));
 }
 
 ref<Object> create_texture_from_spectrum(
@@ -325,7 +336,8 @@ ref<Object> create_texture_from_spectrum(
 static std::pair<std::string, std::string>
 parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
           Tag parent_tag, Properties &props, ParameterList &param,
-          size_t &arg_counter, int depth) {
+          size_t &arg_counter, int depth, bool within_emitter = false,
+          bool within_spectrum                                = false) {
     try {
         if (!param.empty()) {
             for (auto attr : node.attributes()) {
@@ -346,11 +358,11 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
         auto it = tags->find(node.name());
         if (it == tags->end())
             src.throw_error(node, R"(unexpected tag "{}")", node.name());
-        Tag tag                  = it->second;
-        bool has_parent          = parent_tag != Tag::Invalid;
-        bool parent_is_object    = has_parent && parent_tag == Tag::Object;
-        bool current_is_object   = tag == Tag::Object;
-        bool parent_is_transform = parent_tag == Tag::Transform;
+        Tag tag                      = it->second;
+        bool has_parent              = parent_tag != Tag::Invalid;
+        bool parent_is_object        = has_parent && parent_tag == Tag::Object;
+        bool current_is_object       = tag == Tag::Object;
+        bool parent_is_transform     = parent_tag == Tag::Transform;
         bool current_is_transform_op =
             tag == Tag::Translate || tag == Tag::Rotate || tag == Tag::Scale ||
             tag == Tag::LookAt || tag == Tag::Matrix;
@@ -423,7 +435,9 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                 for (pugi::xml_node &ch : node.children()) {
                     auto [arg_name, nested_id] =
                         parse_xml(src, ctx, ch, tag, props_nested, param,
-                                  arg_counter_nested, depth + 1);
+                                  arg_counter_nested, depth + 1,
+                                  node_name == "emitter",
+                                  node_name == "spectrum");
                     if (!nested_id.empty())
                         props_nested.set_named_reference(arg_name, nested_id);
                 }
@@ -434,18 +448,21 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                 inst.src_id   = src.id;
                 inst.location = node.offset_debug();
                 return { name, id };
-            } break;
+            }
+            break;
             case Tag::NamedReference: {
                 check_attributes(src, node, { "name", "id" });
                 auto id   = node.attribute("id").value();
                 auto name = node.attribute("name").value();
                 return std::make_pair(name, id);
-            } break;
+            }
+            break;
             case Tag::String: {
                 check_attributes(src, node, { "name", "value" });
                 props.set_string(node.attribute("name").value(),
                                  node.attribute("value").value());
-            } break;
+            }
+            break;
             case Tag::Float: {
                 check_attributes(src, node, { "name", "value" });
                 std::string value = node.attribute("value").value();
@@ -458,7 +475,8 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                         value);
                 }
                 props.set_float(node.attribute("name").value(), value_float);
-            } break;
+            }
+            break;
             case Tag::Integer: {
                 check_attributes(src, node, { "name", "value" });
                 std::string value = node.attribute("value").value();
@@ -470,13 +488,15 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                         node, "could not parse integer value \"%s\"", value);
                 }
                 props.set_int(node.attribute("name").value(), value_long);
-            } break;
+            }
+            break;
             case Tag::Vector: {
                 detail::expand_value_to_xyz(src, node);
                 check_attributes(src, node, { "name", "x", "y", "z" });
                 props.set_vector3(node.attribute("name").value(),
                                   detail::parse_vector(src, node));
-            } break;
+            }
+            break;
             case Tag::Matrix: {
                 check_attributes(src, node, { "value" });
                 auto tokens =
@@ -524,8 +544,16 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                                     node.attribute("value").value());
                 }
 
-                props.set_color(node.attribute("name").value(), color);
-            } break;
+                if (!within_spectrum) {
+                    std::string name = node.attribute("name").value();
+                    ref<Object> obj  = detail::create_texture_from_rgb(
+                        name, color, within_emitter);
+                    props.set_object(name, obj);
+                } else {
+                    props.set_color("color", color);
+                }
+            }
+            break;
             case Tag::Spectrum: {
                 check_attributes(src, node, { "name", "value", "filename" },
                                  false);
@@ -533,10 +561,10 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                 std::vector<float> wavelengths, values;
                 bool has_value    = !node.attribute("value").empty(),
                      has_filename = !node.attribute("filename").empty(),
-                     is_constant =
+                     is_constant  =
                          has_value &&
                          string::tokenize(node.attribute("value").value())
-                                 .size() == 1;
+                         .size() == 1;
                 float const_value = 1.f;
                 if (has_value == has_filename) {
                     src.throw_error(node,
@@ -589,11 +617,13 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                     name, const_value, wavelengths, values);
 
                 props.set_object(name, obj);
-            } break;
+            }
+            break;
             case Tag::Transform: {
                 check_attributes(src, node, { "name" });
                 ctx.transform = Transform4f();
-            } break;
+            }
+            break;
             case Tag::LookAt: {
                 check_attributes(src, node, { "origin", "target", "up" });
 
@@ -605,19 +635,22 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                 if (result.matrix().hasNaN())
                     src.throw_error(node, "invalid lookat transformation");
                 ctx.transform = result * ctx.transform;
-            } break;
+            }
+            break;
             case Tag::Translate: {
                 detail::expand_value_to_xyz(src, node);
                 check_attributes(src, node, { "x", "y", "z" }, false);
                 auto vec      = detail::parse_vector(src, node);
                 ctx.transform = Transform4f::translate(vec) * ctx.transform;
-            } break;
+            }
+            break;
             case Tag::Scale: {
                 detail::expand_value_to_xyz(src, node);
                 check_attributes(src, node, { "x", "y", "z" }, false);
                 auto vec      = detail::parse_vector(src, node, 1.f);
                 ctx.transform = Transform4f::scale(vec) * ctx.transform;
-            } break;
+            }
+            break;
         }
         for (pugi::xml_node &ch : node.children())
             parse_xml(src, ctx, ch, tag, props, param, arg_counter, depth + 1);
@@ -650,7 +683,7 @@ static ref<Object> instantiate_node(XMLParseContext &ctx,
         } catch (const std::exception &e) {
             if (strstr(e.what(), "Error while loading") == nullptr)
                 Throw("Error while loading \"{}\" (near {}): {}", inst.src_id,
-                      inst.offset(inst.location), e.what());
+                  inst.offset(inst.location), e.what());
             else
                 throw;
         }
@@ -680,8 +713,8 @@ ref<Object> load_file(const fs::path &filename, ParameterList parameters) {
         filename.native().c_str(), pugi::parse_default | pugi::parse_comments);
 
     detail::XMLSource src{ filename.string(), doc, [=](ptrdiff_t pos) {
-                              return detail::file_offset(filename, pos);
-                          } };
+        return detail::file_offset(filename, pos);
+    } };
 
     if (!result) {
         Throw(R"(Error while loading "{}" (at {}): {})", src.id,
@@ -694,7 +727,7 @@ ref<Object> load_file(const fs::path &filename, ParameterList parameters) {
     Properties props;
     size_t arg_counter = 0; // Unused
     auto [name, id]    = detail::parse_xml(src, ctx, root, Tag::Invalid, props,
-                                        parameters, arg_counter, 0);
+                                           parameters, arg_counter, 0);
     return detail::instantiate_node(ctx, id);
 }
 

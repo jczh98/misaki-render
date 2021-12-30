@@ -53,7 +53,9 @@ DEFINE_PROPERTY_ACCESSOR(NamedReference, ref, set_named_reference,
 DEFINE_PROPERTY_ACCESSOR(ref<Object>, object, set_object, object)
 DEFINE_PROPERTY_ACCESSOR(const void *, pointer, set_pointer, pointer)
 
-Properties::Properties() : d(new PropertiesPrivate()) {}
+Properties::Properties()
+    : d(new PropertiesPrivate()) {
+}
 
 Properties::Properties(const std::string &instance_name)
     : d(new PropertiesPrivate()) {
@@ -61,7 +63,8 @@ Properties::Properties(const std::string &instance_name)
 }
 
 Properties::Properties(const Properties &props)
-    : d(new PropertiesPrivate(*props.d)) {}
+    : d(new PropertiesPrivate(*props.d)) {
+}
 
 Properties::~Properties() = default;
 
@@ -74,9 +77,11 @@ bool Properties::has_property(const std::string &name) const {
 namespace {
 struct PropertyTypeVisitor {
     using Type = Properties::Type;
+
     Type operator()(const std::nullptr_t &) {
         throw std::runtime_error("Internal error");
     }
+
     Type operator()(const bool &) { return Type::Bool; }
     Type operator()(const int &) { return Type::Int; }
     Type operator()(const float &) { return Type::Float; }
@@ -91,10 +96,15 @@ struct PropertyTypeVisitor {
 
 struct StreamVisitor {
     std::ostream &os;
-    explicit StreamVisitor(std::ostream &os) : os(os) {}
+
+    explicit StreamVisitor(std::ostream &os)
+        : os(os) {
+    }
+
     void operator()(const std::nullptr_t &) {
         throw std::runtime_error("Internal error");
     }
+
     void operator()(const bool &b) { os << (b ? "true" : "false"); }
     void operator()(const int &i) { os << i; }
     void operator()(const float &f) { os << f; }
@@ -102,9 +112,11 @@ struct StreamVisitor {
     void operator()(const std::string &s) { os << "\"" << s << "\""; }
     void operator()(const Transform4f &t) { os << t; }
     void operator()(const Color3 &t) { os << t; }
+
     void operator()(const NamedReference &nr) {
         os << "\"" << (const std::string &) nr << "\"";
     }
+
     void operator()(const ref<Object> &o) { os << o->to_string(); }
     void operator()(const void *&p) { os << p; }
 };
@@ -188,22 +200,15 @@ ref<Texture> Properties::texture(const std::string &name) const {
         ref<Object> object = find_object(name);
         if (!object->clazz()->derives_from(MSK_CLASS(Texture)))
             Throw("The property \"{}\" has the wrong type (expected "
-                  " <spectrum> or <texture>).",
-                  name);
+              " <spectrum> or <texture>).",
+              name);
         return (Texture *) object.get();
-    } else if (p_type == Properties::Type::Color) {
-        Properties props("srgb");
-        props.set_color("color", color(name));
-        return (Texture *) InstanceManager::get()
-            ->create_instance<Texture>(props)
-            .get();
-        //return static_cast<Texture *>(new ConstantSpectrumTexture(color(name)));
     } else if (p_type == Properties::Type::Float) {
         Properties props("srgb");
         props.set_color("value", Color3::Constant(float_(name)));
         return (Texture *) InstanceManager::get()
-            ->create_instance<Texture>(props)
-            .get();
+                           ->create_instance<Texture>(props)
+                           .get();
         //return static_cast<Texture *>(
         //    new ConstantSpectrumTexture(Color3::Constant(float_(name))));
     } else {
@@ -219,10 +224,16 @@ ref<Texture> Properties::texture(const std::string &name,
         return def_val;
     return texture(name);
 }
+
 ref<Texture> Properties::texture(const std::string &name, float def_val) const {
     if (!has_property(name)) {
-        return static_cast<Texture *>(
-            new ConstantSpectrumTexture(Color3::Constant(def_val)));
+        Properties props("srgb");
+        props.set_color("value", Color3::Constant(def_val));
+        return (Texture *) InstanceManager::get()
+                           ->create_instance<Texture>(props)
+                           .get();
+        //    return static_cast<Texture *>(
+        //        new ConstantSpectrumTexture(Color3::Constant(def_val)));
     }
     return texture(name);
 }
@@ -243,9 +254,9 @@ std::string Properties::to_string() const {
     auto it = d->entries.begin();
 
     os << "Properties[" << std::endl
-       << "  instance_name = \"" << (d->instance_name) << "\"," << std::endl
-       << "  id = \"" << d->id << "\"," << std::endl
-       << "  elements = (" << std::endl;
+        << "  instance_name = \"" << (d->instance_name) << "\"," << std::endl
+        << "  id = \"" << d->id << "\"," << std::endl
+        << "  elements = (" << std::endl;
     while (it != d->entries.end()) {
         os << "    \"" << it->first << "\" -> ";
         std::visit(StreamVisitor(os), it->second.data);
@@ -262,9 +273,9 @@ std::ostream &operator<<(std::ostream &os, const Properties &p) {
     auto it = p.d->entries.begin();
 
     os << "Properties[" << std::endl
-       << "  instance_name = \"" << (p.d->instance_name) << "\"," << std::endl
-       << "  id = \"" << p.d->id << "\"," << std::endl
-       << "  elements = (" << std::endl;
+        << "  instance_name = \"" << (p.d->instance_name) << "\"," << std::endl
+        << "  id = \"" << p.d->id << "\"," << std::endl
+        << "  elements = (" << std::endl;
     while (it != p.d->entries.end()) {
         os << "    \"" << it->first << "\" -> ";
         std::visit(StreamVisitor(os), it->second.data);

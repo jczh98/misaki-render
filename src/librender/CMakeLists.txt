@@ -74,6 +74,7 @@ set(SPECTRUM_SRCS
         spectra/d65.cpp
         spectra/regular.cpp
         spectra/srgb.cpp
+        spectra/srgb_d65.cpp
 )
 
 set(TEXTURE_SRCS
