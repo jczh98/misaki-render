@@ -69,7 +69,7 @@ public:
 
         SceneInteraction si;
 
-        return { ds, m_radiance->eval_3(si) / ds.pdf };
+        return { ds, m_radiance->eval(si) / ds.pdf };
     }
 
     float pdf_direct(const DirectIllumSample &ds) const override {
@@ -77,7 +77,7 @@ public:
     }
 
     Spectrum eval(const SceneInteraction &si) const override {
-        return m_radiance->eval_3(si);
+        return m_radiance->eval(si);
     }
 
     MSK_DECLARE_CLASS()

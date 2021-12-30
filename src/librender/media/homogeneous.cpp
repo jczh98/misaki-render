@@ -11,8 +11,8 @@ class HomogeneousMedium final : public Medium {
 public:
     explicit HomogeneousMedium(const Properties &props) : Medium(props) {
         m_is_homogeneous = true;
-        m_sigma_a        = props.color("sigma_a", Spectrum::Constant(1.f));
-        m_sigma_s        = props.color("sigma_s", Spectrum::Constant(1.f));
+        m_sigma_a        = props.color("sigma_a", Color3::Constant(1.f));
+        m_sigma_s        = props.color("sigma_s", Color3::Constant(1.f));
         m_sigma_t        = m_sigma_s + m_sigma_a;
         m_scale          = props.float_("scale", 1.0f);
     }

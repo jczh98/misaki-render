@@ -36,7 +36,7 @@ public:
         SceneInteraction si(ds);
         ds.object = this;
         if (ds.d.dot(ds.n) < 0.f && ds.pdf != 0.f) {
-            return { ds, m_radiance->eval_3(si) / ds.pdf };
+            return { ds, m_radiance->eval(si) / ds.pdf };
         } else {
             ds.pdf = 0;
             return { ds, Spectrum::Zero() };
@@ -48,7 +48,7 @@ public:
     }
 
     Spectrum eval(const SceneInteraction &si) const override {
-        return Frame::cos_theta(si.wi) > 0.f ? m_radiance->eval_3(si)
+        return Frame::cos_theta(si.wi) > 0.f ? m_radiance->eval(si)
                                               : Spectrum::Zero();
     }
 

@@ -5,6 +5,14 @@
 
 namespace misaki {
 
+#if !defined(MSK_WAVELENGTH_MIN)
+#define MSK_WAVELENGTH_MIN 360.f
+#endif
+
+#if !defined(MSK_WAVELENGTH_MAX)
+#define MSK_WAVELENGTH_MAX 830.f
+#endif
+
 template <typename Value_, size_t Size_ = 3>
 struct Color : public Eigen::Array<Value_, Size_, 1> {
     using Base = Eigen::Array<Value_, Size_, 1>;
@@ -29,8 +37,8 @@ struct Color : public Eigen::Array<Value_, Size_, 1> {
 };
 
 template <typename Value_, size_t Size_ = 4>
-struct SpectrumArray : public Eigen::Matrix<Value_, Size_, 1> {
-    using Base = Eigen::Matrix<Value_, Size_, 1>;
+struct SpectrumArray : public Eigen::Array<Value_, Size_, 1> {
+    using Base = Eigen::Array<Value_, Size_, 1>;
     using Base::Base;
     using Base::operator=;
 
@@ -41,6 +49,16 @@ struct SpectrumArray : public Eigen::Matrix<Value_, Size_, 1> {
 
 template <typename Value_, size_t Size_ = 3>
 bool is_black(const Color<Value_, Size_> &col) {
+    bool result = true;
+    for (size_t i = 0; i < Size_; i++)
+        if (col.coeff(i) != Value_(0.f)) {
+            result = false;
+        }
+    return result;
+}
+
+template <typename Value_, size_t Size_ = 4>
+bool is_black(const SpectrumArray<Value_, Size_> &col) {
     bool result = true;
     for (size_t i = 0; i < Size_; i++)
         if (col.coeff(i) != Value_(0.f)) {
@@ -91,7 +109,7 @@ cie1931_xyz(SpectrumArray<float, Size> wavelengths) {
 template <size_t Size>
 Color<float, 3> spectrum_to_xyz(const SpectrumArray<float, Size> &value,
                                 const SpectrumArray<float, Size> &wavelengths) {
-    Color<Spectrum<float, Size>, 3> XYZ = cie1931_xyz(wavelengths);
+    Color<SpectrumArray<float, Size>, 3> XYZ = cie1931_xyz(wavelengths);
     return { (XYZ.x() * value).mean(), (XYZ.y() * value).mean(),
              (XYZ.z() * value).mean() };
 }
@@ -105,15 +123,7 @@ std::ostream &operator<<(std::ostream &out, const Color<T, D> &c) {
     }
     out << "[" + result + "]";
     return out;
-}
-
-template <typename T>
-constexpr bool is_monochromatic_v =
-    detail::spectrum_traits<T>::is_monochromatic;
-template <typename T>
-constexpr bool is_rgb_v = detail::spectrum_traits<T>::is_rgb;
-template <typename T>
-constexpr bool is_spectral_v = detail::spectrum_traits<T>::is_spectral;
+}   
 
 // Copy from
 // https://github.com/mitsuba-renderer/mitsuba2/blob/master/include/mitsuba/core/spectrum.h

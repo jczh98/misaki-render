@@ -22,6 +22,16 @@ public:
             return m_color1->eval_1(si);
     }
 
+    Spectrum eval(const SceneInteraction &si) const override {
+        const auto uv = m_transform.transform_affine_point(si.uv);
+        const auto u  = uv.x() - std::floor(uv.x());
+        const auto v  = uv.y() - std::floor(uv.y());
+        if (u > .5f == v > .5f)
+            return m_color0->eval(si);
+        else
+            return m_color1->eval(si);        
+    }
+
     Color3 eval_3(const SceneInteraction &si) const override {
         const auto uv = m_transform.transform_affine_point(si.uv);
         const auto u  = uv.x() - std::floor(uv.x());

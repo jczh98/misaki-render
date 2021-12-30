@@ -33,4 +33,6 @@ endif ()
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(include)
 
+add_subdirectory(ext ext_build)
+
 add_subdirectory(src)

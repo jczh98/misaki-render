@@ -28,7 +28,7 @@ public:
         bs.sampled_type      = +BSDFFlags::DiffuseReflection;
         bs.sampled_component = 0;
         return { bs,
-                 bs.pdf > 0.f ? m_reflectance->eval_3(si) : Spectrum::Zero() };
+                 bs.pdf > 0.f ? m_reflectance->eval(si) : Spectrum::Zero() };
     }
 
     Spectrum eval(const BSDFContext &ctx, const SceneInteraction &si,
@@ -39,7 +39,7 @@ public:
         float cos_theta_i = Frame::cos_theta(si.wi),
               cos_theta_o = Frame::cos_theta(wo);
         if (cos_theta_i > 0.f && cos_theta_o > 0.f) {
-            return m_reflectance->eval_3(si) * math::InvPi<float> * cos_theta_o;
+            return m_reflectance->eval(si) * math::InvPi<float> * cos_theta_o;
         } else {
             return Spectrum::Zero();
         }

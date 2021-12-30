@@ -9,6 +9,7 @@ struct Ray {
     float mint = math::RayEpsilon<float>;
     float maxt = math::Infinity<float>;
     float time = 0.f;
+    Wavelength wavelengths; 
     Eigen::Vector3f d_rcp;
 
     Ray() {}

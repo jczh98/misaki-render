@@ -8,6 +8,7 @@ namespace misaki {
 class MSK_EXPORT Texture : public Object {
 public:
     virtual float eval_1(const SceneInteraction &si) const;
+    virtual Spectrum eval(const SceneInteraction &si) const;
     virtual Color3 eval_3(const SceneInteraction &si) const;
     virtual float mean() const;
 
@@ -22,10 +23,11 @@ protected:
 
 class MSK_EXPORT ConstantSpectrumTexture : public Texture {
 public:
-    ConstantSpectrumTexture(const Color3 &value)
-        : Texture(Properties()), m_value(value) {}
+    ConstantSpectrumTexture(const Color3 &value);
 
     float eval_1(const SceneInteraction &si) const override;
+
+    Spectrum eval(const SceneInteraction &si) const override;
 
     Color3 eval_3(const SceneInteraction &si) const override;
 

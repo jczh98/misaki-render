@@ -44,6 +44,7 @@ set(CORE_SRCS
         records.cpp
         image.cpp
         spectrum.cpp
+        srgb.cpp
 )
 
 set(UI_SRCS
@@ -59,10 +60,10 @@ set(UI_SRCS
 
 set(BSDF_SRCS
         bsdfs/diffuse.cpp
-        bsdfs/dielectric.cpp
-        bsdfs/twosided.cpp
-        bsdfs/roughconductor.cpp
-        bsdfs/roughdielectric.cpp
+        #bsdfs/dielectric.cpp
+        #bsdfs/twosided.cpp
+        #bsdfs/roughconductor.cpp
+        #bsdfs/roughdielectric.cpp
 )
 
 set(SAMPLER_SRCS
@@ -111,7 +112,7 @@ set(VOLUME_SRCS
 )
 
 set(MEDIUM_SRCS
-        media/homogeneous.cpp
+        #media/homogeneous.cpp
 )
 
 source_group("Headers/Core" FILES ${CORE_HDRS})
@@ -156,6 +157,10 @@ add_library(misaki-render SHARED
         ${MEDIUM_SRCS}
         )
 
+target_include_directories(misaki-render PUBLIC
+        ${RGB2SPEC_INCLUDE_DIRS}
+)
+
 target_link_libraries(misaki-render PUBLIC
         fmt::fmt
         spdlog::spdlog
@@ -165,5 +170,6 @@ target_link_libraries(misaki-render PUBLIC
         embree
         glfw
         OpenGL::GL
+        rgb2spec
         ${STB_INCLUDE_DIRS}
         )

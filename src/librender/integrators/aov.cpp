@@ -122,9 +122,11 @@ public:
                     break;
 
                 case Type::IntegratorRGBA: {
-                    Spectrum rgb = m_integrators[ctr].first->sample(
+                    Spectrum spec = m_integrators[ctr].first->sample(
                         scene, sampler, ray, medium, aovs);
                     aovs += m_integrators[ctr].second;
+
+                    Color3 rgb = xyz_to_srgb(spectrum_to_xyz(spec, ray.wavelengths));
 
                     *aovs++ = rgb.r();
                     *aovs++ = rgb.g();
@@ -132,7 +134,7 @@ public:
                     *aovs++ = 1.f;
 
                     if (ctr == 0)
-                        result = rgb;
+                        result = spec;
 
                     ctr++;
                 } break;

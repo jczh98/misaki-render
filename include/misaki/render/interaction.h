@@ -27,6 +27,8 @@ struct SceneInteraction {
 
     const Shape *shape = nullptr;
 
+    Wavelength wavelengths;
+
     SceneInteraction() {}
 
     explicit SceneInteraction(const PositionSample &ps);
