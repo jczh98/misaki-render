@@ -171,7 +171,7 @@ MSK_INLINE Array sample_shifted(const Value &sample,
 
     Array value = Array::Constant(sample) + shift;
     Array one   = Array::Constant(1);
-    Array result = (value > one).select(value, value - one);
+    Array result = (value <= one).select(value, value - one);
 
     return result;
 }
@@ -204,6 +204,17 @@ coordinate_system(const Eigen::Vector3f &n) {
 
 template <typename T, int D>
 std::ostream &operator<<(std::ostream &out, const Eigen::Matrix<T, D, 1> &vec) {
+    std::string result;
+    for (size_t i = 0; i < D; ++i) {
+        result += std::to_string(vec.coeff(i));
+        result += i + 1 < D ? ", " : "";
+    }
+    out << "[" + result + "]";
+    return out;
+}
+
+template <typename T, int D>
+std::ostream &operator<<(std::ostream &out, const Eigen::Array<T, D, 1> &vec) {
     std::string result;
     for (size_t i = 0; i < D; ++i) {
         result += std::to_string(vec.coeff(i));

@@ -1,6 +1,7 @@
 #include <misaki/core/logger.h>
 #include <misaki/core/properties.h>
 #include <misaki/render/texture.h>
+#include <misaki/core/manager.h>
 
 #include <sstream>
 #include <unordered_map>
@@ -191,10 +192,20 @@ ref<Texture> Properties::texture(const std::string &name) const {
                   name);
         return (Texture *) object.get();
     } else if (p_type == Properties::Type::Color) {
-        return static_cast<Texture *>(new ConstantSpectrumTexture(color(name)));
+        Properties props("srgb");
+        props.set_color("color", color(name));
+        return (Texture *) InstanceManager::get()
+            ->create_instance<Texture>(props)
+            .get();
+        //return static_cast<Texture *>(new ConstantSpectrumTexture(color(name)));
     } else if (p_type == Properties::Type::Float) {
-        return static_cast<Texture *>(
-            new ConstantSpectrumTexture(Color3::Constant(float_(name))));
+        Properties props("srgb");
+        props.set_color("value", Color3::Constant(float_(name)));
+        return (Texture *) InstanceManager::get()
+            ->create_instance<Texture>(props)
+            .get();
+        //return static_cast<Texture *>(
+        //    new ConstantSpectrumTexture(Color3::Constant(float_(name))));
     } else {
         Throw("The property \"{}\" has the wrong type (expected "
               " <spectrum> or <texture>).",

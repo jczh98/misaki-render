@@ -143,7 +143,7 @@ ProjectiveCamera::ProjectiveCamera(const Properties &props)
 ProjectiveCamera::~ProjectiveCamera() {
 }
 
-MSK_IMPLEMENT_CLASS(Sensor, Endpoint, "sensor")
+MSK_IMPLEMENT_CLASS(Sensor, Object, "sensor")
 MSK_IMPLEMENT_CLASS(ProjectiveCamera, Sensor)
 
 } // namespace misaki

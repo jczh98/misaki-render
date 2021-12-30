@@ -11,7 +11,7 @@ namespace misaki {
 class AreaLight final : public Emitter {
 public:
     AreaLight(const Properties &props) : Emitter(props) {
-        m_radiance = props.texture("radiance", 1.f);
+        m_radiance = props.texture("radiance", Texture::D65(1.f));
 
         m_flags = +EmitterFlags::Surface;
     }
@@ -34,6 +34,7 @@ public:
                   const Eigen::Vector2f &sample) const override {
         auto ds = m_shape->sample_direct(ref, sample);
         SceneInteraction si(ds);
+        si.wavelengths = ref.wavelengths;
         ds.object = this;
         if (ds.d.dot(ds.n) < 0.f && ds.pdf != 0.f) {
             return { ds, m_radiance->eval(si) / ds.pdf };

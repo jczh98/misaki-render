@@ -42,6 +42,7 @@ struct Ray {
         oss << "  mint = " << mint << "," << std::endl;
         oss << "  maxt = " << maxt << "," << std::endl;
         oss << "  time = " << time << std::endl;
+        oss << "  wavelengths = " << wavelengths << std::endl;
         oss << "]";
         return oss.str();
     }

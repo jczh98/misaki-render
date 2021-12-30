@@ -112,7 +112,8 @@ void SamplingIntegrator::render_sample(const Scene *scene, const Sensor *sensor,
         sensor->sample_ray_differential(wavelength_sample, position_sample,
                                         sampler->next2d());
     ray.scale_differential(diff_scale_factor);
-    Spectrum result = sample(scene, sampler, ray, sensor->medium(), aovs + 5);
+    Spectrum result =
+        sample(scene, sampler, ray, sensor->medium(), aovs + 5) * ray_weight;
     Eigen::Vector3f xyz = spectrum_to_xyz(result, ray.wavelengths);
 
     aovs[0] = xyz.x();

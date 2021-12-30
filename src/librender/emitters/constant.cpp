@@ -13,7 +13,7 @@ class ConstantBackgroundEmitter final : public Emitter {
 public:
     ConstantBackgroundEmitter(const Properties &props) : Emitter(props) {
         m_bsphere  = BoundingSphere3f(Eigen::Vector3f::Constant(0.f), 1.f);
-        m_radiance = props.texture("radiance", 1.f);
+        m_radiance = props.texture("radiance", Texture::D65(1.f));
 
         m_flags = +EmitterFlags::Infinite;
     }

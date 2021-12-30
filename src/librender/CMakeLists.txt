@@ -70,6 +70,12 @@ set(SAMPLER_SRCS
         samplers/independent.cpp
 )
 
+set(SPECTRUM_SRCS
+        spectra/d65.cpp
+        spectra/regular.cpp
+        spectra/srgb.cpp
+)
+
 set(TEXTURE_SRCS
         textures/checkerboard.cpp
 )
@@ -134,6 +140,7 @@ source_group("Sources/Integrators" FILES ${INTEGRATOR_SRCS})
 source_group("Sources/Phases" FILES ${PHASE_SRCS})
 source_group("Sources/Volumes" FILES ${VOLUME_SRCS})
 source_group("Sources/Media" FILES ${MEDIUM_SRCS})
+source_group("Sources/Spectra" FILES ${SPECTRUM_SRCS})
 
 add_library(misaki-render SHARED
         ${CORE_HDRS}
@@ -155,6 +162,7 @@ add_library(misaki-render SHARED
         ${PHASE_SRCS}
         ${VOLUME_SRCS}
         ${MEDIUM_SRCS}
+        ${SPECTRUM_SRCS}
         )
 
 target_include_directories(misaki-render PUBLIC

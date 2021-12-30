@@ -37,7 +37,7 @@ public:
         ray.o = m_world_transform.apply_point({ 0.f, 0.f, 0.f });
         ray.d = m_world_transform.apply_vector(d);
         ray.update();
-        return { ray, Spectrum::Constant(1.f) };
+        return { ray, wav_weight };
     }
 
     MSK_DECLARE_CLASS()
