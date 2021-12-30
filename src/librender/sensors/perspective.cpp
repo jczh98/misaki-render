@@ -6,8 +6,9 @@ namespace misaki {
 
 class PerspectiveCamera final : public ProjectiveCamera {
 public:
-    PerspectiveCamera(const Properties &props) : ProjectiveCamera(props) {
-        m_fov = props.float_("fov", 30);
+    PerspectiveCamera(const Properties &props)
+        : ProjectiveCamera(props) {
+        m_fov              = props.float_("fov", 30);
         m_camera_to_sample =
             Transform4f::scale(
                 Eigen::Vector3f(m_film->size().x(), m_film->size().y(), 1.f)) *
@@ -19,15 +20,20 @@ public:
     }
 
     std::pair<Ray, Spectrum>
-    sample_ray(const Eigen::Vector2f &pos_sample,
+    sample_ray(const float wavelength_sample,
+               const Eigen::Vector2f &pos_sample,
                const Eigen::Vector2f &) const override {
+        auto [wavelengths, wav_weight] =
+            sample_wavelength<float, Spectrum::SizeAtCompileTime>(
+                wavelength_sample);
         Ray ray;
         const Eigen::Vector3f near_p = m_sample_to_camera.apply_point(
             { pos_sample.x(), pos_sample.y(), 0.f });
         const Eigen::Vector3f d = near_p.normalized();
-        float inv_z             = 1.f / d.z();
-        ray.mint                = m_near_clip * inv_z;
-        ray.maxt                = m_far_clip * inv_z;
+        float inv_z = 1.f / d.z();
+        ray.mint = m_near_clip * inv_z;
+        ray.maxt = m_far_clip * inv_z;
+        ray.wavelengths = wavelengths;
         ray.o = m_world_transform.apply_point({ 0.f, 0.f, 0.f });
         ray.d = m_world_transform.apply_vector(d);
         ray.update();

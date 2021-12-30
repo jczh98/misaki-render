@@ -23,6 +23,7 @@ bool SceneInteraction::is_medium_transition() const {
 SceneInteraction
 PreliminaryIntersection::compute_scene_interaction(const Ray &ray) {
     SceneInteraction si = shape->compute_scene_interaction(ray, *this);
+    si.wavelengths      = ray.wavelengths;
     if (si.is_valid()) {
         si.prim_index = prim_index;
         si.shape      = shape;

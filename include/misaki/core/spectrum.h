@@ -2,6 +2,7 @@
 
 #include "platform.h"
 #include <Eigen/Core>
+#include "mathutils.h"
 
 namespace misaki {
 
@@ -13,8 +14,8 @@ namespace misaki {
 #define MSK_WAVELENGTH_MAX 830.f
 #endif
 
-template <typename Value_, size_t Size_ = 3>
-struct Color : public Eigen::Array<Value_, Size_, 1> {
+template <typename Value_, size_t Size_ = 3> struct Color
+    : public Eigen::Array<Value_, Size_, 1> {
     using Base = Eigen::Array<Value_, Size_, 1>;
     using Base::Base;
     using Base::operator=;
@@ -36,8 +37,8 @@ struct Color : public Eigen::Array<Value_, Size_, 1> {
     }
 };
 
-template <typename Value_, size_t Size_ = 4>
-struct SpectrumArray : public Eigen::Array<Value_, Size_, 1> {
+template <typename Value_, size_t Size_ = 4> struct SpectrumArray
+    : public Eigen::Array<Value_, Size_, 1> {
     using Base = Eigen::Array<Value_, Size_, 1>;
     using Base::Base;
     using Base::operator=;
@@ -47,8 +48,8 @@ struct SpectrumArray : public Eigen::Array<Value_, Size_, 1> {
     }
 };
 
-template <typename Value_, size_t Size_ = 3>
-bool is_black(const Color<Value_, Size_> &col) {
+template <typename Value_, size_t Size_ = 3> bool is_black(
+    const Color<Value_, Size_> &col) {
     bool result = true;
     for (size_t i = 0; i < Size_; i++)
         if (col.coeff(i) != Value_(0.f)) {
@@ -57,8 +58,8 @@ bool is_black(const Color<Value_, Size_> &col) {
     return result;
 }
 
-template <typename Value_, size_t Size_ = 4>
-bool is_black(const SpectrumArray<Value_, Size_> &col) {
+template <typename Value_, size_t Size_ = 4> bool is_black(
+    const SpectrumArray<Value_, Size_> &col) {
     bool result = true;
     for (size_t i = 0; i < Size_; i++)
         if (col.coeff(i) != Value_(0.f)) {
@@ -78,8 +79,7 @@ extern MSK_EXPORT const float *cie1931_x_data;
 extern MSK_EXPORT const float *cie1931_y_data;
 extern MSK_EXPORT const float *cie1931_z_data;
 
-template <size_t Size>
-Color<SpectrumArray<float, Size>, 3>
+template <size_t Size> Color<SpectrumArray<float, Size>, 3>
 cie1931_xyz(SpectrumArray<float, Size> wavelengths) {
     using Array = SpectrumArray<float, Size>;
     Array t =
@@ -88,7 +88,7 @@ cie1931_xyz(SpectrumArray<float, Size> wavelengths) {
 
     Array w1, w0, v0_x, v1_x, v0_y, v1_y, v0_z, v1_z;
     for (int s = 0; s < Array::MaxRowsAtCompileTime; s++) {
-        uint32_t i0      = std::clamp(uint32_t(t.coeff(s)), 0u,
+        uint32_t i0 = std::clamp(uint32_t(t.coeff(s)), 0u,
                                  uint32_t(MSK_CIE_SAMPLES - 2)),
                  i1      = i0 + 1;
         v0_x.coeffRef(s) = cie1931_x_data[i0];
@@ -106,16 +106,16 @@ cie1931_xyz(SpectrumArray<float, Size> wavelengths) {
                            w0 * v0_z + w1 * v1_z);
 }
 
-template <size_t Size>
-Color<float, 3> spectrum_to_xyz(const SpectrumArray<float, Size> &value,
-                                const SpectrumArray<float, Size> &wavelengths) {
+template <size_t Size> Color<float, 3> spectrum_to_xyz(
+    const SpectrumArray<float, Size> &value,
+    const SpectrumArray<float, Size> &wavelengths) {
     Color<SpectrumArray<float, Size>, 3> XYZ = cie1931_xyz(wavelengths);
     return { (XYZ.x() * value).mean(), (XYZ.y() * value).mean(),
              (XYZ.z() * value).mean() };
 }
 
-template <typename T, int D>
-std::ostream &operator<<(std::ostream &out, const Color<T, D> &c) {
+template <typename T, int D> std::ostream &operator<<(
+    std::ostream &out, const Color<T, D> &c) {
     std::string result;
     for (size_t i = 0; i < D; ++i) {
         result += std::to_string(c.coeff(i));
@@ -123,7 +123,7 @@ std::ostream &operator<<(std::ostream &out, const Color<T, D> &c) {
     }
     out << "[" + result + "]";
     return out;
-}   
+}
 
 // Copy from
 // https://github.com/mitsuba-renderer/mitsuba2/blob/master/include/mitsuba/core/spectrum.h
@@ -140,6 +140,44 @@ inline Eigen::Vector3f xyz_to_srgb(const Eigen::Vector3f &rgb) {
     M << 3.240479f, -1.537150f, -0.498535f, -0.969256f, 1.875991f, 0.041556f,
         0.055648f, -0.204043f, 1.057311f;
     return M * rgb;
+}
+
+template <typename Value, size_t Size = 4> std::pair<
+    SpectrumArray<Value, Size>, SpectrumArray<Value, Size>>
+sample_uniform_spectrum(const SpectrumArray<Value, Size> &sample) {
+    return { sample * (MSK_CIE_MAX - MSK_CIE_MIN) + MSK_CIE_MIN,
+             SpectrumArray<Value, Size>::Constant(MSK_CIE_MAX - MSK_CIE_MIN) };
+}
+
+template <typename Value, size_t Size = 4> std::pair<
+    SpectrumArray<Value, Size>, SpectrumArray<Value, Size>>
+sample_rgb_spectrum(const SpectrumArray<Value, Size> &sample) {
+    if constexpr (MSK_WAVELENGTH_MIN == 360.f && MSK_WAVELENGTH_MAX == 830.f) {
+        SpectrumArray<Value, Size> wavelengths =
+            538.f -
+            (0.8569106254698279f - 1.8275019724092267f * sample).unaryExpr(
+                [](Value x) {
+                    return std::atanh(x);
+                }) *
+            138.88888888888889f;
+
+        SpectrumArray<Value, Size> tmp = (0.0072f * (wavelengths - 538.f)).
+            cosh();
+        SpectrumArray<Value, Size> weight = 253.82f * tmp * tmp;
+
+        return { wavelengths, weight };
+    } else {
+        // Fall back to uniform sampling for other wavelength ranges
+        return sample_uniform_spectrum(sample);
+    }
+}
+
+template <typename Value, size_t Size = 4> std::pair<
+    SpectrumArray<Value, Size>, SpectrumArray<Value, Size>>
+sample_wavelength(Value sample) {
+    SpectrumArray<Value, Size> wav_sample =
+        math::sample_shifted<SpectrumArray<Value, Size>>(sample);
+    return sample_rgb_spectrum(wav_sample);
 }
 
 //// Convert ITU-R Rec. BT.709 linear RGB to XYZ tristimulus values

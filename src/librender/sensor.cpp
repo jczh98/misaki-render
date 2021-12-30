@@ -44,27 +44,30 @@ Sensor::Sensor(const Properties &props) {
     m_resolution = Eigen::Vector2f(m_film->size().x(), m_film->size().y());
 }
 
-Sensor::~Sensor() {}
+Sensor::~Sensor() {
+}
 
 std::pair<RayDifferential, Spectrum>
-Sensor::sample_ray_differential(const Eigen::Vector2f &sample,
+Sensor::sample_ray_differential(const float sample1,
+                                const Eigen::Vector2f &sample2,
                                 const Eigen::Vector2f &sample3) const {
 
-    auto [temp_ray, result_spec] = sample_ray(sample, sample3);
+    auto [temp_ray, result_spec] = sample_ray(sample1, sample2, sample3);
 
     RayDifferential result_ray(temp_ray);
+    result_ray.wavelengths = temp_ray.wavelengths;
 
     Eigen::Vector2f dx(1.f / m_resolution.x(), 0.f);
     Eigen::Vector2f dy(0.f, 1.f / m_resolution.y());
 
     // Sample a result_ray for X+1
-    std::tie(temp_ray, std::ignore) = sample_ray(sample + dx, sample3);
+    std::tie(temp_ray, std::ignore) = sample_ray(sample1, sample2 + dx, sample3);
 
     result_ray.o_x = temp_ray.o;
     result_ray.d_x = temp_ray.d;
 
     // Sample a result_ray for Y+1
-    std::tie(temp_ray, std::ignore) = sample_ray(sample + dy, sample3);
+    std::tie(temp_ray, std::ignore) = sample_ray(sample1, sample2 + dy, sample3);
 
     result_ray.o_y               = temp_ray.o;
     result_ray.d_y               = temp_ray.d;
@@ -73,8 +76,9 @@ Sensor::sample_ray_differential(const Eigen::Vector2f &sample,
     return { result_ray, result_spec };
 }
 
-std::pair<Ray, Spectrum> Sensor::sample_ray(const Eigen::Vector2f &,
-                                              const Eigen::Vector2f &) const {
+std::pair<Ray, Spectrum> Sensor::sample_ray(const float wavelength_sample,
+                                            const Eigen::Vector2f &,
+                                            const Eigen::Vector2f &) const {
     MSK_NOT_IMPLEMENTED("sample_ray");
 }
 
@@ -89,18 +93,18 @@ float Sensor::pdf_position(const PositionSample &ps) const {
 
 std::pair<DirectionSample, Spectrum>
 Sensor::sample_direction(const PositionSample &ps,
-                           const Eigen::Vector2f &sample) const {
+                         const Eigen::Vector2f &sample) const {
     MSK_NOT_IMPLEMENTED("sample_direction");
 }
 
 float Sensor::pdf_direction(const PositionSample &ps,
-                              const DirectionSample &ds) const {
+                            const DirectionSample &ds) const {
     MSK_NOT_IMPLEMENTED("pdf_direction");
 }
 
 std::pair<DirectIllumSample, Spectrum>
 Sensor::sample_direct(const SceneInteraction &ref,
-                        const Eigen::Vector2f &sample) const {
+                      const Eigen::Vector2f &sample) const {
     MSK_NOT_IMPLEMENTED("sample_direct");
 }
 
@@ -126,15 +130,18 @@ void Sensor::set_medium(Medium *medium) {
     m_medium = medium;
 }
 
-void Sensor::set_scene(const Scene *scene) {}
+void Sensor::set_scene(const Scene *scene) {
+}
 
-ProjectiveCamera::ProjectiveCamera(const Properties &props) : Sensor(props) {
+ProjectiveCamera::ProjectiveCamera(const Properties &props)
+    : Sensor(props) {
     m_near_clip      = props.float_("near_clip", 1e-2f);
     m_far_clip       = props.float_("far_clip", 1e4f);
     m_focus_distance = props.float_("focus_distance", m_far_clip);
 }
 
-ProjectiveCamera::~ProjectiveCamera() {}
+ProjectiveCamera::~ProjectiveCamera() {
+}
 
 MSK_IMPLEMENT_CLASS(Sensor, Endpoint, "sensor")
 MSK_IMPLEMENT_CLASS(ProjectiveCamera, Sensor)

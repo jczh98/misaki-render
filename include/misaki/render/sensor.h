@@ -14,7 +14,8 @@ class MSK_EXPORT Sensor : public Object {
 public:
     // Returns Sampled ray with structred RaySample
     virtual std::pair<Ray, Spectrum>
-    sample_ray(const Eigen::Vector2f &pos_sample,
+    sample_ray(const float wavelength_sample,
+               const Eigen::Vector2f &pos_sample,
                const Eigen::Vector2f &dir_sample) const;
 
     virtual Spectrum eval(const SceneInteraction &si) const;
@@ -45,7 +46,8 @@ public:
     const Medium *medium() const { return m_medium; }
 
     virtual std::pair<RayDifferential, Spectrum>
-    sample_ray_differential(const Eigen::Vector2f &sample2,
+    sample_ray_differential(const float wavelength_sample,
+                            const Eigen::Vector2f &sample2,
                             const Eigen::Vector2f &sample3) const;
 
     Film *film() { return m_film; }

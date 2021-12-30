@@ -164,6 +164,23 @@ MSK_INLINE Eigen::RowVectorXi floor2int(const Eigen::RowVectorXf &vec) {
     return vec.array().floor().matrix().template cast<int>();
 }
 
+template <typename Array, size_t... Index, typename Value = typename Array::Scalar>
+MSK_INLINE Array sample_shifted(const Value &sample,
+                                  std::index_sequence<Index...>) {
+    const Array shift(Index / Array::Scalar(Array::SizeAtCompileTime)...);
+
+    Array value = Array::Constant(sample) + shift;
+    Array one   = Array::Constant(1);
+    Array result = (value > one).select(value, value - one);
+
+    return result;
+}
+
+template <typename Array>
+MSK_INLINE Array sample_shifted(const typename Array::Scalar &sample) {
+    return sample_shifted<Array>(sample, std::make_index_sequence<Array::SizeAtCompileTime>());
+}
+
 } // namespace math
 
 template <typename Float>

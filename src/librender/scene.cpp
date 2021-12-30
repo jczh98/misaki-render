@@ -242,6 +242,7 @@ SceneInteraction Scene::ray_intersect(const Ray &ray) const {
 
         si = pi.compute_scene_interaction(ray);
     } else {
+        si.wavelengths = ray.wavelengths;
         si.wi = -ray.d;
         si.t  = math::Infinity<float>;
     }

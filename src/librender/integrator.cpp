@@ -23,7 +23,8 @@ SamplingIntegrator::SamplingIntegrator(const Properties &props)
     m_hide_emitters = props.bool_("hide_emitters", false);
 }
 
-SamplingIntegrator::~SamplingIntegrator() {}
+SamplingIntegrator::~SamplingIntegrator() {
+}
 
 std::vector<std::string> SamplingIntegrator::aov_names() const { return {}; }
 
@@ -53,7 +54,7 @@ bool SamplingIntegrator::render(Scene *scene, Sensor *sensor) {
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, total_blocks, 1),
         [&](const tbb::blocked_range<size_t> &range) {
-            ref<Sampler> sampler = sensor->sampler()->clone();
+            ref<Sampler> sampler  = sensor->sampler()->clone();
             ref<ImageBlock> block =
                 new ImageBlock(Eigen::Vector2i::Constant(m_block_size),
                                channels.size(), film->filter(), !has_aovs);
@@ -104,10 +105,14 @@ void SamplingIntegrator::render_sample(const Scene *scene, const Sensor *sensor,
                                        float *aovs, const Eigen::Vector2f &pos,
                                        float diff_scale_factor) const {
     Eigen::Vector2f position_sample = pos + sampler->next2d();
+
+    float wavelength_sample = sampler->next1d();
+
     auto [ray, ray_weight] =
-        sensor->sample_ray_differential(position_sample, sampler->next2d());
+        sensor->sample_ray_differential(wavelength_sample, position_sample,
+                                        sampler->next2d());
     ray.scale_differential(diff_scale_factor);
-    Spectrum result     = sample(scene, sampler, ray, sensor->medium(), aovs + 5);
+    Spectrum result = sample(scene, sampler, ray, sensor->medium(), aovs + 5);
     Eigen::Vector3f xyz = spectrum_to_xyz(result, ray.wavelengths);
 
     aovs[0] = xyz.x();
@@ -130,7 +135,8 @@ MonteCarloIntegrator::MonteCarloIntegrator(const Properties &props)
         Throw("\"max_depth\" must be set to -1 (infinite) or a value >= 0");
 }
 
-MonteCarloIntegrator::~MonteCarloIntegrator() {}
+MonteCarloIntegrator::~MonteCarloIntegrator() {
+}
 
 MSK_IMPLEMENT_CLASS(Integrator, Object, "integrator")
 MSK_IMPLEMENT_CLASS(SamplingIntegrator, Integrator)
