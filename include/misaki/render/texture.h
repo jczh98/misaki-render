@@ -23,29 +23,4 @@ protected:
     std::string m_id;
 };
 
-class MSK_EXPORT ConstantSpectrumTexture : public Texture {
-public:
-    ConstantSpectrumTexture(const Color3 &value);
-
-    float eval_1(const SceneInteraction &si) const override;
-
-    Spectrum eval(const SceneInteraction &si) const override;
-
-    Color3 eval_3(const SceneInteraction &si) const override;
-
-    float mean() const override;
-
-    std::string to_string() const override {
-        std::ostringstream oss;
-        oss << "ConstantSpectrumTexture[" << std::endl
-            << "  value = " << m_value << std::endl
-            << "]";
-        return oss.str();
-    }
-
-    MSK_DECLARE_CLASS()
-private:
-    Color3 m_value;
-};
-
 } // namespace misaki

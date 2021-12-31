@@ -2,6 +2,8 @@
 
 #include "fwd.h"
 
+#include <iostream>
+
 namespace misaki {
 
 struct Ray {
@@ -9,24 +11,31 @@ struct Ray {
     float mint = math::RayEpsilon<float>;
     float maxt = math::Infinity<float>;
     float time = 0.f;
-    Wavelength wavelengths; 
+    Wavelength wavelengths;
     Eigen::Vector3f d_rcp;
 
-    Ray() {}
+    Ray() {
+    }
 
-    Ray(const Eigen::Vector3f &o, const Eigen::Vector3f &d, float time)
-        : o(o), d(d), time(time) {
+    Ray(const Eigen::Vector3f &o, const Eigen::Vector3f &d, float time, const Wavelength &wavelengths)
+        : o(o), d(d), time(time), wavelengths(wavelengths) {
         update();
     }
 
     Ray(const Eigen::Vector3f &o, const Eigen::Vector3f &d, float mint,
-        float maxt, float time)
-        : o(o), d(d), mint(mint), maxt(maxt), time(time) {
+        float maxt, float time, const Wavelength &wavelengths)
+        : o(o), d(d), mint(mint), maxt(maxt), time(time), wavelengths(wavelengths) {
         update();
     }
 
     Ray(const Ray &ray, float mint, float maxt, float time)
-        : o(ray.o), d(ray.d), mint(mint), maxt(maxt), time(time) {
+        : o(ray.o), d(ray.d), wavelengths(ray.wavelengths), mint(mint), maxt(maxt), time(time) {
+        update();
+    }
+
+    Ray(const Ray &ray)
+        : o(ray.o), d(ray.d), mint(ray.mint), maxt(ray.maxt),
+          time(ray.time), wavelengths(ray.wavelengths) {
         update();
     }
 
@@ -58,28 +67,13 @@ struct RayDifferential : public Ray {
         d_x = (d_x - this->d) * amount + this->d;
         d_y = (d_y - this->d) * amount + this->d;
     }
-    RayDifferential() {}
-    RayDifferential(const Ray &ray) : Ray(ray), has_differentials(false) {}
-};
 
-namespace ray {
-
-inline Ray spawn(const Ray &ray, float mint, float maxt) {
-    return Ray(ray.o, ray.d, mint, maxt, 0.f);
-}
-
-template <bool Offset = true>
-inline Ray spawn(const Eigen::Vector3f &p, const Eigen::Vector3f &d) {
-    if constexpr (Offset) {
-
-        return Ray(p, d,
-                   (1.f + p.cwiseAbs().maxCoeff()) * math::RayEpsilon<float>,
-                   math::Infinity<float>, 0.f);
-    } else {
-        return Ray(p, d, 0, math::Infinity<float>, 0.f);
+    RayDifferential() {
     }
-}
 
-} // namespace ray
+    RayDifferential(const Ray &ray)
+        : Ray(ray), has_differentials(false) {
+    }
+};
 
 } // namespace misaki

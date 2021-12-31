@@ -20,7 +20,8 @@ FileResolver *get_file_resolver() {
     return &file_resolver;
 }
 
-void library_nop() {}
+void library_nop() {
+}
 
 Scene::Scene(const Properties &props) {
     for (auto &[name, obj] : props.objects()) {
@@ -76,7 +77,7 @@ Scene::sample_emitter_direct(const SceneInteraction &ref,
             std::tie(ds, spec) = m_emitters[0]->sample_direct(ref, sample);
         } else {
             auto light_sel_pdf = 1.f / m_emitters.size();
-            auto index =
+            auto index         =
                 std::min(uint32_t(sample.x() * (float) m_emitters.size()),
                          (uint32_t) m_emitters.size() - 1);
             sample.x() =
@@ -89,8 +90,9 @@ Scene::sample_emitter_direct(const SceneInteraction &ref,
         if (test_visibility && ds.pdf != 0.f) {
             Ray ray(ref.p, ds.d,
                     math::RayEpsilon<float> *
-                        (1.f + ref.p.cwiseAbs().maxCoeff()),
-                    ds.dist * (1.f - math::ShadowEpsilon<float>), 0);
+                    (1.f + ref.p.cwiseAbs().maxCoeff()),
+                    ds.dist * (1.f - math::ShadowEpsilon<float>), 0,
+                    ref.wavelengths);
             if (ray_test(ray))
                 spec = Spectrum::Zero();
         }
@@ -121,7 +123,7 @@ Scene::sample_attenuated_emitter_direct(const SceneInteraction &ref,
             std::tie(ds, spec) = m_emitters[0]->sample_direct(ref, sample);
         } else {
             auto light_sel_pdf = 1.f / m_emitters.size();
-            auto index =
+            auto index         =
                 std::min(uint32_t(sample.x() * (float) m_emitters.size()),
                          (uint32_t) m_emitters.size() - 1);
             sample.x() =
@@ -139,14 +141,15 @@ Scene::sample_attenuated_emitter_direct(const SceneInteraction &ref,
     return { ds, spec };
 }
 
-Spectrum Scene::eval_transmittance(const Eigen::Vector3f& ref,
-    const Eigen::Vector3f& p,
-    const Medium* medium) const {
-    Eigen::Vector3f d       = p - ref;
-    float remaining = d.norm();
+Spectrum Scene::eval_transmittance(const Eigen::Vector3f &ref,
+                                   const Eigen::Vector3f &p,
+                                   const Medium *medium) const {
+    Eigen::Vector3f d = p - ref;
+    float remaining   = d.norm();
     d /= remaining;
+    // TODO: Need to fix in volpath
     Ray ray(ref, d, math::RayEpsilon<float>,
-            remaining * (1 - math::ShadowEpsilon<float>), 0);
+            remaining * (1 - math::ShadowEpsilon<float>), 0, Wavelength::Zero());
     Spectrum transmittance = Spectrum::Constant(1);
     while (remaining) {
         SceneInteraction si = ray_intersect(ray);
@@ -243,8 +246,8 @@ SceneInteraction Scene::ray_intersect(const Ray &ray) const {
         si = pi.compute_scene_interaction(ray);
     } else {
         si.wavelengths = ray.wavelengths;
-        si.wi = -ray.d;
-        si.t  = math::Infinity<float>;
+        si.wi          = -ray.d;
+        si.t           = math::Infinity<float>;
     }
     return si;
 }

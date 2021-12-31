@@ -40,7 +40,7 @@ struct SceneInteraction {
     Ray spawn_ray(const Eigen::Vector3f &d) const {
         return Ray(p, d,
                    (1.f + p.cwiseAbs().maxCoeff()) * math::RayEpsilon<float>,
-                   math::Infinity<float>, 0.f);
+                   math::Infinity<float>, 0.f, wavelengths);
     }
 
     Eigen::Vector3f to_world(const Eigen::Vector3f &v) const {

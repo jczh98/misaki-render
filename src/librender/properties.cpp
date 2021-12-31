@@ -204,13 +204,11 @@ ref<Texture> Properties::texture(const std::string &name) const {
               name);
         return (Texture *) object.get();
     } else if (p_type == Properties::Type::Float) {
-        Properties props("srgb");
-        props.set_color("value", Color3::Constant(float_(name)));
+        Properties props("uniform");
+        props.set_float("value", float_(name));
         return (Texture *) InstanceManager::get()
                            ->create_instance<Texture>(props)
                            .get();
-        //return static_cast<Texture *>(
-        //    new ConstantSpectrumTexture(Color3::Constant(float_(name))));
     } else {
         Throw("The property \"{}\" has the wrong type (expected "
               " <spectrum> or <texture>).",
@@ -232,8 +230,6 @@ ref<Texture> Properties::texture(const std::string &name, float def_val) const {
         return (Texture *) InstanceManager::get()
                            ->create_instance<Texture>(props)
                            .get();
-        //    return static_cast<Texture *>(
-        //        new ConstantSpectrumTexture(Color3::Constant(def_val)));
     }
     return texture(name);
 }

@@ -32,8 +32,7 @@ public:
     }
 
     Spectrum eval(const SceneInteraction &si) const override {
-        Log(Info, "{}", m_d65->eval(si));
-        return m_d65->eval(si) * srgb_model_eval(m_value, si.wavelengths);
+        return m_d65->eval(si)  * srgb_model_eval(m_value, si.wavelengths);
     }
 
     std::string to_string() const override {

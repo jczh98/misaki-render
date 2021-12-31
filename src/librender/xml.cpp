@@ -278,13 +278,18 @@ ref<Object> create_texture_from_rgb(const std::string &name,
 
 ref<Object> create_texture_from_spectrum(
     const std::string &name, float const_value, std::vector<float> &wavelengths,
-    std::vector<float> &values) {
+    std::vector<float> &values,
+    bool within_emitter) {
     const Class *class_ = Class::for_name("Texture");
 
     if (wavelengths.empty()) {
         Properties props("uniform");
-        props.set_float("value", const_value);
-
+        if (within_emitter) {
+            props.set_instance_name("d65");
+            props.set_float("scale", const_value);
+        } else {
+            props.set_float("value", const_value);
+        }
         ref<Object> obj =
             InstanceManager::get()->create_instance(props, class_);
         auto expanded = obj->expand();
@@ -296,6 +301,9 @@ ref<Object> create_texture_from_spectrum(
         /* Values are scaled so that integrating the spectrum against the CIE
            curves and converting to sRGB yields (1, 1, 1) for D65. */
         float unit_conversion = 1.f;
+
+        if (within_emitter)
+            unit_conversion = MSK_CIE_Y_NORMALIZATION;
 
         /* Detect whether wavelengths are regularly sampled and potentially
             apply the conversion factor. */
@@ -614,7 +622,7 @@ parse_xml(XMLSource &src, XMLParseContext &ctx, pugi::xml_node &node,
                     }
                 }
                 ref<Object> obj = detail::create_texture_from_spectrum(
-                    name, const_value, wavelengths, values);
+                    name, const_value, wavelengths, values, within_emitter);
 
                 props.set_object(name, obj);
             }

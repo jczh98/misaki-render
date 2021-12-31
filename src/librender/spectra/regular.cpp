@@ -71,12 +71,13 @@ public:
     }
 
     Wavelength eval_pdf(Wavelength x) const {
+        Wavelength xx = x;
         x = (x - m_range.x()) * m_inv_interval_size;
 
-        using Index = Eigen::Array<uint32_t, Wavelength::SizeAtCompileTime, 1>;
+        using Index = SpectrumArray<uint32_t, Wavelength::SizeAtCompileTime>;
 
         Index index =
-            x.cast<uint32_t>().cwiseMin(uint32_t(m_pdf.size() - 2)).cwiseMax(0);
+            x.cast<uint32_t>().cwiseMin(static_cast<uint32_t>(m_pdf.size() - 2)).cwiseMax(0);
 
         Wavelength y0, y1;
         for (int i = 0; i < index.size(); i++) {
