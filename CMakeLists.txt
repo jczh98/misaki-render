@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.17)
+
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake
+  CACHE STRING "Vcpkg toolchain file")
+  
 project(misaki-render)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -9,9 +13,6 @@ set(RENDER_BIN_DIR ${RENDER_DIR}/dist)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${RENDER_BIN_DIR}/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:Release>$<$<CONFIG:MinSizeRel>:Release>)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${RENDER_BIN_DIR}/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:Release>$<$<CONFIG:MinSizeRel>:Release>)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RENDER_BIN_DIR}/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:Release>$<$<CONFIG:MinSizeRel>:Release>)
-
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake
-  CACHE STRING "Vcpkg toolchain file")
   
 find_package(Eigen3 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)

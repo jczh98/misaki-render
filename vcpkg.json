@@ -1,0 +1,15 @@
+{
+    "name": "misaki-render",
+    "version": "0.0.1",
+    "dependencies": [
+      "eigen3",
+      "fmt",
+      "spdlog",
+      "pugixml",
+      "tbb",
+      "embree3",
+      "openimageio",
+      "stb",
+      "glfw3"
+    ]
+  }
